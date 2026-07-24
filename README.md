@@ -117,25 +117,25 @@ Cada recomendación incluye motivo, evidencia usada, beneficios, trade-offs y al
 
 Siempre se generan:
 
-| Archivo | Función |
-|---|---|
-| `huascar.blueprint.json` | Modelo canónico de todas las decisiones. |
-| `manifest.json` | Inventario de archivos y hashes SHA-256. |
-| `docs/INSTALL.md` | Tutorial para aplicar y validar el agente. |
-| `docs/WHY.md` | Explicación del objetivo, stack, entorno y recomendaciones. |
+| Archivo                  | Función                                                     |
+| ------------------------ | ----------------------------------------------------------- |
+| `huascar.blueprint.json` | Modelo canónico de todas las decisiones.                    |
+| `manifest.json`          | Inventario de archivos y hashes SHA-256.                    |
+| `docs/INSTALL.md`        | Tutorial para aplicar y validar el agente.                  |
+| `docs/WHY.md`            | Explicación del objetivo, stack, entorno y recomendaciones. |
 
 Según las respuestas se agregan:
 
-| Condición | Artefactos |
-|---|---|
-| Desarrollo, Kiro o portable | `AGENTS.md` |
-| Skills activadas | `skills/<agente>/SKILL.md` |
-| Target Huascar | `huascar/steering.json`, `security-policy.json`, `governance.json`, `mcps.json` |
-| Target Huascar + RAG activado | `huascar/rag.json` |
-| Target Huascar + PR review activado | `huascar/pr-review.json` |
-| Target Kiro | `.kiro/steering/<agente>.md` |
-| Kiro + hooks | `.kiro/hooks/<agente>-quality.json` |
-| Kiro + skills | `.kiro/skills/<agente>/SKILL.md` |
+| Condición                           | Artefactos                                                                      |
+| ----------------------------------- | ------------------------------------------------------------------------------- |
+| Desarrollo, Kiro o portable         | `AGENTS.md`                                                                     |
+| Skills activadas                    | `skills/<agente>/SKILL.md`                                                      |
+| Target Huascar                      | `huascar/steering.json`, `security-policy.json`, `governance.json`, `mcps.json` |
+| Target Huascar + RAG activado       | `huascar/rag.json`                                                              |
+| Target Huascar + PR review activado | `huascar/pr-review.json`                                                        |
+| Target Kiro                         | `.kiro/steering/<agente>.md`                                                    |
+| Kiro + hooks                        | `.kiro/hooks/<agente>-quality.json`                                             |
+| Kiro + skills                       | `.kiro/skills/<agente>/SKILL.md`                                                |
 
 El bundle se devuelve como JSON. Huascar no escribe estos archivos automáticamente: el usuario debe revisarlos y copiarlos al proyecto destino.
 
@@ -324,12 +324,12 @@ Las configuraciones MCP generadas son sugerencias. Antes de producción deben fi
 
 El runtime mantiene las rutas anteriores:
 
-| Ruta | Función |
-|---|---|
-| `GET /api/health` | Salud del backend. |
-| `GET /api/history` | Historial SQLite. |
-| `POST /api/agent/execute` | Ejecuta una tarea con HuascarEngine. |
-| `/api/hooks/commit-approval/*` | Prototipo de aprobación. |
+| Ruta                           | Función                              |
+| ------------------------------ | ------------------------------------ |
+| `GET /api/health`              | Salud del backend.                   |
+| `GET /api/history`             | Historial SQLite.                    |
+| `POST /api/agent/execute`      | Ejecuta una tarea con HuascarEngine. |
+| `/api/hooks/commit-approval/*` | Prototipo de aprobación.             |
 
 `HuascarEngine` carga steering, fuentes RAG, servidores MCP y ejecuta un bucle ReAct. Sin API key o con `LLM_MOCK_MODE=true`, usa modo simulado.
 
@@ -472,4 +472,4 @@ test/
 
 ## Licencia
 
-MIT
+MPL-2.0 — ver [`LICENSE`](LICENSE). Copyleft débil: los archivos derivados de este código deben conservarse bajo MPL-2.0 y mantener el aviso de copyright y contribuidores, pero puede combinarse con código propietario en un mismo proyecto sin licenciar ese código bajo MPL.

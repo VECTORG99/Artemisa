@@ -11,8 +11,8 @@
     "close": "Cerrar"
   },
   "creator": {
-    "title": "Huascar Creator",
-    "preparing": "Preparando el Creator",
+    "title": "Huascar Creador",
+    "preparing": "Preparando el creador",
     "loadingCatalog": "Cargando catálogo y árbol de decisiones...",
     "evaluating": "Evaluando respuestas...",
     "generating": "Compilando bundle...",

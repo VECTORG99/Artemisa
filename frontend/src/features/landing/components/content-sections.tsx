@@ -1,67 +1,33 @@
-"use client";
+'use client';
 
-import Link from "next/link";
+import Link from 'next/link';
+import type { IconType } from 'react-icons';
+import {
+  SiDocker,
+  SiEslint,
+  SiExpress,
+  SiGithubactions,
+  SiModelcontextprotocol,
+  SiNextdotjs,
+  SiNodedotjs,
+  SiNpm,
+  SiPrettier,
+  SiReact,
+  SiRender,
+  SiSqlite,
+  SiTailwindcss,
+  SiTypescript,
+  SiVercel,
+  SiVite,
+  SiVitest,
+} from 'react-icons/si';
+import { glassStyle, Modal, useLandingModal } from './landing-modal';
 
-interface Section {
-  id: string;
-  title: string;
-  description: string;
-  detail: string;
-  hue: number;
-}
-
-const sections: Section[] = [
-  {
-    id: "decision-tree",
-    title: "Árbol de Decisiones",
-    description: "26 preguntas que se adaptan a tu contexto",
-    detail:
-      "El árbol ajusta su camino según tus respuestas. Desarrollo o producción, monolito o microservicios, cada rama desbloquea preguntas relevantes y oculta las que no aplican.",
-    hue: 200,
-  },
-  {
-    id: "recommendations",
-    title: "Recomendaciones Explicables",
-    description: "Cada sugerencia incluye evidencia y alternativas",
-    detail:
-      "No decisiones probabilísticas. Reglas deterministas con motivo, beneficios, trade-offs y alternativas. Sabes exactamente por qué se recomienda algo y qué sacrificas.",
-    hue: 280,
-  },
-  {
-    id: "bundle",
-    title: "Bundle Reproducible",
-    description: "Configuración lista con hashes SHA-256",
-    detail:
-      "Blueprint, manifest, guía de instalación y documentación explicativa. El mismo input siempre genera el mismo output. Verificable, auditable, versionable.",
-    hue: 160,
-  },
-  {
-    id: "targets",
-    title: "Multi-Target",
-    description: "Huascar · Kiro · Portable",
-    detail:
-      "Genera artefactos para el runtime que prefieras. AGENTS.md, steering, hooks, skills, RAG, PR review — adaptados al formato de cada plataforma.",
-    hue: 40,
-  },
-];
-
-function PlanetIcon({ hue }: { hue: number }) {
-  return (
-    <div className="relative h-10 w-10 shrink-0">
-      <div
-        className="absolute inset-0 rounded-full border"
-        style={{ borderColor: `hsla(${hue}, 80%, 60%, 0.2)` }}
-      />
-      <div
-        className="absolute inset-2 rounded-full"
-        style={{
-          background: `radial-gradient(circle at 35% 35%, hsla(${hue}, 70%, 60%, 0.6), hsla(${hue}, 60%, 30%, 0.8))`,
-          boxShadow: `0 0 12px hsla(${hue}, 100%, 60%, 0.3), inset 0 0 8px rgba(0,0,0,0.4)`,
-        }}
-      />
-    </div>
-  );
-}
+// ─── Hero ───────────────────────────────────────────────────────────────────
+// Minimal by design: one headline, one subheadline, one call to action.
+// Everything else (tech stack, use cases, legal) lives in on-demand modals
+// so a first-time visitor gets the value proposition in a single glance
+// instead of scrolling through secondary information.
 
 export function HeroSection() {
   return (
@@ -73,18 +39,12 @@ export function HeroSection() {
           </span>
         </h1>
 
-        <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">
-          Diseña agentes de desarrollo y operación mediante un árbol de
-          decisiones determinista. Genera su configuración. Entiende por qué fue
-          construida así.
-        </p>
-
         <Link
           href="/agents/new"
-          className="group relative mt-10 inline-flex items-center gap-3 overflow-hidden rounded-full border border-white/10 bg-white/[0.03] px-8 py-4 text-lg font-medium text-white backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/[0.06]"
+          className="group relative mt-6 inline-flex items-center gap-3 overflow-hidden rounded-full px-8 py-4 text-lg font-medium text-white/85 transition-colors hover:text-white"
+          style={glassStyle}
         >
-          <span className="absolute inset-0 -z-10 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-cyan-600/10 opacity-0 transition-opacity group-hover:opacity-100" />
-          <span>Empezar misión</span>
+          <span>Generar agente</span>
           <svg
             className="h-4 w-4 transition-transform group-hover:translate-x-1"
             fill="none"
@@ -92,13 +52,14 @@ export function HeroSection() {
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M13 7l5 5m0 0l-5 5m5-5H6"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
         </Link>
+
+        <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">
+          Diseña agentes de desarrollo y operación con un árbol de decisiones determinista. Sin caja negra: entiendes
+          exactamente por qué se generó cada configuración.
+        </p>
       </div>
 
       {/* Scroll hint */}
@@ -109,59 +70,308 @@ export function HeroSection() {
   );
 }
 
+// ─── Value propositions ─────────────────────────────────────────────────────
+// Three, not four — consolidated onto a single screen instead of one
+// full-viewport scroll-snap section per item.
+
+interface ValueProp {
+  title: string;
+  description: string;
+  hue: number;
+}
+
+const valueProps: ValueProp[] = [
+  {
+    title: 'Árbol de decisiones',
+    description:
+      'Preguntas que se adaptan a tu contexto. Cada respuesta desbloquea lo relevante y oculta lo que no aplica.',
+    hue: 200,
+  },
+  {
+    title: 'Recomendaciones explicables',
+    description:
+      'Reglas deterministas con motivo, evidencia y alternativas. Sabes por qué se sugiere algo, no solo qué.',
+    hue: 280,
+  },
+  {
+    title: 'Bundle reproducible',
+    description:
+      'Blueprint, manifest y hashes SHA-256. El mismo input siempre genera el mismo output — verificable y auditable.',
+    hue: 160,
+  },
+];
+
+function PlanetIcon({ hue }: { hue: number }) {
+  return (
+    <div className="relative mx-auto h-14 w-14 shrink-0">
+      <div className="absolute inset-0 rounded-full border" style={{ borderColor: `hsla(${hue}, 80%, 60%, 0.25)` }} />
+      <div
+        className="absolute inset-2 rounded-full"
+        style={{
+          background: `radial-gradient(circle at 35% 35%, hsla(${hue}, 70%, 60%, 0.6), hsla(${hue}, 60%, 30%, 0.8))`,
+          boxShadow: `0 0 16px hsla(${hue}, 100%, 60%, 0.4), inset 0 0 8px rgba(0,0,0,0.4)`,
+        }}
+      />
+    </div>
+  );
+}
+
+function ValuePropsSection() {
+  return (
+    <section className="flex h-screen snap-start items-center justify-center px-6">
+      <div className="relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
+        {valueProps.map((prop) => (
+          <div
+            key={prop.title}
+            className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
+            style={glassStyle}
+          >
+            <PlanetIcon hue={prop.hue} />
+            <h2 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
+              {prop.title}
+            </h2>
+            <p className="relative mt-2 text-sm leading-relaxed text-zinc-200">{prop.description}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ─── Tecnología ─────────────────────────────────────────────────────────────
+// Visible as its own scroll section (not a modal) — placed last, right
+// before the final CTA, since it's supporting/trust information rather
+// than the core pitch.
+
+interface TechItem {
+  label: string;
+  url: string;
+  Icon?: IconType;
+}
+
+const techGroups: { title: string; items: TechItem[] }[] = [
+  {
+    title: 'Backend',
+    items: [
+      { label: 'Node.js', url: 'https://nodejs.org', Icon: SiNodedotjs },
+      { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript },
+      { label: 'Express', url: 'https://expressjs.com', Icon: SiExpress },
+      { label: 'SQLite (better-sqlite3)', url: 'https://www.sqlite.org', Icon: SiSqlite },
+      { label: 'Vercel AI SDK', url: 'https://sdk.vercel.ai', Icon: SiVercel },
+      { label: 'Model Context Protocol', url: 'https://modelcontextprotocol.io', Icon: SiModelcontextprotocol },
+    ],
+  },
+  {
+    title: 'Frontend',
+    items: [
+      { label: 'Next.js 16', url: 'https://nextjs.org', Icon: SiNextdotjs },
+      { label: 'React 19', url: 'https://react.dev', Icon: SiReact },
+      { label: 'Vite', url: 'https://vitejs.dev', Icon: SiVite },
+      { label: 'Tailwind CSS 4', url: 'https://tailwindcss.com', Icon: SiTailwindcss },
+      { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript },
+    ],
+  },
+  {
+    title: 'Calidad y CI',
+    items: [
+      { label: 'Node test runner', url: 'https://nodejs.org/api/test.html', Icon: SiNodedotjs },
+      { label: 'Vitest', url: 'https://vitest.dev', Icon: SiVitest },
+      { label: 'Playwright', url: 'https://playwright.dev' },
+      { label: 'ESLint', url: 'https://eslint.org', Icon: SiEslint },
+      { label: 'Prettier', url: 'https://prettier.io', Icon: SiPrettier },
+      { label: 'GitHub Actions', url: 'https://github.com/features/actions', Icon: SiGithubactions },
+    ],
+  },
+  {
+    title: 'Infraestructura',
+    items: [
+      { label: 'Docker', url: 'https://www.docker.com', Icon: SiDocker },
+      { label: 'Docker Compose', url: 'https://docs.docker.com/compose/', Icon: SiDocker },
+      { label: 'npm workspaces', url: 'https://docs.npmjs.com/cli/v10/using-npm/workspaces', Icon: SiNpm },
+      { label: 'Render', url: 'https://render.com', Icon: SiRender },
+    ],
+  },
+];
+
+function TechStackSection() {
+  return (
+    <section id="tecnologia" className="flex h-screen snap-start items-center justify-center px-6">
+      <div className="relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10" style={glassStyle}>
+        <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400/80">
+          Stack real del proyecto
+        </span>
+        <h2 className="mt-2 text-3xl font-bold text-white">Tecnología que usamos</h2>
+        <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400">
+          Huascar es open source. Este es el stack exacto con el que está construido.
+        </p>
+        <div className="mt-8 grid gap-6 text-center sm:grid-cols-2">
+          {techGroups.map((group) => (
+            <div key={group.title}>
+              <h3 className="text-center text-sm font-semibold text-zinc-300">{group.title}</h3>
+              <ul className="mt-2 flex flex-wrap justify-center gap-2">
+                {group.items.map((item) => (
+                  <li key={item.label}>
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs text-zinc-300 transition-colors hover:text-white"
+                      style={{
+                        backdropFilter: 'blur(6px)',
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                      }}
+                    >
+                      {item.Icon && <item.Icon className="h-3.5 w-3.5" aria-hidden="true" />}
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Final CTA ──────────────────────────────────────────────────────────────
+
+function FinalCtaSection() {
+  return (
+    <section className="flex h-screen snap-start items-center justify-center px-6">
+      <div className="relative z-10 w-full max-w-2xl rounded-3xl p-10 text-center" style={glassStyle}>
+        <h2 className="text-3xl font-bold text-white">¿Listo para construir tu agente?</h2>
+        <p className="mt-3 max-w-md mx-auto text-zinc-400">
+          El creador te guía paso a paso. Sin sorpresas, sin caja negra.
+        </p>
+        <Link
+          href="/agents/new"
+          className="mt-8 inline-flex items-center gap-2 rounded-full px-7 py-3 font-medium text-white/85 transition-colors hover:text-white"
+          style={glassStyle}
+        >
+          Iniciar creador →
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 export function ContentSections() {
   return (
     <>
-      {sections.map((section) => (
-        <section
-          key={section.id}
-          id={section.id}
-          className="flex h-screen snap-start items-center justify-center px-6"
-        >
-          <div
-            className="relative z-10 w-full max-w-2xl rounded-2xl border border-white/[0.06] bg-black/50 p-8 backdrop-blur-md transition-all hover:border-white/[0.1] hover:bg-black/60 sm:p-10"
-            style={{
-              boxShadow: `0 0 40px hsla(${section.hue}, 60%, 50%, 0.04), inset 0 1px 0 rgba(255,255,255,0.04)`,
-            }}
-          >
-            <div className="flex items-start gap-5">
-              <PlanetIcon hue={section.hue} />
-              <div>
-                <h2
-                  className="text-2xl font-bold"
-                  style={{ color: `hsla(${section.hue}, 60%, 75%, 1)` }}
-                >
-                  {section.title}
-                </h2>
-                <p className="mt-1 text-sm font-medium text-zinc-500">
-                  {section.description}
-                </p>
-              </div>
-            </div>
-            <p className="mt-5 leading-relaxed text-zinc-300">
-              {section.detail}
-            </p>
-          </div>
-        </section>
-      ))}
+      <ValuePropsSection />
+      <TechStackSection />
+      <FinalCtaSection />
+      <LandingModals />
+    </>
+  );
+}
 
-      {/* Final CTA */}
-      <section className="flex h-screen snap-start items-center justify-center px-6">
-        <div className="relative z-10 w-full max-w-2xl rounded-2xl border border-white/[0.06] bg-black/50 p-10 text-center backdrop-blur-md">
-          <h2 className="text-3xl font-bold text-white">
-            ¿Listo para construir tu agente?
-          </h2>
-          <p className="mt-3 max-w-md mx-auto text-zinc-400">
-            El Creator te guía paso a paso. Sin sorpresas, sin caja negra.
-          </p>
-          <Link
-            href="/agents/new"
-            className="mt-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-7 py-3 font-medium text-white backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/[0.08]"
+// ─── On-demand modals: Casos de uso, Legal ─────────────────────────────────
+// These carry secondary information that matters for trust and depth but
+// would clutter a first-glance landing page. They only render when the
+// user explicitly clicks a nav/footer link — never part of the scroll.
+
+interface UseCase {
+  title: string;
+  description: string;
+}
+
+const useCases: UseCase[] = [
+  {
+    title: 'Scaffolding de proyectos',
+    description:
+      'Genera estructuras base de proyectos, módulos y componentes siguiendo las convenciones definidas en el blueprint.',
+  },
+  {
+    title: 'Pruebas automáticas',
+    description:
+      'Escribe tests unitarios y de integración a partir del código existente y del criterio de éxito definido en el árbol de decisiones.',
+  },
+  {
+    title: 'Revisión de Pull Requests',
+    description:
+      'Analiza cambios, detecta riesgos y explica hallazgos priorizados con evidencia, sin hacer merge por sí mismo.',
+  },
+];
+
+function UseCasesModalContent() {
+  return (
+    <>
+      <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400/80">
+        Productividad del desarrollador
+      </span>
+      <h2 className="mt-2 text-3xl font-bold text-white">Casos de uso</h2>
+      <p className="mt-2 max-w-xl text-sm text-zinc-400">
+        Automatización de tareas repetitivas, definida por el propio agente que generas.
+      </p>
+      <div className="mt-8 flex flex-col gap-4">
+        {useCases.map((useCase) => (
+          <div key={useCase.title} className="rounded-xl p-5" style={glassStyle}>
+            <h3 className="text-base font-semibold text-zinc-100">{useCase.title}</h3>
+            <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">{useCase.description}</p>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function LegalModalContent() {
+  return (
+    <>
+      <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Información legal</span>
+      <h2 className="mt-2 text-3xl font-bold text-white">Licencia y uso</h2>
+      <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-zinc-400">
+        <p>
+          Huascar se distribuye bajo la{' '}
+          <a
+            href="https://github.com/VECTORG99/Huascar/blob/development/LICENSE"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-zinc-200 underline underline-offset-2 hover:text-white"
           >
-            Iniciar Creator →
-          </Link>
-        </div>
-      </section>
+            Mozilla Public License 2.0 (MPL-2.0)
+          </a>
+          . Es una licencia de copyleft débil: puedes usar, modificar y distribuir el software, incluso combinado con
+          código propietario, pero cualquier archivo modificado de este proyecto debe conservarse bajo MPL-2.0 y
+          mantener el aviso de copyright y contribuidores originales.
+        </p>
+        <p>
+          El creador no ejecuta código, no realiza llamadas de red ni usa credenciales durante la generación de
+          configuración: es una compilación pura, determinista y auditable. La ejecución de agentes vía{' '}
+          <code className="rounded bg-white/[0.06] px-1.5 py-0.5 text-xs text-zinc-300">/api/agent/execute</code> es un
+          componente separado, sujeto a los controles de autenticación y autorización del backend.
+        </p>
+        <p className="text-zinc-500">
+          Código fuente completo, historial de cambios, autores y reporte de issues disponibles en{' '}
+          <a
+            href="https://github.com/VECTORG99/Huascar"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-zinc-300 underline underline-offset-2 hover:text-white"
+          >
+            github.com/VECTORG99/Huascar
+          </a>
+          .
+        </p>
+      </div>
+    </>
+  );
+}
+
+function LandingModals() {
+  const { openModal, close } = useLandingModal();
+  return (
+    <>
+      <Modal open={openModal === 'casos-de-uso'} onClose={close} title="Casos de uso">
+        <UseCasesModalContent />
+      </Modal>
+      <Modal open={openModal === 'legal'} onClose={close} title="Información legal">
+        <LegalModalContent />
+      </Modal>
     </>
   );
 }

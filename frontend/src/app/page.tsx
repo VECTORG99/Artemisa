@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { HeroSection, ContentSections } from '@/features/landing';
+import { LandingModalProvider } from '@/features/landing/components/landing-modal';
 
 const SpaceSimulation = dynamic(
   () => import('@/features/landing/components/space-simulation').then((m) => m.SpaceSimulation),
@@ -18,7 +19,7 @@ const StickyFooter = dynamic(() => import('@/features/landing/components/sticky-
 
 export default function HomePage() {
   return (
-    <>
+    <LandingModalProvider>
       {/* Navigation */}
       <StickyHeader />
       <StickyFooter />
@@ -36,6 +37,6 @@ export default function HomePage() {
         <HeroSection />
         <ContentSections />
       </div>
-    </>
+    </LandingModalProvider>
   );
 }

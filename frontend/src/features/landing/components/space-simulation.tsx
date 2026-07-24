@@ -1,20 +1,14 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import {
-  type GravityWell,
-  gravityEffect,
-  lensPoint,
-  sampleDisk,
-  sampleSecondaryImage,
-} from "../lib/space-physics";
+import { useEffect, useRef } from 'react';
+import { type GravityWell, gravityEffect, lensPoint, sampleDisk, sampleSecondaryImage } from '../lib/space-physics';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const STAR_COUNT = 350;
 const METEOR_COUNT = 22;
 const METEOR_SPAWN_RATE = 0.12;
-const CHAR_SET = ["0", "1"];
+const CHAR_SET = ['0', '1'];
 const CHAR_SPACING = 14;
 
 // Disk tilt: how squashed the ellipse is (0 = edge-on line, 1 = face-on).
@@ -89,9 +83,9 @@ function buildNoiseGradient(
   seedOffset: number,
   saturation: number,
   lightness: number,
-  opacity: number
+  opacity: number,
 ): CanvasGradient | string {
-  if (typeof ctx.createConicGradient !== "function") {
+  if (typeof ctx.createConicGradient !== 'function') {
     // Fallback for browsers without conic gradient support: flat tint.
     const hue = ringHue(time, seedOffset);
     return `hsla(${hue}, ${saturation}%, ${lightness}%, ${opacity})`;
@@ -166,7 +160,7 @@ export function SpaceSimulation() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     let width = window.innerWidth;
@@ -179,7 +173,7 @@ export function SpaceSimulation() {
       canvas.height = height;
     };
     resize();
-    window.addEventListener("resize", resize);
+    window.addEventListener('resize', resize);
 
     // Black hole well anchored near the very top of the viewport. Sized to
     // dominate the frame like a real horizon-scale render rather than a
@@ -198,12 +192,12 @@ export function SpaceSimulation() {
     // Parallax scroll offset: stars and meteors drift with scroll to feel
     // like the frame is opening up more space as the user scrolls down,
     // while the black hole itself stays perfectly still on screen.
-    const scrollContainer = document.getElementById("space-scroll-container");
+    const scrollContainer = document.getElementById('space-scroll-container');
     let scrollY = 0;
     const handleScroll = () => {
       scrollY = scrollContainer ? scrollContainer.scrollTop : window.scrollY;
     };
-    scrollContainer?.addEventListener("scroll", handleScroll, { passive: true });
+    scrollContainer?.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
 
     const STAR_PARALLAX = 0.18;
@@ -211,13 +205,11 @@ export function SpaceSimulation() {
     let lastScrollY = 0;
     let scrollVelocity = 0;
 
-    const stars: Star[] = Array.from({ length: STAR_COUNT }, () =>
-      createStar(width, height)
-    );
+    const stars: Star[] = Array.from({ length: STAR_COUNT }, () => createStar(width, height));
     const meteors: Meteor[] = [];
 
     const animate = () => {
-      ctx.fillStyle = "rgba(0, 0, 0, 1)";
+      ctx.fillStyle = 'rgba(0, 0, 0, 1)';
       ctx.fillRect(0, 0, width, height);
 
       // ─── Stars with gravitational lensing ──────────────────────────────
@@ -239,13 +231,9 @@ export function SpaceSimulation() {
         const baseOp = star.baseOpacity * (0.35 + Math.abs(twinkle) * 0.65);
         const baseR = star.baseRadius * (0.75 + Math.abs(twinkle) * 0.5);
 
-        const wrappedY =
-          ((star.oy + starOffset) % height + height) % height;
+        const wrappedY = (((star.oy + starOffset) % height) + height) % height;
 
-        const lensed = lensPoint(
-          { x: star.ox, y: wrappedY },
-          well
-        );
+        const lensed = lensPoint({ x: star.ox, y: wrappedY }, well);
 
         if (!lensed.visible) continue;
 
@@ -269,12 +257,11 @@ export function SpaceSimulation() {
           // horizon's curve and becoming one with the ring.
           const angle = Math.atan2(lensed.y - well.y, lensed.x - well.x);
           const starDistance = Math.hypot(lensed.x - well.x, lensed.y - well.y);
-          const arcRadius =
-            starDistance + (well.photonRadius - starDistance) * dissolve;
+          const arcRadius = starDistance + (well.photonRadius - starDistance) * dissolve;
           const arcHalfSpan = 0.05 + dissolve * 0.5; // radians, grows as it merges
           const arcSegments = 8;
           const lineOpBase = op * (0.5 + dissolve * 1.1);
-          ctx.lineCap = "butt";
+          ctx.lineCap = 'butt';
 
           for (let seg = 0; seg < arcSegments; seg++) {
             const t0 = seg / arcSegments;
@@ -358,13 +345,7 @@ export function SpaceSimulation() {
       // one representative opacity per layer instead.
       const radiusRatios = [2.6, 2.1, 1.7, 1.35, 1.08];
       for (const ratio of radiusRatios) {
-        const samples = sampleDisk(
-          well,
-          ratio * orbitScale,
-          orbitTilt,
-          t + orbitRotation,
-          DISK_SAMPLES
-        );
+        const samples = sampleDisk(well, ratio * orbitScale, orbitTilt, t + orbitRotation, DISK_SAMPLES);
 
         // Representative brightness/width for this layer (average across
         // samples), so the whole ring is one flat, evenly-lit stroke.
@@ -378,7 +359,15 @@ export function SpaceSimulation() {
         avgWidth /= samples.length;
 
         const op = clampOpacity(avgBrightness * orbitBrightness * 0.55);
-        if (op < 0.015) continue;
+        // Fade smoothly to zero near the cutoff instead of a hard `continue`.
+        // A binary skip means the faintest (outermost) ring pops in/out of
+        // existence whenever `op` oscillates around the threshold — e.g. on
+        // every orbital brightness cycle, or when scroll position jumps
+        // (programmatic scroll-to-top), causing a visible flicker.
+        const FADE_FLOOR = 0.015;
+        const FADE_RANGE = 0.05;
+        if (op < FADE_FLOOR) continue;
+        const fadedOp = op < FADE_FLOOR + FADE_RANGE ? op * ((op - FADE_FLOOR) / FADE_RANGE) : op;
 
         ctx.beginPath();
         ctx.moveTo(samples[0].x, samples[0].y);
@@ -394,11 +383,11 @@ export function SpaceSimulation() {
           ratio,
           RING_TINT_SATURATION,
           84,
-          op
+          fadedOp,
         );
         ctx.lineWidth = avgWidth * (1 + energy * 0.6) * orbitScale;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
         ctx.stroke();
       }
 
@@ -406,13 +395,7 @@ export function SpaceSimulation() {
       // photon sphere — the hottest, fastest-orbiting material. Drawn as a
       // single continuous path (see primary disk above) to avoid alpha
       // buildup at segment joins.
-      const innerSamples = sampleDisk(
-        well,
-        1.0 * orbitScale,
-        orbitTilt,
-        t + orbitRotation,
-        DISK_SAMPLES
-      );
+      const innerSamples = sampleDisk(well, 1.0 * orbitScale, orbitTilt, t + orbitRotation, DISK_SAMPLES);
       {
         let avgBrightness = 0;
         let avgWidth = 0;
@@ -430,19 +413,10 @@ export function SpaceSimulation() {
             const s = innerSamples[i % innerSamples.length];
             ctx.lineTo(s.x, s.y);
           }
-          ctx.strokeStyle = buildNoiseGradient(
-            ctx,
-            well.x,
-            well.y,
-            performance.now(),
-            5,
-            RING_TINT_SATURATION,
-            88,
-            op
-          );
+          ctx.strokeStyle = buildNoiseGradient(ctx, well.x, well.y, performance.now(), 5, RING_TINT_SATURATION, 88, op);
           ctx.lineWidth = avgWidth * 1.3 * (1 + energy * 0.8) * orbitScale;
-          ctx.lineCap = "round";
-          ctx.lineJoin = "round";
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
           ctx.stroke();
         }
       }
@@ -454,11 +428,11 @@ export function SpaceSimulation() {
         well.eventRadius * 0.6,
         well.x,
         well.y,
-        well.photonRadius * 1.02
+        well.photonRadius * 1.02,
       );
-      shadowGrd.addColorStop(0, "rgba(0,0,0,1)");
-      shadowGrd.addColorStop(0.75, "rgba(0,0,0,0.97)");
-      shadowGrd.addColorStop(1, "rgba(0,0,0,0)");
+      shadowGrd.addColorStop(0, 'rgba(0,0,0,1)');
+      shadowGrd.addColorStop(0.75, 'rgba(0,0,0,0.97)');
+      shadowGrd.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.beginPath();
       ctx.arc(well.x, well.y, well.photonRadius * 1.02, 0, Math.PI * 2);
       ctx.fillStyle = shadowGrd;
@@ -467,7 +441,7 @@ export function SpaceSimulation() {
       // Sharp horizon edge — the true event horizon, pure black.
       ctx.beginPath();
       ctx.arc(well.x, well.y, well.eventRadius, 0, Math.PI * 2);
-      ctx.fillStyle = "#000";
+      ctx.fillStyle = '#000';
       ctx.fill();
 
       // ─── Secondary (lensed) image: far side of the disk bent around the
@@ -500,11 +474,11 @@ export function SpaceSimulation() {
             11,
             RING_TINT_SATURATION,
             86,
-            op
+            op,
           );
           ctx.lineWidth = avgWidth * (1 + energy * 0.6) * orbitScale;
-          ctx.lineCap = "round";
-          ctx.lineJoin = "round";
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
           ctx.stroke();
         }
       }
@@ -538,10 +512,10 @@ export function SpaceSimulation() {
         23,
         RING_TINT_SATURATION,
         90,
-        ringBaseOpacity
+        ringBaseOpacity,
       );
       ctx.lineWidth = 2 + energy * 2;
-      ctx.lineJoin = "round";
+      ctx.lineJoin = 'round';
       ctx.stroke();
 
       // A second, thinner pass with variable width per segment adds the
@@ -566,9 +540,7 @@ export function SpaceSimulation() {
             }
           } else if (arcOpen) {
             ctx.lineTo(rx, ry);
-            const op = clampOpacity(
-              (0.25 + energy * 0.3) * (0.85 + orbitProximity * 0.3)
-            );
+            const op = clampOpacity((0.25 + energy * 0.3) * (0.85 + orbitProximity * 0.3));
             ctx.strokeStyle = buildNoiseGradient(
               ctx,
               well.x,
@@ -577,11 +549,11 @@ export function SpaceSimulation() {
               31,
               RING_TINT_SATURATION,
               92,
-              op
+              op,
             );
             ctx.lineWidth = 3.5 + energy * 2;
-            ctx.lineCap = "round";
-            ctx.lineJoin = "round";
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
             ctx.stroke();
             arcOpen = false;
           }
@@ -636,8 +608,8 @@ export function SpaceSimulation() {
         const dirY = speed > 0 ? m.vy / speed : 0;
 
         ctx.font = `bold ${m.fontSize}px monospace`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
 
         for (let c = 0; c < m.chars.length; c++) {
           const charData = m.chars[c];
@@ -700,16 +672,12 @@ export function SpaceSimulation() {
 
     return () => {
       cancelAnimationFrame(animRef.current);
-      window.removeEventListener("resize", resize);
-      scrollContainer?.removeEventListener("scroll", handleScroll);
+      window.removeEventListener('resize', resize);
+      scrollContainer?.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="pointer-events-none fixed inset-0 z-[1] h-screen w-screen"
-      aria-hidden="true"
-    />
+    <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 z-[1] h-screen w-screen" aria-hidden="true" />
   );
 }

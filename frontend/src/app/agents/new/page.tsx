@@ -44,7 +44,7 @@ function buildRegistryConfig(bundle: GeneratedAgentBundle, answers: CreatorAnswe
   const mcpNames = mcps
     ? Object.keys(mcps.mcpServers && typeof mcps.mcpServers === 'object' ? mcps.mcpServers : mcps)
     : [];
-  const prompt = typeof answers.objective === 'string' ? answers.objective : 'Agente generado desde Creator.';
+  const prompt = typeof answers.objective === 'string' ? answers.objective : 'Agente generado desde el creador.';
   return {
     steering: steering ?? { roles: { GENERATED_AGENT: { system_prompt: prompt } } },
     ...(rag?.knowledge_bases ? { knowledge: rag.knowledge_bases } : {}),
@@ -134,7 +134,7 @@ export default function NewAgentPage() {
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-emerald-300">Creator integrado</p>
+            <p className="text-sm font-medium text-emerald-300">Creador integrado</p>
             <h1 className="text-3xl font-bold tracking-tight text-zinc-50">Nuevo agente</h1>
             <p className="text-zinc-400">Flujo mínimo guiado por el backend: preguntas, bundle y registro.</p>
           </div>

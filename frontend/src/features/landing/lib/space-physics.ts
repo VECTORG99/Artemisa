@@ -32,8 +32,7 @@ export interface DiskSample extends Point {
   width: number;
 }
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 /**
  * Samples the near (primary) image of the accretion disk as seen projected
@@ -74,7 +73,13 @@ export function sampleDisk(
     const limb = 0.55 + 0.45 * Math.abs(Math.sin(orbitAngle));
 
     const brightness = clamp(beaming * limb, 0.04, 3.2);
-    const width = well.photonRadius * (0.05 + 0.03 * (1 - radiusRatio));
+    // Width tapers with radius (inner edge brighter/thicker, outer disk
+    // thinner) but is clamped to a sane minimum. The previous formula
+    // `0.05 + 0.03 * (1 - radiusRatio)` went negative for radiusRatio > 1.67
+    // (e.g. ~-0.048 at 2.6), so the outermost ring rendered at ~0 width —
+    // effectively invisible regardless of its opacity, reading as a
+    // flickering/disappearing ring.
+    const width = well.photonRadius * Math.max(0.018, 0.05 - 0.012 * (radiusRatio - 1));
 
     samples.push({ x, y, brightness, doppler, width });
   }
@@ -89,11 +94,7 @@ export function sampleDisk(
  * It is a thin, bright arc hugging the photon ring on the side opposite
  * strong Doppler dimming.
  */
-export function sampleSecondaryImage(
-  well: GravityWell,
-  time: number,
-  sampleCount: number,
-): DiskSample[] {
+export function sampleSecondaryImage(well: GravityWell, time: number, sampleCount: number): DiskSample[] {
   const samples: DiskSample[] = [];
   const radius = well.photonRadius * 1.02;
   // Arc spans the upper hemisphere where the far side of the disk gets
@@ -106,16 +107,17 @@ export function sampleSecondaryImage(
     const angle = arcStart + (arcEnd - arcStart) * t;
     const orbitAngle = angle + time * 0.9;
 
-    const x = well.x + Math.cos(angle) * radius;
-    const y = well.y + Math.sin(angle) * radius * 0.99;
+    // Position follows `orbitAngle` (not the static `angle`) so the arc
+    // actually rotates around the photon ring over time — previously the
+    // points were placed at the fixed `angle` and only `approach`
+    // (brightness) used `orbitAngle`, so the arc's geometry never moved,
+    // reading as a static "U" shape frozen above the black hole.
+    const x = well.x + Math.cos(orbitAngle) * radius;
+    const y = well.y + Math.sin(orbitAngle) * radius * 0.99;
 
     const approach = Math.cos(orbitAngle);
     const edgeFade = Math.sin(((angle - arcStart) / (arcEnd - arcStart)) * Math.PI);
-    const brightness = clamp(
-      (0.5 + approach * 0.3) * edgeFade * 1.4,
-      0,
-      1.6,
-    );
+    const brightness = clamp((0.5 + approach * 0.3) * edgeFade * 1.4, 0, 1.6);
 
     samples.push({
       x,
@@ -164,20 +166,13 @@ export function lensPoint(point: Point, well: GravityWell): LensedPoint {
   const ringWidth = Math.max(1, well.photonRadius * 0.16);
   const ringDistance = (distance - well.photonRadius) / ringWidth;
   const photonBand = Math.exp(-(ringDistance * ringDistance));
-  const horizonFade = clamp(
-    (distance - well.eventRadius) /
-      Math.max(1, well.photonRadius - well.eventRadius),
-    0,
-    1,
-  );
+  const horizonFade = clamp((distance - well.eventRadius) / Math.max(1, well.photonRadius - well.eventRadius), 0, 1);
 
   // Stronger, more jagged bending right at the photon sphere edge — light
   // grazing the horizon gets whipped around harder instead of a smooth
   // gentle curve, reading as raw gravitational distortion.
-  const radialDisplacement =
-    well.photonRadius * (0.46 * photonBand + 0.08 * influence * influence);
-  const angularDeflection =
-    influence * influence * 0.42 + photonBand * 0.58;
+  const radialDisplacement = well.photonRadius * (0.46 * photonBand + 0.08 * influence * influence);
+  const angularDeflection = influence * influence * 0.42 + photonBand * 0.58;
   const lensedRadius = distance + radialDisplacement;
   const lensedAngle = angle + angularDeflection;
 
@@ -212,8 +207,7 @@ export function gravityEffect(point: Point, well: GravityWell): GravityEffect {
 
   const influence = clamp(1 - distance / well.influenceRadius, 0, 1);
   const horizonProximity = clamp(
-    (well.photonRadius * 1.35 - distance) /
-      Math.max(1, well.photonRadius * 1.35 - well.eventRadius),
+    (well.photonRadius * 1.35 - distance) / Math.max(1, well.photonRadius * 1.35 - well.eventRadius),
     0,
     1,
   );
