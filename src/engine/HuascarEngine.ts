@@ -1,38 +1,27 @@
 import fs from 'fs';
 import { config } from '../config.js';
 import { agentHooks } from '../kiro/hooks.js';
-import { generateText } from 'ai';
-import { openai } from '@ai-sdk/openai';
-import { Client } from '@modelcontextprotocol/sdk/client';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { isStepCount, jsonSchema, tool, type ToolSet } from 'ai';
 import { RagEngine, RagSource } from './RagEngine.js';
 import { Store } from './Store.js';
+import { logger } from '../logger.js';
+import { EngineError, ErrorCodes } from '../errors.js';
+import { ConnectedMcpClient, mcpConnectionPool } from './McpConnectionPool.js';
+import type { JSONSchema7 } from 'json-schema';
+import { generateTextWithFallback } from './LlmProvider.js';
+import { runMockScenario } from './MockProvider.js';
+import { ConfigCache } from './ConfigCache.js';
+import { ToolResultCache } from './ToolResultCache.js';
+import { withSpan } from '../telemetry.js';
 
 interface RagConfig {
   knowledge_bases: RagSource[];
 }
 
-interface McpServerConfig {
-  command: string;
-  args?: string[];
-  env?: Record<string, string>;
-  description?: string;
-}
-
-interface McpServersConfig {
-  mcpServers: Record<string, McpServerConfig>;
-}
-
-interface ConnectedMcpClient {
-  name: string;
-  client: Client;
-  transport: StdioClientTransport;
-  tools: { name: string; description?: string; inputSchema?: unknown }[];
-}
-
 export interface AgentConfig {
   tools?: string[];
   knowledge?: RagSource[];
+  steering?: unknown;
   security?: {
     block_destructive_commands?: boolean;
     require_commit_approval?: boolean;
@@ -49,340 +38,323 @@ interface SteeringConfig {
   roles: Record<string, SteeringRole>;
 }
 
+function registeredSteeringRole(steering: unknown, roleKey: string): SteeringRole | null {
+  if (!steering || typeof steering !== 'object') return null;
+  const roles = (steering as { roles?: unknown }).roles;
+  const role = Array.isArray(roles)
+    ? roles.find((item) => item && typeof item === 'object' && (item as Record<string, unknown>).id === roleKey)
+    : roles && typeof roles === 'object'
+      ? (roles as Record<string, unknown>)[roleKey]
+      : null;
+  if (!role || typeof role !== 'object') return null;
+  const r = role as Record<string, unknown>;
+  const system_prompt = r.prompt ?? r.system_prompt;
+  if (typeof system_prompt !== 'string') return null;
+  return {
+    name: typeof r.name === 'string' ? r.name : roleKey,
+    system_prompt,
+    temperature: typeof r.temperature === 'number' ? r.temperature : 0.3,
+  };
+}
+
+type AgentHooks = typeof agentHooks;
+
+export interface HuascarEngineDeps {
+  store?: Store;
+  readFile?: (path: string, encoding: BufferEncoding) => string;
+  exists?: (path: string) => boolean;
+  rag?: RagEngine;
+  mcpPool?: { getConnections(): Promise<ConnectedMcpClient[]>; closeAll?(): Promise<void> };
+  generateTextWithFallback?: typeof generateTextWithFallback;
+  toolResultCache?: ToolResultCache;
+}
+
+export function buildAiTools(
+  mcpClients: ConnectedMcpClient[],
+  hooks: AgentHooks = agentHooks,
+  onToolExecution?: (toolName: string) => void,
+  toolCache?: ToolResultCache,
+): ToolSet {
+  const aiTools: ToolSet = {};
+
+  for (const c of mcpClients) {
+    for (const mcpTool of c.tools) {
+      const toolName = mcpTool.name;
+      aiTools[toolName] = tool({
+        description: mcpTool.description || 'Sin descripción',
+        inputSchema: jsonSchema((mcpTool.inputSchema ?? { type: 'object', additionalProperties: true }) as JSONSchema7),
+        execute: async (args: unknown) => {
+          const toolArgs = args as Record<string, unknown>;
+          onToolExecution?.(toolName);
+          hooks.before_action(toolName, toolArgs);
+
+          // Check ToolResultCache before executing (#277)
+          if (toolCache) {
+            const cached = toolCache.get(toolName, toolArgs);
+            if (cached !== null) {
+              logger.info(`[HuascarEngine] Cache hit for "${toolName}"`);
+              return cached;
+            }
+          }
+
+          const timeoutMs = config.react.mcpTimeoutMs;
+          let timer: ReturnType<typeof setTimeout> | undefined;
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            timer = setTimeout(
+              () => reject(new Error(`MCP tool "${toolName}" timed out after ${timeoutMs}ms`)),
+              timeoutMs,
+            );
+          });
+
+          try {
+            const result = await Promise.race([
+              c.client.callTool({ name: toolName, arguments: toolArgs }),
+              timeoutPromise,
+            ]);
+            const resultContent = result.content as { type: string; text?: string }[] | undefined;
+            if (!resultContent) {
+              logger.info(`[HuascarEngine] Herramienta "${toolName}" retorno resultado sin contenido`);
+              return `Error: resultado sin contenido de "${toolName}"`;
+            }
+            let toolResult = resultContent
+              .filter((c) => c.type === 'text')
+              .map((c) => c.text ?? '')
+              .join('\n');
+            if (toolResult.length > config.react.toolResultMaxChars) {
+              toolResult = toolResult.slice(0, config.react.toolResultMaxChars) + '\n... [truncado]';
+            }
+            // Store in cache (#277)
+            if (toolCache) {
+              toolCache.set(toolName, toolArgs, toolResult);
+            }
+            logger.info(`[HuascarEngine] Herramienta "${toolName}" ejecutada correctamente`);
+            return toolResult;
+          } catch (err: unknown) {
+            const errMsg = err instanceof Error ? err.message : String(err);
+            logger.error(`[HuascarEngine] Error en herramienta: ${errMsg}`);
+            return `Error ejecutando "${toolName}": ${errMsg}`;
+          } finally {
+            if (timer) clearTimeout(timer);
+          }
+        },
+      });
+    }
+  }
+
+  return aiTools;
+}
+
 export class HuascarEngine {
   private steering: SteeringConfig;
   public activeRole!: SteeringRole;
   private mcpClients: ConnectedMcpClient[] = [];
+  // Set by agentConfig.security.require_commit_approval; exposed via getter
+  // for callers that gate commit/apply steps on this flag (see routes/hooks.ts).
+  private requireCommitApproval = false;
+
+  get commitApprovalRequired(): boolean {
+    return this.requireCommitApproval;
+  }
   private rag: RagEngine;
   private store: Store | null;
   private roleKey: string;
+  private deps: Required<Pick<HuascarEngineDeps, 'readFile' | 'exists' | 'mcpPool' | 'generateTextWithFallback'>>;
+  private hasCustomReadFile: boolean;
+  private toolCache: ToolResultCache;
 
-  constructor(roleKey: string, store?: Store) {
-    this.steering = JSON.parse(fs.readFileSync(config.paths.steering, config.rag.encoding));
+  constructor(roleKey: string, store?: Store);
+  constructor(roleKey: string, deps?: HuascarEngineDeps);
+  constructor(roleKey: string, storeOrDeps?: Store | HuascarEngineDeps) {
+    const deps = storeOrDeps instanceof Store ? { store: storeOrDeps } : (storeOrDeps ?? {});
+    this.hasCustomReadFile = !!deps.readFile;
+    this.deps = {
+      readFile: deps.readFile ?? ((path, encoding) => fs.readFileSync(path, encoding)),
+      exists: deps.exists ?? fs.existsSync,
+      mcpPool: deps.mcpPool ?? mcpConnectionPool,
+      generateTextWithFallback: deps.generateTextWithFallback ?? generateTextWithFallback,
+    };
+    this.steering = ConfigCache.getInstance().getSteering(
+      this.hasCustomReadFile ? this.deps.readFile : undefined,
+    ) as SteeringConfig;
     this.roleKey = roleKey;
-    this.rag = new RagEngine({ maxContentChars: config.rag.maxContentChars, encoding: config.rag.encoding, store: store ?? undefined });
-    this.store = store || null;
-  }
-
-  private resolveEnv(env?: Record<string, string>): Record<string, string> | undefined {
-    if (!env) return undefined;
-    const resolved: Record<string, string> = {};
-    for (const [key, value] of Object.entries(env)) {
-      resolved[key] = value.replace(/\$\{(\w+)\}/g, (_, name: string) => process.env[name] || '');
-    }
-    return resolved;
-  }
-
-  private async withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const timeout = new Promise<never>((_, reject) => {
-      timer = setTimeout(() => reject(new Error(`MCP ${label} timeout after ${ms}ms`)), ms);
-    });
-    try {
-      return await Promise.race([promise, timeout]);
-    } finally {
-      if (timer) clearTimeout(timer);
-    }
+    this.rag =
+      deps.rag ??
+      new RagEngine({ maxContentChars: config.rag.maxContentChars, encoding: config.rag.encoding, store: deps.store });
+    this.store = deps.store || null;
+    this.toolCache = deps.toolResultCache ?? new ToolResultCache();
   }
 
   private async connectMcpServers(): Promise<void> {
-    if (!fs.existsSync(config.paths.mcps)) {
-      console.log('[HuascarEngine] mcps.json no encontrado, saltando MCP.');
-      return;
-    }
-
-    const mcpConfig: McpServersConfig = JSON.parse(fs.readFileSync(config.paths.mcps, config.rag.encoding));
-
-    for (const [name, serverConfig] of Object.entries(mcpConfig.mcpServers)) {
-      let transport: StdioClientTransport | undefined;
-      let client: Client | undefined;
-      try {
-        console.log(`[HuascarEngine] Iniciando MCP server: "${name}" (${serverConfig.command})`);
-
-        transport = new StdioClientTransport({
-          command: serverConfig.command,
-          args: serverConfig.args || [],
-          env: this.resolveEnv(serverConfig.env),
-          stderr: config.mcp.stderr,
-        });
-
-        client = new Client(
-          { name: 'huascar-engine', version: '1.0.0' },
-          { capabilities: {} },
-        );
-
-        await this.withTimeout(client.connect(transport), config.react.mcpTimeoutMs, 'connect');
-        const toolsResult = await this.withTimeout(client.listTools(), config.react.mcpTimeoutMs, 'listTools');
-        const tools = (toolsResult.tools || []).map(t => ({
-          name: t.name,
-          description: t.description,
-          inputSchema: t.inputSchema,
-        }));
-
-        console.log(`[HuascarEngine] MCP "${name}" conectado (${tools.length} herramientas)`);
-
-        this.mcpClients.push({ name, client, transport, tools });
-      } catch (err: unknown) {
-        console.error(`[HuascarEngine] Error conectando MCP "${name}": ${err instanceof Error ? err.message : String(err)}`);
-        // Cleanup zombie MCP processes on timeout/failure
-        try { if (transport) await transport.close(); } catch { /* ignore */ }
-        try { if (client) client.close(); } catch { /* ignore */ }
-      }
-    }
+    this.mcpClients = (await this.deps.mcpPool.getConnections()).map((c) => ({ ...c, tools: [...c.tools] }));
   }
 
   private async loadRagSources(): Promise<void> {
-    if (!fs.existsSync(config.paths.rag)) {
-      console.log('[HuascarEngine] rag.json no encontrado, saltando RAG.');
+    if (!this.deps.exists(config.paths.rag)) {
+      logger.info('[HuascarEngine] rag.json no encontrado, saltando RAG.');
       return;
     }
     try {
-      const ragConfig: RagConfig = JSON.parse(fs.readFileSync(config.paths.rag, config.rag.encoding));
-      if (!Array.isArray(ragConfig.knowledge_bases)) {
-        console.warn('[HuascarEngine] knowledge_bases no es un array, saltando RAG.');
+      const ragConfig = ConfigCache.getInstance().getRag(
+        this.hasCustomReadFile ? this.deps.readFile : undefined,
+        this.deps.exists,
+      ) as RagConfig | null;
+      if (!ragConfig || !Array.isArray(ragConfig.knowledge_bases)) {
+        logger.warn('[HuascarEngine] knowledge_bases no es un array, saltando RAG.');
         return;
       }
       await this.rag.loadSources(ragConfig.knowledge_bases);
-      console.log(`[HuascarEngine] RAG cargado: ${ragConfig.knowledge_bases.length} fuentes`);
+      logger.info(`[HuascarEngine] RAG cargado: ${ragConfig.knowledge_bases.length} fuentes`);
     } catch (err: unknown) {
-      console.warn(`[HuascarEngine] Error cargando RAG: ${err instanceof Error ? err.message : String(err)}`);
+      logger.warn(`[HuascarEngine] Error cargando RAG: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 
   private async disconnectMcpServers(): Promise<void> {
-    for (const c of this.mcpClients) {
-      try {
-        await c.client.close();
-      } catch (err: unknown) {
-        console.error(`[HuascarEngine] Error cerrando MCP "${c.name}": ${err instanceof Error ? err.message : String(err)}`);
-      }
-    }
     this.mcpClients = [];
   }
 
-  async executeTask(task: string, systemPrompt?: string, agentConfig?: AgentConfig) {
-    if (!this.steering.roles[this.roleKey]) {
-      if (systemPrompt) {
-        this.activeRole = { name: this.roleKey, system_prompt: systemPrompt, temperature: 0.3 };
-      } else {
-        throw new Error(`El rol '${this.roleKey}' no existe en steering.json`);
-      }
-    } else {
-      this.activeRole = this.steering.roles[this.roleKey];
-    }
-    console.log(`\n[HuascarEngine] Iniciando LLM ReAct Loop...`);
-    console.log(`[HuascarEngine] Rol activo: ${this.activeRole.name}`);
-    console.log(`[HuascarEngine] Tarea: ${task}`);
+  async cancelAll(): Promise<void> {
+    logger.warn('[HuascarEngine] Cancelling all MCP connections...');
+    await this.disconnectMcpServers();
+  }
 
-    try {
-      const useMock = config.llm.mockMode || !config.hasApiKey;
-
-      let mcpContext = '';
-
-      if (!useMock) {
-        await this.connectMcpServers();
-
-        await this.loadRagSources();
-
-        // Apply optional agent config (from questionnaire) on top of base settings
-        if (agentConfig) {
-          // Filter MCP tools to only those selected by user
-          if (agentConfig.tools && agentConfig.tools.length > 0) {
-            const selectedTools = agentConfig.tools;
-            for (const c of this.mcpClients) {
-              c.tools = c.tools.filter(t => selectedTools.includes(t.name));
-            }
-          }
-          // Add knowledge sources from config
-          if (agentConfig.knowledge && agentConfig.knowledge.length > 0) {
-            await this.rag.loadSources(agentConfig.knowledge);
-          }
+  async executeTask(
+    task: string,
+    systemPrompt?: string,
+    agentConfig?: AgentConfig,
+    sessionContext = '',
+    mockScenario?: string,
+    signal?: AbortSignal,
+  ) {
+    return withSpan('engine.executeTask', { role: this.roleKey, taskLength: task.length }, async () => {
+      const registeredRole = registeredSteeringRole(agentConfig?.steering, this.roleKey);
+      const steeringRole = this.steering.roles[this.roleKey];
+      if (registeredRole) {
+        this.activeRole = registeredRole;
+      } else if (!steeringRole) {
+        if (systemPrompt) {
+          this.activeRole = { name: this.roleKey, system_prompt: systemPrompt, temperature: 0.3 };
+        } else {
+          throw new EngineError(
+            ErrorCodes.ENGINE_ROLE_NOT_FOUND,
+            `El rol '${this.roleKey}' no existe en steering.json`,
+            404,
+          );
         }
+      } else {
+        this.activeRole = steeringRole;
+      }
+      logger.info(`\n[HuascarEngine] Iniciando LLM ReAct Loop...`);
+      logger.info(`[HuascarEngine] Rol activo: ${this.activeRole.name}`);
+      logger.info(`[HuascarEngine] Tarea: ${task}`);
 
-        if (this.mcpClients.length > 0) {
-          mcpContext = '\n\n## Herramientas MCP disponibles:\n';
-          for (const c of this.mcpClients) {
-            for (const tool of c.tools) {
-              mcpContext += `- ${tool.name}: ${tool.description || 'Sin descripción'}\n`;
-              const schema = tool.inputSchema as { properties?: Record<string, unknown> } | undefined;
-              if (schema?.properties) {
-                const props = Object.keys(schema.properties).join(', ');
-                mcpContext += `  Parametros: ${props}\n`;
+      try {
+        const useMock = config.llm.mockMode || !config.hasLlmProvider;
+
+        if (!useMock) {
+          await withSpan('engine.connectMcp', { role: this.roleKey }, () => this.connectMcpServers());
+          await withSpan('engine.loadRag', { role: this.roleKey }, () => this.loadRagSources());
+
+          // Apply optional agent config (from questionnaire) on top of base settings
+          if (agentConfig) {
+            if (agentConfig.tools !== undefined) {
+              const selectedTools = new Set(agentConfig.tools);
+              for (const c of this.mcpClients) {
+                c.tools = c.tools.filter((t) => selectedTools.has(t.name));
+              }
+              const allAvailable = new Set(this.mcpClients.flatMap((c) => c.tools.map((t) => t.name)));
+              for (const requested of agentConfig.tools) {
+                if (!allAvailable.has(requested)) {
+                  logger.warn(`[HuascarEngine] Requested tool "${requested}" not found in any MCP server — ignored`);
+                }
+              }
+              logger.info(
+                `[HuascarEngine] Tool enforcement: ${selectedTools.size} selected, ${this.mcpClients.reduce((n, c) => n + c.tools.length, 0)} available after filter`,
+              );
+            }
+            if (agentConfig.knowledge && agentConfig.knowledge.length > 0) {
+              const safeSources = agentConfig.knowledge.filter((source) => {
+                if (source.type === 'inline') return true;
+                logger.warn(
+                  `[HuascarEngine] Blocked client-supplied RAG source type="${source.type}" — only inline allowed`,
+                );
+                return false;
+              });
+              if (safeSources.length > 0) {
+                await this.rag.loadSources(safeSources);
+              }
+            }
+
+            if (agentConfig.security) {
+              if (agentConfig.security.block_destructive_commands) {
+                logger.info('[HuascarEngine] Security: destructive command blocking enforced by client request');
+              }
+              if (agentConfig.security.require_commit_approval) {
+                this.requireCommitApproval = true;
+                logger.info('[HuascarEngine] Security: commit approval required for this execution');
               }
             }
           }
-          mcpContext += [
-            '',
-            'Para usar una herramienta, responde EXACTAMENTE con este formato:',
-            'USE_TOOL: <nombre_herramienta>',
-            'Argumentos: {"key": "value"}',
-            '',
-            'Cuando la tarea este completa, responde con:',
-            'FINAL: <respuesta final>',
-            '',
-          ].join('\n');
         }
-      }
 
-      const ragContext = await this.rag.getContext(task);
-      const systemPrompt = this.activeRole.system_prompt + (ragContext ? '\n\n' + ragContext : '') + mcpContext;
+        const effectiveTask = sessionContext ? `${sessionContext}\n\nTarea actual:\n${task}` : task;
+        const ragContext = await this.rag.getContext(effectiveTask);
+        const baseSystemPrompt = systemPrompt ?? this.activeRole.system_prompt;
+        const effectiveSystemPrompt = baseSystemPrompt + (ragContext ? '\n\n' + ragContext : '');
 
-      const responseText = !useMock
-        ? await this.runReActLoop(systemPrompt, task)
-        : this.runMockReActLoop(task);
+        const responseText = !useMock
+          ? await withSpan('engine.reactLoop', { role: this.roleKey }, () =>
+              this.runReActLoop(effectiveSystemPrompt, effectiveTask, signal),
+            )
+          : await this.runMockReActLoop(effectiveTask, mockScenario);
 
-      if (this.store) {
-        try {
-          this.store.saveExecution(this.activeRole.name, task, responseText);
-        } catch (err) {
-          console.warn('[HuascarEngine] Error guardando ejecucion:', err);
-        }
-      }
-
-      return { status: "success", agent_role: this.activeRole.name, response: responseText };
-
-    } catch (error: unknown) {
-      return { status: "blocked", error: error instanceof Error ? error.message : String(error) };
-    } finally {
-      await this.disconnectMcpServers();
-    }
-  }
-
-
-  private async runReActLoop(systemPrompt: string, task: string): Promise<string> {
-    const maxIterations = config.react.maxIterations;
-    const messages: { role: string; content: string }[] = [
-      { role: 'user', content: task },
-    ];
-
-    for (let i = 0; i < maxIterations; i++) {
-      console.log(`\n[HuascarEngine] ReAct iteracion ${i + 1}/${maxIterations}`);
-
-      const { text } = await generateText({
-        model: openai(config.llm.modelId),
-        system: systemPrompt,
-        prompt: messages[messages.length - 1].content,
-      });
-
-      console.log(`[HuascarEngine] Respuesta LLM:\n${text}`);
-
-      const finalMatch = text.match(/FINAL:\s*(.+)/s);
-      if (finalMatch) {
-        console.log(`[HuascarEngine] Respuesta final en iteracion ${i + 1}`);
-        return finalMatch[1].trim();
-      }
-
-      const toolMatch = text.match(/USE_TOOL:\s*(\S+)/);
-      if (!toolMatch) {
-        console.log(`[HuascarEngine] Sin herramienta ni respuesta final, retornando respuesta cruda`);
-        return text;
-      }
-
-      const toolName = toolMatch[1].trim();
-
-      // ponytail: brace-depth parser instead of regex, handles nested JSON
-      let args: any = {};
-      const argsLabel = 'Argumentos:';
-      const argsIdx = text.indexOf(argsLabel);
-      if (argsIdx !== -1) {
-        const start = argsIdx + argsLabel.length;
-        let depth = 0;
-        let end = -1;
-        for (let i = start; i < text.length; i++) {
-          const ch = text[i];
-          if (ch === '{') { if (depth === 0 && end === -1) end = i; depth++; }
-          else if (ch === '}') { depth--; if (depth === 0) { end = i + 1; break; } }
-        }
-        if (depth === 0 && end > start) {
+        if (this.store) {
           try {
-            args = JSON.parse(text.slice(start, end));
-          } catch {
-            console.log(`[HuascarEngine] No se pudieron parsear los argumentos JSON para "${toolName}"`);
+            this.store.saveExecution(this.activeRole.name, task, responseText);
+          } catch (err) {
+            logger.warn({ err }, '[HuascarEngine] Error guardando ejecucion');
           }
         }
+
+        return { status: 'success', agent_role: this.activeRole.name, response: responseText };
+      } catch (error: unknown) {
+        return { status: 'blocked', error: error instanceof Error ? error.message : String(error) };
+      } finally {
+        await this.disconnectMcpServers();
+        this.toolCache.clear();
       }
-
-      console.log(`[HuascarEngine] Llamando herramienta: "${toolName}"`);
-
-      // Hook de seguridad: validar herramienta real
-      agentHooks.before_action(toolName, args);
-
-      let toolResult = `Error: herramienta "${toolName}" no encontrada en ningun servidor MCP`;
-
-      for (const c of this.mcpClients) {
-        const toolDef = c.tools.find(t => t.name === toolName);
-        if (toolDef) {
-          try {
-            const timeoutMs = config.react.mcpTimeoutMs;
-            const timeoutPromise = new Promise<never>((_, reject) => {
-              setTimeout(() => reject(new Error(`MCP tool "${toolName}" timed out after ${timeoutMs}ms`)), timeoutMs);
-            });
-            const callPromise = c.client.callTool({ name: toolName, arguments: args });
-            const result = await Promise.race([callPromise, timeoutPromise]);
-            const resultContent = result.content as { type: string; text?: string }[] | undefined;
-            if (!resultContent) {
-              toolResult = `Error: resultado sin contenido de "${toolName}"`;
-              console.log(`[HuascarEngine] Herramienta "${toolName}" retorno resultado sin contenido`);
-              break;
-            }
-            toolResult = resultContent
-              .filter(c => c.type === 'text')
-              .map(c => c.text ?? '')
-              .join('\n');
-            // ponytail: truncate large tool results to avoid blowing context budget
-            if (toolResult.length > config.react.toolResultMaxChars) {
-              toolResult = toolResult.slice(0, config.react.toolResultMaxChars) + '\n... [truncado]';
-            }
-            console.log(`[HuascarEngine] Herramienta "${toolName}" ejecutada correctamente`);
-          } catch (err: unknown) {
-            const errMsg = err instanceof Error ? err.message : String(err);
-            toolResult = `Error ejecutando "${toolName}": ${errMsg}`;
-            console.error(`[HuascarEngine] Error en herramienta: ${errMsg}`);
-            // On timeout, kill the MCP transport to release the process
-            if (errMsg.includes('timed out')) {
-              console.warn(`[HuascarEngine] Killing MCP "${c.name}" transport after timeout`);
-              try { await c.transport.close(); } catch { /* ignore */ }
-            }
-          }
-          break;
-        }
-      }
-
-      messages.push({ role: 'assistant', content: text });
-      messages.push({ role: 'user', content: `## Resultado de ${toolName}:\n${toolResult}\n\nContinua o responde FINAL: <respuesta>.` });
-    }
-
-    console.log(`[HuascarEngine] Maximo de iteraciones (${maxIterations}) alcanzado`);
-
-    const { text } = await generateText({
-      model: openai(config.llm.modelId),
-      system: systemPrompt + '\n\nHas alcanzado el limite de iteraciones. Proporciona tu mejor respuesta final.',
-      prompt: messages[messages.length - 1].content,
     });
-
-    const finalMatch = text.match(/FINAL:\s*(.+)/s);
-    return finalMatch ? finalMatch[1].trim() : text;
   }
 
-  private runMockReActLoop(task: string): string {
-    console.log(`[HuascarEngine] Sin API Key - simulando ReAct Loop...`);
+  private async runReActLoop(systemPrompt: string, task: string, signal?: AbortSignal): Promise<string> {
+    if (signal?.aborted) throw new Error(`Execution cancelled: ${signal.reason || 'aborted'}`);
+    let toolExecuted = false;
+    const { text } = await this.deps.generateTextWithFallback(
+      {
+        system: systemPrompt,
+        prompt: task,
+        tools: buildAiTools(
+          this.mcpClients,
+          agentHooks,
+          () => {
+            toolExecuted = true;
+          },
+          this.toolCache,
+        ),
+        stopWhen: isStepCount(config.react.maxIterations),
+      },
+      undefined,
+      undefined,
+      () => !toolExecuted,
+    );
 
-    const mockSteps = [
-      `Paso 1: Evaluando tarea "${task}"...`,
-      `  -> Se analizo la estructura del proyecto`,
-      `  -> No se detectaron comandos destructivos`,
-      `Paso 2: Herramientas disponibles verificadas`,
-      `  -> MCP no disponible en modo simulado`,
-      `Paso 3: Sintesis de resultados`,
-    ];
+    if (signal?.aborted) throw new Error(`Execution cancelled: ${signal.reason || 'aborted'}`);
+    logger.info(`[HuascarEngine] Respuesta LLM:\n${text}`);
+    return text;
+  }
 
-    return [
-      `[SIMULADO] ReAct completado para: "${task}"`,
-      ``,
-      ...mockSteps,
-      ``,
-      `Conclusion: La tarea fue procesada correctamente en modo simulado.`,
-      `Para ejecucion real, configura OPENAI_API_KEY en el entorno.`,
-    ].join('\n');
+  private runMockReActLoop(task: string, scenario?: string): Promise<string> {
+    logger.info(`[HuascarEngine] Sin API Key - simulando ReAct Loop...`);
+    return runMockScenario({ task, scenario, readFile: this.deps.readFile });
   }
 }

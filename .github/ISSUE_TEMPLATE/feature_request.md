@@ -14,6 +14,8 @@ labels: enhancement
 
 ## Acceptance Criteria
 
-- [ ] 
-- [ ] 
-- [ ] 
+- [ ]
+
+## Priority
+
+<!-- critical / high / medium / low -->

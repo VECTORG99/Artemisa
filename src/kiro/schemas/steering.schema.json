@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["roles"],
+  "additionalProperties": false,
+  "properties": {
+    "roles": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["name", "description", "recommended_tools", "examples", "system_prompt", "temperature"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "recommended_tools": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "examples": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "system_prompt": { "type": "string" },
+          "temperature": { "type": "number", "minimum": 0, "maximum": 2 }
+        }
+      }
+    }
+  }
+}

@@ -3,6 +3,7 @@ import assert from 'node:assert';
 
 describe('HuascarEngine', () => {
   let HuascarEngine;
+  let buildAiTools;
 
   before(async () => {
     process.env.LLM_MOCK_MODE = 'true';
@@ -10,6 +11,7 @@ describe('HuascarEngine', () => {
     delete process.env.OPENAI_API_KEY;
     const mod = await import('../src/engine/HuascarEngine.js');
     HuascarEngine = mod.HuascarEngine;
+    buildAiTools = mod.buildAiTools;
   });
 
   it('resolves role on executeTask', async () => {
@@ -37,8 +39,16 @@ describe('HuascarEngine', () => {
     const engine = new HuascarEngine('PR_REVIEWER');
     const result = await engine.executeTask('test task');
     assert.strictEqual(result.status, 'success');
-    assert.ok(result.response.includes('SIMULADO'));
+    assert.ok(result.response.includes('[MOCK:happy_path]'));
     assert.strictEqual(result.agent_role, 'Senior Code Reviewer');
+  });
+
+  it('uses explicit mock scenario over env default', async () => {
+    const engine = new HuascarEngine('PR_REVIEWER');
+    const result = await engine.executeTask('test task', undefined, undefined, '', 'multi_step');
+    assert.strictEqual(result.status, 'success');
+    assert.match(result.response, /\[MOCK:multi_step\]/);
+    assert.match(result.response, /completed after multiple steps/);
   });
 
   it('returns blocked status on error', async () => {
@@ -47,4 +57,103 @@ describe('HuascarEngine', () => {
     assert.ok(result.status === 'success' || result.status === 'blocked');
     assert.ok(result.agent_role || result.error);
   });
+
+  it('prefers explicit systemPrompt for existing roles', async () => {
+    const { config } = await import('../src/config.js');
+    const previousMock = config.llm.mockMode;
+    const previousHasLlmProvider = config.hasLlmProvider;
+    config.llm.mockMode = false;
+    config.hasLlmProvider = true;
+
+    const engine = new HuascarEngine('PR_REVIEWER');
+    engine.connectMcpServers = async () => {};
+    engine.loadRagSources = async () => {};
+    engine.rag.getContext = async () => '';
+    let capturedPrompt = '';
+    engine.runReActLoop = async (systemPrompt) => {
+      capturedPrompt = systemPrompt;
+      return 'ok';
+    };
+
+    const result = await engine.executeTask('test', 'explicit prompt');
+    assert.strictEqual(result.status, 'success');
+    assert.strictEqual(capturedPrompt, 'explicit prompt');
+
+    config.llm.mockMode = previousMock;
+    config.hasLlmProvider = previousHasLlmProvider;
+  });
+
+  it('uses registered steering before file steering', async () => {
+    const engine = new HuascarEngine('PR_REVIEWER', {
+      readFile: () => JSON.stringify({
+        roles: { PR_REVIEWER: { name: 'File Reviewer', system_prompt: 'file prompt', temperature: 0.3 } },
+      }),
+      exists: () => false,
+      rag: { getContext: async () => '', loadSources: async () => {} },
+      mcpPool: { getConnections: async () => [] },
+      generateTextWithFallback: async ({ system }) => ({ text: system }),
+    });
+    const result = await engine.executeTask('test', undefined, { steering: { roles: { PR_REVIEWER: { system_prompt: 'registered prompt' } } } });
+
+    assert.strictEqual(result.status, 'success');
+    assert.strictEqual(engine.activeRole.system_prompt, 'registered prompt');
+  });
+
+  it('uses injected dependencies instead of filesystem/API', async () => {
+    const { config } = await import('../src/config.js');
+    const previousMock = config.llm.mockMode;
+    const previousHasLlmProvider = config.hasLlmProvider;
+    config.llm.mockMode = false;
+    config.hasLlmProvider = true;
+
+    let mcpCalled = false;
+    let llmCalled = false;
+    const engine = new HuascarEngine('PR_REVIEWER', {
+      readFile: () => JSON.stringify({
+        roles: { PR_REVIEWER: { name: 'Injected Reviewer', system_prompt: 'Review', temperature: 0.3 } },
+      }),
+      exists: () => false,
+      rag: { getContext: async () => '', loadSources: async () => {} },
+      mcpPool: { getConnections: async () => { mcpCalled = true; return []; } },
+      generateTextWithFallback: async () => { llmCalled = true; return { text: 'injected response' }; },
+    });
+
+    const result = await engine.executeTask('test');
+
+    assert.strictEqual(result.status, 'success');
+    assert.strictEqual(result.agent_role, 'Injected Reviewer');
+    assert.strictEqual(result.response, 'injected response');
+    assert.strictEqual(mcpCalled, true);
+    assert.strictEqual(llmCalled, true);
+
+    config.llm.mockMode = previousMock;
+    config.hasLlmProvider = previousHasLlmProvider;
+  });
+
+  it('builds structured AI tools that call hooks and MCP with object args', async () => {
+    const calls = [];
+    const aiTools = buildAiTools([
+      {
+        name: 'server',
+        client: {
+          callTool: async call => {
+            calls.push(call);
+            return { content: [{ type: 'text', text: 'ok' }] };
+          },
+        },
+        transport: {},
+        tools: [{ name: 'search', description: 'Search', inputSchema: { type: 'object' } }],
+      },
+    ], { before_action: (name, args) => calls.push({ hook: name, args }) });
+
+    const args = { query: 'no USE_TOOL text' };
+    const result = await aiTools.search.execute(args, {});
+
+    assert.strictEqual(result, 'ok');
+    assert.deepStrictEqual(calls, [
+      { hook: 'search', args },
+      { name: 'search', arguments: args },
+    ]);
+  });
+
 });

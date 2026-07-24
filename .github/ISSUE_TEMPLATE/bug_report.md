@@ -6,24 +6,18 @@ labels: bug
 
 ## Description
 
-<!-- What's broken? -->
+<!-- What happened vs what was expected -->
 
 ## Steps to Reproduce
 
 1.
-2.
-3.
-
-## Expected Behavior
-
-<!-- What should happen -->
-
-## Actual Behavior
-
-<!-- What happens instead -->
 
 ## Environment
 
 - Node version:
 - OS:
-- LLM_MOCK_MODE: true/false
+- Branch:
+
+## Severity
+
+<!-- critical / high / medium / low -->

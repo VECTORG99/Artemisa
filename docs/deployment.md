@@ -45,78 +45,81 @@ All environment variables are defined in `.env.example`. Variables are grouped b
 
 ### Server
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `PORT` | No | `3001` | Backend HTTP listen port |
-| `HOST` | No | `0.0.0.0` | Backend bind address |
+| Variable | Required | Default   | Description              |
+| -------- | -------- | --------- | ------------------------ |
+| `PORT`   | No       | `3001`    | Backend HTTP listen port |
+| `HOST`   | No       | `0.0.0.0` | Backend bind address     |
 
 ### LLM Provider
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `OPENAI_API_KEY` | **Yes** | — | OpenAI API key for LLM calls |
-| `MODEL_ID` | No | `gpt-4o` | Model identifier to use |
-| `LLM_MOCK_MODE` | No | `false` | Skip real LLM calls (for testing) |
+| Variable              | Required | Default      | Description                                                                                  |
+| --------------------- | -------- | ------------ | -------------------------------------------------------------------------------------------- |
+| `OPENAI_API_KEY`      | **Yes**  | —            | OpenAI API key for LLM calls                                                                 |
+| `MODEL_ID`            | No       | `gpt-4o`     | Model identifier to use                                                                      |
+| `LLM_MOCK_MODE`       | No       | `false`      | Skip real LLM calls (for testing)                                                            |
+| `MOCK_SCENARIO`       | No       | `happy_path` | Default mock scenario to execute (`happy_path`, `multi_step`, `blocked`, `timeout`, `error`) |
+| `MOCK_SCENARIOS_PATH` | No       | —            | Path to custom scenarios JSON file                                                           |
 
 ### ReAct Loop
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `REACT_MAX_ITERATIONS` | No | `3` | Max ReAct loop iterations per request |
-| `TOOL_RESULT_MAX_CHARS` | No | `8192` | Max chars truncated per tool result |
-| `MCP_TIMEOUT_MS` | No | `30000` | MCP tool timeout in milliseconds |
+| Variable                | Required | Default | Description                           |
+| ----------------------- | -------- | ------- | ------------------------------------- |
+| `REACT_MAX_ITERATIONS`  | No       | `3`     | Max ReAct loop iterations per request |
+| `TOOL_RESULT_MAX_CHARS` | No       | `8192`  | Max chars truncated per tool result   |
+| `MCP_TIMEOUT_MS`        | No       | `30000` | MCP tool timeout in milliseconds      |
 
 ### RAG
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `RAG_MAX_CONTENT_CHARS` | No | `16000` | Max chars ingested per RAG document |
-| `FILE_ENCODING` | No | `utf8` | File encoding for RAG ingestion |
+| Variable                | Required | Default | Description                         |
+| ----------------------- | -------- | ------- | ----------------------------------- |
+| `RAG_MAX_CONTENT_CHARS` | No       | `16000` | Max chars ingested per RAG document |
+| `FILE_ENCODING`         | No       | `utf8`  | File encoding for RAG ingestion     |
 
 ### Vector Embeddings
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `EMBEDDING_MODEL` | No | `text-embedding-3-small` | OpenAI embedding model |
-| `EMBEDDING_CHUNK_SIZE` | No | `500` | Chunk size for document splitting |
-| `EMBEDDING_TOP_K` | No | `5` | Top-K results for similarity search |
+| Variable               | Required | Default                  | Description                         |
+| ---------------------- | -------- | ------------------------ | ----------------------------------- |
+| `EMBEDDING_MODEL`      | No       | `text-embedding-3-small` | OpenAI embedding model              |
+| `EMBEDDING_CHUNK_SIZE` | No       | `500`                    | Chunk size for document splitting   |
+| `EMBEDDING_TOP_K`      | No       | `5`                      | Top-K results for similarity search |
 
 ### Persistence
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `HUASCAR_DB_PATH` | No | `./data/huascar.db` | SQLite database file path |
-| `HISTORY_LIMIT_DEFAULT` | No | `20` | Default conversation history limit |
+| Variable                | Required | Default             | Description                        |
+| ----------------------- | -------- | ------------------- | ---------------------------------- |
+| `HUASCAR_DB_PATH`       | No       | `./data/huascar.db` | SQLite database file path          |
+| `HISTORY_LIMIT_DEFAULT` | No       | `20`                | Default conversation history limit |
 
 ### MCP / Security
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `MCP_STDERR` | No | `ignore` | MCP stderr handling strategy |
-| `SECURITY_POLICY_PATH` | No | `./src/kiro/security-policy.json` | Path to security policy file |
-| `BYPASS_SECRET` | No | — | Emergency security bypass (auto-generated on Render) |
+| Variable               | Required | Default                           | Description                                          |
+| ---------------------- | -------- | --------------------------------- | ---------------------------------------------------- |
+| `MCP_STDERR`           | No       | `ignore`                          | MCP stderr handling strategy                         |
+| `SECURITY_POLICY_PATH` | No       | `./src/kiro/security-policy.json` | Path to security policy file                         |
+| `BYPASS_SECRET`        | No       | —                                 | Emergency security bypass (auto-generated on Render) |
 
 ### Config Paths
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `STEERING_CONFIG_PATH` | No | `./src/kiro/steering.json` | Steering configuration path |
-| `MCPS_CONFIG_PATH` | No | `./src/kiro/mcps.json` | MCP server configuration path |
-| `RAG_CONFIG_PATH` | No | `./src/kiro/rag.json` | RAG configuration path |
+| Variable               | Required | Default                    | Description                   |
+| ---------------------- | -------- | -------------------------- | ----------------------------- |
+| `STEERING_CONFIG_PATH` | No       | `./src/kiro/steering.json` | Steering configuration path   |
+| `MCPS_CONFIG_PATH`     | No       | `./src/kiro/mcps.json`     | MCP server configuration path |
+| `RAG_CONFIG_PATH`      | No       | `./src/kiro/rag.json`      | RAG configuration path        |
 
 ### GitHub Integration
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `GITHUB_TOKEN` | No | — | GitHub token for MCP GitHub integration |
+| Variable       | Required | Default | Description                             |
+| -------------- | -------- | ------- | --------------------------------------- |
+| `GITHUB_TOKEN` | No       | —       | GitHub token for MCP GitHub integration |
 
 ### Frontend (Next.js)
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `NEXT_PUBLIC_API_URL` | **Yes** | _see below_ | Backend API URL (build-time arg) |
+| Variable              | Required | Default     | Description                      |
+| --------------------- | -------- | ----------- | -------------------------------- |
+| `NEXT_PUBLIC_API_URL` | **Yes**  | _see below_ | Backend API URL (build-time arg) |
 
 Defaults per environment:
+
 - **Docker Compose**: `http://backend:3001` (set in `docker-compose.yml` build args)
 - **Local dev**: `http://localhost:3001`
 - **Render / production**: your backend deployment URL
@@ -125,20 +128,20 @@ Defaults per environment:
 
 ### Agent Creator (Vite)
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `VITE_API_URL` | No | `http://localhost:3001` | Backend API URL for the Vite dev tool |
-| `VITE_DASHBOARD_URL` | No | `http://localhost:3000` | Dashboard URL link |
+| Variable             | Required | Default                 | Description                           |
+| -------------------- | -------- | ----------------------- | ------------------------------------- |
+| `VITE_API_URL`       | No       | `http://localhost:3001` | Backend API URL for the Vite dev tool |
+| `VITE_DASHBOARD_URL` | No       | `http://localhost:3000` | Dashboard URL link                    |
 
 ---
 
 ## 4. Service Ports
 
-| Service | Container Port | Host Port | Notes |
-|---|---|---|---|
-| **Backend** (Express) | `3001` | `3001` | JSON API |
-| **Frontend** (Next.js) | `3000` | `3000` | Dashboard UI |
-| **Agent Creator** (Vite) | `5173` | `5173` | Dev tool (optional in production) |
+| Service                  | Container Port | Host Port | Notes                             |
+| ------------------------ | -------------- | --------- | --------------------------------- |
+| **Backend** (Express)    | `3001`         | `3001`    | JSON API                          |
+| **Frontend** (Next.js)   | `3000`         | `3000`    | Dashboard UI                      |
+| **Agent Creator** (Vite) | `5173`         | `5173`    | Dev tool (optional in production) |
 
 All services share the `huascar-network` bridge network.
 
@@ -243,6 +246,7 @@ To back up: `docker run --rm -v huascar-data:/data alpine tar -czf /tmp/backup.t
 ### SQLite in Production
 
 SQLite works well for single-server deployments but has limitations:
+
 - **Not suitable for multi-replica setups** — consider PostgreSQL if you need horizontal scaling.
 - **Backup regularly** — use `sqlite3 /app/data/huascar.db ".backup /tmp/backup.db"` or the Docker volume backup command above.
 - **Render ephemeral storage** — on Render, attach a **Render Disk** and set `HUASCAR_DB_PATH` to the disk mount path, or use an external database.
@@ -250,6 +254,7 @@ SQLite works well for single-server deployments but has limitations:
 ### Health Checks
 
 All three Docker images include `HEALTHCHECK` instructions:
+
 - **Backend**: `GET /api/health` → expects 200
 - **Frontend**: `GET /` → expects 200
 - **Agent Creator**: `GET /` → expects 200

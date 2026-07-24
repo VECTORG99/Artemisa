@@ -1,31 +1,20 @@
-"use client";
+'use client';
 
-import dynamic from "next/dynamic";
-import { HeroSection, ContentSections } from "@/features/landing";
+import dynamic from 'next/dynamic';
+import { HeroSection, ContentSections } from '@/features/landing';
 
 const SpaceSimulation = dynamic(
-  () =>
-    import("@/features/landing/components/space-simulation").then(
-      (m) => m.SpaceSimulation
-    ),
-  { ssr: false }
+  () => import('@/features/landing/components/space-simulation').then((m) => m.SpaceSimulation),
+  { ssr: false },
 );
 
-const StickyHeader = dynamic(
-  () =>
-    import("@/features/landing/components/sticky-nav").then(
-      (m) => m.StickyHeader
-    ),
-  { ssr: false }
-);
+const StickyHeader = dynamic(() => import('@/features/landing/components/sticky-nav').then((m) => m.StickyHeader), {
+  ssr: false,
+});
 
-const StickyFooter = dynamic(
-  () =>
-    import("@/features/landing/components/sticky-nav").then(
-      (m) => m.StickyFooter
-    ),
-  { ssr: false }
-);
+const StickyFooter = dynamic(() => import('@/features/landing/components/sticky-nav').then((m) => m.StickyFooter), {
+  ssr: false,
+});
 
 export default function HomePage() {
   return (

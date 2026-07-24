@@ -3,7 +3,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts && npm rebuild better-sqlite3
 COPY . .
 RUN npx tsc
 
@@ -12,9 +12,9 @@ FROM node:22-alpine AS deps
 WORKDIR /app
 RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts
+RUN npm ci --omit=dev --ignore-scripts && npm rebuild better-sqlite3
 
-# Stage 3: Runner — production image
+# Stage 3: Runner — production image (no build tools)
 FROM node:22-alpine AS runner
 ENV NODE_ENV=production
 RUN apk add --no-cache wget
