@@ -10,6 +10,7 @@ import { requireAuth } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFound } from './middleware/notFound.js';
 import { enforceJsonContentType, validatePathParams } from './middleware/validation.js';
+import { sanitizeRequestBody } from './middleware/sanitize.js';
 import { agentRouter } from './routes/agent.js';
 import { agentsRouter } from './routes/agents.js';
 import { createHealthRouter } from './routes/health.js';
@@ -74,6 +75,9 @@ app.use(
   }),
 );
 app.use(express.json({ limit: '128kb' }));
+
+// Sanitize request bodies: strip __proto__, constructor, prototype keys (#266)
+app.use(sanitizeRequestBody);
 
 // Path parameter validation for all routes (#278)
 app.use(validatePathParams);
