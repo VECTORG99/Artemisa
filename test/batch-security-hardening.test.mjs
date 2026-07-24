@@ -8,7 +8,8 @@ describe('Batch security hardening (#257,#260,#264,#266,#269,#270,#279,#283)', (
   it('#257: errorHandler uses case-insensitive production check', () => {
     const src = fs.readFileSync('src/middleware/errorHandler.ts', 'utf8');
     assert.match(src, /toLowerCase\(\).*===.*'production'/);
-    assert.doesNotMatch(src, /stack.*res/); // no stack in response
+    // Ensure stack is never included in the response payload
+    assert.doesNotMatch(src, /stack.*json\(/);
   });
 
   it('#257: errorHandler never includes stack in response body', () => {

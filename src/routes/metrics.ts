@@ -63,8 +63,9 @@ export function metricsRouter(state: MetricsState): Router {
     if (metricsToken) {
       const provided = String(req.headers['x-metrics-token'] || req.query.token || '');
       // Timing-safe comparison to prevent token extraction via timing oracle
-      const tokenMatch = provided.length === metricsToken.length
-        && require('crypto').timingSafeEqual(Buffer.from(provided), Buffer.from(metricsToken));
+      const tokenMatch =
+        provided.length === metricsToken.length &&
+        crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(metricsToken));
       if (!tokenMatch) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
