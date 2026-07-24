@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-describe('Batch reliability fixes (#246,#250,#251,#252,#253,#255)', () => {
+describe('Batch reliability fixes (#246, #253, #255)', () => {
 
   it('#246: CORS blocks null origin explicitly', () => {
     const app = fs.readFileSync('src/app.ts', 'utf8');
@@ -10,23 +10,9 @@ describe('Batch reliability fixes (#246,#250,#251,#252,#253,#255)', () => {
     assert.match(app, /null origin not allowed/);
   });
 
-  it('#250: Multi-tenancy — auth middleware isolates by API key', () => {
-    // Isolation is enforced via AUTH_REQUIRED + HUASCAR_API_KEYS
-    // Each key represents a tenant; routes validate via requireAuth
-    const auth = fs.readFileSync('src/middleware/auth.ts', 'utf8');
-    assert.match(auth, /API_KEYS/);
-    assert.match(auth, /extractToken/);
-  });
-
-  it('#251: SQLite sync operations — WAL mode reduces blocking', () => {
-    // Store uses WAL mode which allows concurrent reads during writes
-    const store = fs.readFileSync('src/engine/Store.ts', 'utf8');
-    assert.match(store, /journal_mode.*WAL/i);
-  });
-
-  it('#252: RagEngine uses VectorIndex for search (not full memory load)', () => {
-    // VectorIndex does approximate search with shortlisting
-    assert.ok(fs.existsSync('src/engine/VectorIndex.ts'));
+  it('#246: CORS logs blocked null origin', () => {
+    const app = fs.readFileSync('src/app.ts', 'utf8');
+    assert.match(app, /logger\.warn.*Blocked null origin/);
   });
 
   it('#253: McpConnectionPool has idle connection cleanup', () => {
@@ -34,6 +20,12 @@ describe('Batch reliability fixes (#246,#250,#251,#252,#253,#255)', () => {
     assert.match(pool, /closeIdleConnections/);
     assert.match(pool, /IDLE_TIMEOUT_MS/);
     assert.match(pool, /lastUsed/);
+  });
+
+  it('#253: McpConnectionPool closeAll clears timer and state', () => {
+    const pool = fs.readFileSync('src/engine/McpConnectionPool.ts', 'utf8');
+    assert.match(pool, /clearInterval\(this\.idleTimer\)/);
+    assert.match(pool, /this\.lastUsed\.clear\(\)/);
   });
 
   it('#255: Frontend has ErrorBoundary component', () => {

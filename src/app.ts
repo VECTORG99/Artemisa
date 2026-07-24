@@ -56,6 +56,7 @@ app.use(
       // Allow requests with no origin ONLY for server-to-server/curl (non-browser)
       // Block 'null' origin explicitly (file://, sandboxed iframes)
       if (origin === 'null') {
+        logger.warn({ origin }, '[CORS] Blocked null origin request');
         callback(new Error('null origin not allowed'));
         return;
       }

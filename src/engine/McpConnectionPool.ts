@@ -58,7 +58,9 @@ export class McpConnectionPool {
         try {
           await client.client.close();
           await client.transport.close();
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
         this.connections.delete(name);
         this.lastUsed.delete(name);
         logger.info({ name }, '[McpConnectionPool] Closed idle connection');
@@ -95,8 +97,10 @@ export class McpConnectionPool {
   }
 
   async closeAll(): Promise<void> {
+    if (this.idleTimer) clearInterval(this.idleTimer);
     const connections = [...this.connections.values()];
     this.connections.clear();
+    this.lastUsed.clear();
     await Promise.all(
       connections.map(async (c) => {
         try {
