@@ -1,7 +1,7 @@
 # Stage 1: Builder — install all deps + compile TypeScript
 FROM node:22-alpine AS builder
-RUN apk add --no-cache python3 make g++
 WORKDIR /app
+RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts && npm rebuild better-sqlite3
 COPY . .
@@ -9,8 +9,8 @@ RUN npx tsc
 
 # Stage 2: Deps — production-only node_modules
 FROM node:22-alpine AS deps
-RUN apk add --no-cache python3 make g++
 WORKDIR /app
+RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts && npm rebuild better-sqlite3
 
@@ -23,6 +23,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./
+COPY --from=builder /app/src/kiro ./src/kiro
 RUN mkdir -p /data /app/data && chown -R huascar:huascar /data /app/data
 USER huascar
 EXPOSE 3001

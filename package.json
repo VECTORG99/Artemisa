@@ -1,6 +1,11 @@
 {
   "name": "huascar",
   "private": true,
+  "workspaces": [
+    "packages/*",
+    "frontend",
+    "agent-creator"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/server.ts",
@@ -67,9 +72,5 @@
     "*.{ts,js,mjs,json,md}": [
       "prettier --check"
     ]
-  },
-  "workspaces": [
-    "frontend",
-    "agent-creator"
-  ]
+  }
 }

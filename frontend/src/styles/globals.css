@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+}
+
+@layer utilities {
+  /* Continuously cycles through the RGB/hue spectrum — used on the
+     scroll-hint chevrons so they stay noticeable instead of blending into
+     the background. */
+  @keyframes rgb-cycle {
+    0% {
+      color: rgb(255, 80, 80);
+    }
+    16.6% {
+      color: rgb(255, 220, 80);
+    }
+    33.3% {
+      color: rgb(120, 255, 100);
+    }
+    50% {
+      color: rgb(80, 220, 255);
+    }
+    66.6% {
+      color: rgb(120, 100, 255);
+    }
+    83.3% {
+      color: rgb(255, 100, 220);
+    }
+    100% {
+      color: rgb(255, 80, 80);
+    }
+  }
+
+  .animate-rgb-cycle {
+    animation: rgb-cycle 4s linear infinite;
+  }
+
+  /* Local copy of the bounce keyframe (rather than relying on Tailwind's
+     internal `bounce` keyframe name) so it can be combined with
+     `rgb-cycle` in a single `animation` shorthand without one utility
+     class overwriting the other's `animation` property. */
+  @keyframes bounce-hint {
+    0%,
+    100% {
+      transform: translateY(-25%);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+    50% {
+      transform: none;
+      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+  }
+}

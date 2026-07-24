@@ -30,28 +30,28 @@ Audience: AI agents changing this repository. Keep this file as the entrypoint; 
 
 ## AI Workflow
 
-| Step | Rule |
-|---|---|
-| Issue | GitHub Issues are the only source of truth. Create/identify the issue and priority label before work; ask only if ambiguous. |
-| Branch | Base work on current `origin/development`; use `feature/*`, `fix/*`, `docs/*`, or `hotfix/*`. |
-| Implement | Scope changes to the issue; no local tracking docs (`TODO.md`, `BACKLOG.md`) or drive-by refactors. |
-| Test | Add/update the smallest useful test for changed behavior/docs/config; run relevant commands. |
-| PR | Push branch and open PR to `development` with `Closes #N`, summary, validation, deviations/blockers. |
-| Review | Inspect overlapping open PRs/issues before PR; resolve conflicts autonomously when safe. |
-| Merge | Merge only through `gh pr merge`; never push directly to `master` or `development`. |
+| Step      | Rule                                                                                                                         |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Issue     | GitHub Issues are the only source of truth. Create/identify the issue and priority label before work; ask only if ambiguous. |
+| Branch    | Base work on current `origin/development`; use `feature/*`, `fix/*`, `docs/*`, or `hotfix/*`.                                |
+| Implement | Scope changes to the issue; no local tracking docs (`TODO.md`, `BACKLOG.md`) or drive-by refactors.                          |
+| Test      | Add/update the smallest useful test for changed behavior/docs/config; run relevant commands.                                 |
+| PR        | Push branch and open PR to `development` with `Closes #N`, summary, validation, deviations/blockers.                         |
+| Review    | Inspect overlapping open PRs/issues before PR; resolve conflicts autonomously when safe.                                     |
+| Merge     | Merge only through `gh pr merge`; never push directly to `master` or `development`.                                          |
 
 ## Testing Commands
 
 Run from repository root unless noted.
 
-| Command | Use |
-|---|---|
-| `npm run test:unit` | Default required unit/docs/config check. |
-| `npx tsc --noEmit` | TypeScript validation after source/API/config changes or when tests require it. |
-| `npm run test:all` | Unit plus legacy API test when broader backend confidence is needed. |
-| `node --import tsx/esm --test test/<file>.test.mjs` | Narrow test for a touched area. |
-| `npm --prefix frontend run build` | Frontend dashboard changes only. |
-| `npm --prefix agent-creator run build` | Agent creator changes only. |
+| Command                                             | Use                                                                             |
+| --------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `npm run test:unit`                                 | Default required unit/docs/config check.                                        |
+| `npx tsc --noEmit`                                  | TypeScript validation after source/API/config changes or when tests require it. |
+| `npm run test:all`                                  | Unit plus legacy API test when broader backend confidence is needed.            |
+| `node --import tsx/esm --test test/<file>.test.mjs` | Narrow test for a touched area.                                                 |
+| `npm --prefix frontend run build`                   | Frontend dashboard changes only.                                                |
+| `npm --prefix agent-creator run build`              | Agent creator changes only.                                                     |
 
 ## Environment Variables
 
@@ -63,17 +63,17 @@ Run from repository root unless noted.
 
 ## Useful Commands
 
-| Command | Use |
-|---|---|
+| Command                                       | Use                                           |
+| --------------------------------------------- | --------------------------------------------- |
 | `git checkout -B <branch> origin/development` | Start/reset an issue branch from integration. |
-| `git status --short` | Inspect pending changes. |
-| `git diff` | Review unstaged diff before commit/PR. |
-| `npm run dev` | Run backend with `tsx watch src/server.ts`. |
-| `npm run start` | Run backend once with `tsx src/server.ts`. |
-| `npm run typecheck` | Alias for `tsc --noEmit`. |
-| `gh issue list` | Check issue overlap. |
-| `gh pr list --base development` | Check PR overlap. |
-| `gh pr create --base development` | Open required PR. |
+| `git status --short`                          | Inspect pending changes.                      |
+| `git diff`                                    | Review unstaged diff before commit/PR.        |
+| `npm run dev`                                 | Run backend with `tsx watch src/server.ts`.   |
+| `npm run start`                               | Run backend once with `tsx src/server.ts`.    |
+| `npm run typecheck`                           | Alias for `tsc --noEmit`.                     |
+| `gh issue list`                               | Check issue overlap.                          |
+| `gh pr list --base development`               | Check PR overlap.                             |
+| `gh pr create --base development`             | Open required PR.                             |
 
 ## Rules
 

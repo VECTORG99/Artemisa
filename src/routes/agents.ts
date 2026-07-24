@@ -14,7 +14,8 @@ function asObject(value: unknown): Record<string, unknown> {
 }
 
 function validateName(name: unknown): string {
-  if (typeof name !== 'string' || !name.trim() || name.length > 200) throw bad('name debe ser un texto no vacio de maximo 200 caracteres');
+  if (typeof name !== 'string' || !name.trim() || name.length > 200)
+    throw bad('name debe ser un texto no vacio de maximo 200 caracteres');
   return name.trim();
 }
 
@@ -26,12 +27,14 @@ function validateConfig(config: unknown): AgentConfig & Record<string, unknown> 
     if (Array.isArray(roles)) {
       for (const role of roles) {
         const r = asObject(role);
-        if (typeof r.id !== 'string' || typeof (r.prompt ?? r.system_prompt) !== 'string') throw bad('steering.roles requiere id y prompt strings');
+        if (typeof r.id !== 'string' || typeof (r.prompt ?? r.system_prompt) !== 'string')
+          throw bad('steering.roles requiere id y prompt strings');
       }
     } else if (roles && typeof roles === 'object' && !Array.isArray(roles)) {
       for (const [id, role] of Object.entries(roles)) {
         const r = asObject(role);
-        if (!id || typeof (r.prompt ?? r.system_prompt) !== 'string') throw bad('steering.roles requiere prompts por rol');
+        if (!id || typeof (r.prompt ?? r.system_prompt) !== 'string')
+          throw bad('steering.roles requiere prompts por rol');
       }
     } else {
       throw bad('steering.roles debe ser array u objeto');
@@ -53,20 +56,28 @@ function publicAgent(agent: AgentRecord, full = false) {
 }
 
 function rolePrompt(role: Record<string, unknown>): string | undefined {
-  return typeof (role.prompt ?? role.system_prompt) === 'string' ? String(role.prompt ?? role.system_prompt) : undefined;
+  return typeof (role.prompt ?? role.system_prompt) === 'string'
+    ? String(role.prompt ?? role.system_prompt)
+    : undefined;
 }
 
 function configRoles(config: Record<string, unknown>): { role: string; system_prompt?: string }[] {
-  const steering = config.steering && typeof config.steering === 'object' ? config.steering as { roles?: unknown } : undefined;
+  const steering =
+    config.steering && typeof config.steering === 'object' ? (config.steering as { roles?: unknown }) : undefined;
   const roles = steering?.roles;
   if (Array.isArray(roles) && roles[0] && typeof roles[0] === 'object') {
-    return roles.filter(role => role && typeof role === 'object').map(role => {
-      const r = role as Record<string, unknown>;
-      return { role: String(r.id), system_prompt: rolePrompt(r) };
-    });
+    return roles
+      .filter((role) => role && typeof role === 'object')
+      .map((role) => {
+        const r = role as Record<string, unknown>;
+        return { role: String(r.id), system_prompt: rolePrompt(r) };
+      });
   }
   if (roles && typeof roles === 'object') {
-    return Object.entries(roles as Record<string, Record<string, unknown>>).map(([id, role]) => ({ role: id, system_prompt: rolePrompt(role) }));
+    return Object.entries(roles as Record<string, Record<string, unknown>>).map(([id, role]) => ({
+      role: id,
+      system_prompt: rolePrompt(role),
+    }));
   }
   return [];
 }
@@ -81,14 +92,17 @@ function executeBody(body: Record<string, unknown>, agent: AgentRecord) {
   const task = body.task;
   const session_id = body.session_id;
   const mock_scenario = body.mock_scenario;
-  if (typeof task !== 'string' || !task || task.length > 10000) throw bad('task debe ser un texto de maximo 10000 caracteres');
-  if (session_id !== undefined && (typeof session_id !== 'string' || session_id.length > 200)) throw bad('session_id debe ser un texto de maximo 200 caracteres');
-  if (mock_scenario !== undefined && (typeof mock_scenario !== 'string' || mock_scenario.length > 200)) throw bad('mock_scenario debe ser un texto de maximo 200 caracteres');
+  if (typeof task !== 'string' || !task || task.length > 10000)
+    throw bad('task debe ser un texto de maximo 10000 caracteres');
+  if (session_id !== undefined && (typeof session_id !== 'string' || session_id.length > 200))
+    throw bad('session_id debe ser un texto de maximo 200 caracteres');
+  if (mock_scenario !== undefined && (typeof mock_scenario !== 'string' || mock_scenario.length > 200))
+    throw bad('mock_scenario debe ser un texto de maximo 200 caracteres');
   if (body.system_prompt !== undefined) throw bad('system_prompt no puede sobrescribir el steering registrado');
   const config = validateConfig(JSON.parse(agent.config));
   const defaults = defaultRole(agent, config);
   const roles = configRoles(config);
-  const selected = typeof body.role === 'string' ? roles.find(item => item.role === body.role) : defaults;
+  const selected = typeof body.role === 'string' ? roles.find((item) => item.role === body.role) : defaults;
   if (!selected) throw bad('role no existe en el steering registrado');
   const { role, system_prompt } = selected;
   return { task, session_id, role, system_prompt, config, mock_scenario };
@@ -102,7 +116,7 @@ export function agentsRouter(store: Store, Engine: EngineClass = HuascarEngine):
     res.status(201).json(publicAgent(agent, true));
   });
 
-  router.get('/agents', (_req, res) => res.json(store.listAgents().map(agent => publicAgent(agent))));
+  router.get('/agents', (_req, res) => res.json(store.listAgents().map((agent) => publicAgent(agent))));
 
   router.get('/agents/:id', (req, res) => {
     const agent = store.getAgent(req.params.id);
@@ -127,7 +141,13 @@ export function agentsRouter(store: Store, Engine: EngineClass = HuascarEngine):
       const session = sessions.getOrCreate(session_id, `${agent.id}:${role}`);
       const sessionContext = sessions.recentContext(session.id);
       store.addSessionMessage(session.id, 'user', task);
-      const result = await new Engine(role, store).executeTask(task, system_prompt, config, sessionContext, mock_scenario);
+      const result = await new Engine(role, store).executeTask(
+        task,
+        system_prompt,
+        config,
+        sessionContext,
+        mock_scenario,
+      );
       store.addSessionMessage(session.id, 'assistant', result.response ?? result.error ?? result.status);
       store.recordAgentExecution(agent.id);
       res.json({ ...result, session_id: session.id, agent_id: agent.id });

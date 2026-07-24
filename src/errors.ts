@@ -19,7 +19,13 @@ export const ErrorCodes = {
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 
 export class AppError extends Error {
-  constructor(readonly code: ErrorCode, message: string, readonly statusCode = 500, readonly details?: unknown, readonly isOperational = true) {
+  constructor(
+    readonly code: ErrorCode,
+    message: string,
+    readonly statusCode = 500,
+    readonly details?: unknown,
+    readonly isOperational = true,
+  ) {
     super(message);
     this.name = new.target.name;
   }
@@ -33,7 +39,15 @@ export class ApiError extends AppError {}
 export class CreatorError extends AppError {}
 
 export function formatError(error: unknown) {
-  if (error instanceof AppError) return { code: error.code, message: error.message, statusCode: error.statusCode, details: error.details, isOperational: error.isOperational };
-  if (error instanceof Error) return { code: ErrorCodes.INTERNAL_ERROR, message: error.message, statusCode: 500, isOperational: false };
+  if (error instanceof AppError)
+    return {
+      code: error.code,
+      message: error.message,
+      statusCode: error.statusCode,
+      details: error.details,
+      isOperational: error.isOperational,
+    };
+  if (error instanceof Error)
+    return { code: ErrorCodes.INTERNAL_ERROR, message: error.message, statusCode: 500, isOperational: false };
   return { code: ErrorCodes.INTERNAL_ERROR, message: String(error), statusCode: 500, isOperational: false };
 }

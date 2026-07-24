@@ -1,11 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    ":semanticCommits",
-    ":automergeMinor",
-    "group:allNonMajor"
-  ],
+  "extends": ["config:recommended", ":semanticCommits", ":automergeMinor", "group:allNonMajor"],
   "baseBranches": ["development"],
   "labels": ["dependencies", "automation"],
   "rangeStrategy": "pin",

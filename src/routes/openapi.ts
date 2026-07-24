@@ -19,7 +19,10 @@ export const openApiSpec = {
       get: {
         summary: 'Runtime request metrics',
         parameters: [{ name: 'x-metrics-token', in: 'header', required: false, schema: { type: 'string' } }],
-        responses: { '200': { description: 'Metrics snapshot', content: { 'application/json': { schema: json } } }, '401': { description: 'Invalid metrics token' } },
+        responses: {
+          '200': { description: 'Metrics snapshot', content: { 'application/json': { schema: json } } },
+          '401': { description: 'Invalid metrics token' },
+        },
       },
     },
     '/api/openapi.json': {
@@ -45,27 +48,77 @@ export const openApiSpec = {
       post: {
         summary: 'Execute an agent task',
         requestBody: { required: true, content: { 'application/json': { schema: json } } },
-        responses: { '200': { description: 'Agent execution result', content: { 'application/json': { schema: json } } }, '400': { description: 'Invalid task or role' } },
+        responses: {
+          '200': { description: 'Agent execution result', content: { 'application/json': { schema: json } } },
+          '400': { description: 'Invalid task or role' },
+        },
       },
     },
     '/api/agent/execute/stream': {
       post: {
         summary: 'Execute an agent task with Server-Sent Events',
         requestBody: { required: true, content: { 'application/json': { schema: json } } },
-        responses: { '200': { description: 'SSE events: start, complete, error', content: { 'text/event-stream': { schema: { type: 'string' } } } }, '400': { description: 'Invalid task or role' } },
+        responses: {
+          '200': {
+            description: 'SSE events: start, complete, error',
+            content: { 'text/event-stream': { schema: { type: 'string' } } },
+          },
+          '400': { description: 'Invalid task or role' },
+        },
       },
     },
     '/api/agents': {
-      get: { summary: 'List registered agents', responses: { '200': { description: 'Registered agent summaries', content: { 'application/json': { schema: json } } } } },
-      post: { summary: 'Create registered agent', requestBody: { required: true, content: { 'application/json': { schema: json } } }, responses: { '201': { description: 'Registered agent', content: { 'application/json': { schema: json } } }, '400': { description: 'Invalid agent config' } } },
+      get: {
+        summary: 'List registered agents',
+        responses: {
+          '200': { description: 'Registered agent summaries', content: { 'application/json': { schema: json } } },
+        },
+      },
+      post: {
+        summary: 'Create registered agent',
+        requestBody: { required: true, content: { 'application/json': { schema: json } } },
+        responses: {
+          '201': { description: 'Registered agent', content: { 'application/json': { schema: json } } },
+          '400': { description: 'Invalid agent config' },
+        },
+      },
     },
     '/api/agents/{id}': {
-      get: { summary: 'Get registered agent', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Registered agent', content: { 'application/json': { schema: json } } }, '404': { description: 'Agent not found' } } },
-      put: { summary: 'Update registered agent', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], requestBody: { required: true, content: { 'application/json': { schema: json } } }, responses: { '200': { description: 'Registered agent', content: { 'application/json': { schema: json } } }, '400': { description: 'Invalid agent config' }, '404': { description: 'Agent not found' } } },
-      delete: { summary: 'Delete registered agent', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Deletion result', content: { 'application/json': { schema: json } } } } },
+      get: {
+        summary: 'Get registered agent',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': { description: 'Registered agent', content: { 'application/json': { schema: json } } },
+          '404': { description: 'Agent not found' },
+        },
+      },
+      put: {
+        summary: 'Update registered agent',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        requestBody: { required: true, content: { 'application/json': { schema: json } } },
+        responses: {
+          '200': { description: 'Registered agent', content: { 'application/json': { schema: json } } },
+          '400': { description: 'Invalid agent config' },
+          '404': { description: 'Agent not found' },
+        },
+      },
+      delete: {
+        summary: 'Delete registered agent',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: { '200': { description: 'Deletion result', content: { 'application/json': { schema: json } } } },
+      },
     },
     '/api/agents/{id}/execute': {
-      post: { summary: 'Execute a registered agent', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], requestBody: { required: true, content: { 'application/json': { schema: json } } }, responses: { '200': { description: 'Agent execution result', content: { 'application/json': { schema: json } } }, '400': { description: 'Invalid execution payload' }, '404': { description: 'Agent not found' } } },
+      post: {
+        summary: 'Execute a registered agent',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        requestBody: { required: true, content: { 'application/json': { schema: json } } },
+        responses: {
+          '200': { description: 'Agent execution result', content: { 'application/json': { schema: json } } },
+          '400': { description: 'Invalid execution payload' },
+          '404': { description: 'Agent not found' },
+        },
+      },
     },
     '/api/hooks/commit-approval': {
       post: {
@@ -78,13 +131,20 @@ export const openApiSpec = {
       get: {
         summary: 'Read a commit approval request',
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-        responses: { '200': { description: 'Approval state', content: { 'application/json': { schema: json } } }, '404': { description: 'Approval request not found' } },
+        responses: {
+          '200': { description: 'Approval state', content: { 'application/json': { schema: json } } },
+          '404': { description: 'Approval request not found' },
+        },
       },
       post: {
         summary: 'Resolve a commit approval request',
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
         requestBody: { required: true, content: { 'application/json': { schema: json } } },
-        responses: { '200': { description: 'Updated approval state', content: { 'application/json': { schema: json } } }, '400': { description: 'Invalid approval payload' }, '404': { description: 'Approval request not found' } },
+        responses: {
+          '200': { description: 'Updated approval state', content: { 'application/json': { schema: json } } },
+          '400': { description: 'Invalid approval payload' },
+          '404': { description: 'Approval request not found' },
+        },
       },
     },
     '/api/rag/sources': {
@@ -112,19 +172,39 @@ export const openApiSpec = {
       },
     },
     '/api/v1/creator/workflow': {
-      get: { summary: 'Creator workflow definition', responses: { '200': { description: 'Workflow definition', content: { 'application/json': { schema: json } } } } },
+      get: {
+        summary: 'Creator workflow definition',
+        responses: { '200': { description: 'Workflow definition', content: { 'application/json': { schema: json } } } },
+      },
     },
     '/api/v1/creator/tutorial': {
-      get: { summary: 'Creator tutorial', responses: { '200': { description: 'Tutorial content', content: { 'application/json': { schema: json } } } } },
+      get: {
+        summary: 'Creator tutorial',
+        responses: { '200': { description: 'Tutorial content', content: { 'application/json': { schema: json } } } },
+      },
     },
     '/api/v1/creator/evaluate': {
-      post: { summary: 'Evaluate creator answers', requestBody: { required: true, content: { 'application/json': { schema: json } } }, responses: { '200': { description: 'Evaluation result', content: { 'application/json': { schema: json } } } } },
+      post: {
+        summary: 'Evaluate creator answers',
+        requestBody: { required: true, content: { 'application/json': { schema: json } } },
+        responses: { '200': { description: 'Evaluation result', content: { 'application/json': { schema: json } } } },
+      },
     },
     '/api/v1/creator/preview': {
-      post: { summary: 'Preview generated agent bundle', requestBody: { required: true, content: { 'application/json': { schema: json } } }, responses: { '200': { description: 'Generated bundle preview', content: { 'application/json': { schema: json } } } } },
+      post: {
+        summary: 'Preview generated agent bundle',
+        requestBody: { required: true, content: { 'application/json': { schema: json } } },
+        responses: {
+          '200': { description: 'Generated bundle preview', content: { 'application/json': { schema: json } } },
+        },
+      },
     },
     '/api/v1/creator/generate': {
-      post: { summary: 'Generate agent bundle', requestBody: { required: true, content: { 'application/json': { schema: json } } }, responses: { '200': { description: 'Generated bundle', content: { 'application/json': { schema: json } } } } },
+      post: {
+        summary: 'Generate agent bundle',
+        requestBody: { required: true, content: { 'application/json': { schema: json } } },
+        responses: { '200': { description: 'Generated bundle', content: { 'application/json': { schema: json } } } },
+      },
     },
   },
 } as const;

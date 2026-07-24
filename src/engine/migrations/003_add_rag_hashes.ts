@@ -2,7 +2,7 @@ import type Database from 'better-sqlite3';
 import type { Migration } from '../Migrations.js';
 
 function hasColumn(db: Database.Database, table: string, column: string): boolean {
-  return (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).some(row => row.name === column);
+  return (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).some((row) => row.name === column);
 }
 
 export const addRagHashes: Migration = {

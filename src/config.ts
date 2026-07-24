@@ -14,7 +14,19 @@ function envBool(key: string, fallback: boolean): boolean {
   return v === 'true';
 }
 
-const VALID_ENCODINGS = ['ascii', 'utf8', 'utf-8', 'utf16le', 'ucs2', 'ucs-2', 'base64', 'base64url', 'latin1', 'binary', 'hex'];
+const VALID_ENCODINGS = [
+  'ascii',
+  'utf8',
+  'utf-8',
+  'utf16le',
+  'ucs2',
+  'ucs-2',
+  'base64',
+  'base64url',
+  'latin1',
+  'binary',
+  'hex',
+];
 function envEncoding(key: string, fallback: BufferEncoding): BufferEncoding {
   const v = process.env[key];
   if (!v) return fallback;
@@ -24,7 +36,9 @@ function envEncoding(key: string, fallback: BufferEncoding): BufferEncoding {
 const VALID_STDERR: ReadonlyArray<'inherit' | 'pipe' | 'ignore'> = ['inherit', 'pipe', 'ignore'];
 function envStderr(key: string, fallback: 'inherit' | 'pipe' | 'ignore'): 'inherit' | 'pipe' | 'ignore' {
   const v = process.env[key];
-  return v && VALID_STDERR.includes(v as 'inherit' | 'pipe' | 'ignore') ? (v as 'inherit' | 'pipe' | 'ignore') : fallback;
+  return v && VALID_STDERR.includes(v as 'inherit' | 'pipe' | 'ignore')
+    ? (v as 'inherit' | 'pipe' | 'ignore')
+    : fallback;
 }
 
 export const config = {
@@ -84,10 +98,6 @@ export const config = {
   mcp: {
     stderr: envStderr('MCP_STDERR', 'ignore'),
   },
-  hasLlmProvider: !!(
-    process.env.OPENAI_API_KEY ||
-    process.env.ANTHROPIC_API_KEY ||
-    process.env.LOCAL_BASE_URL
-  ),
+  hasLlmProvider: !!(process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.LOCAL_BASE_URL),
   hasEmbeddingApiKey: !!process.env.OPENAI_API_KEY,
 };

@@ -3,7 +3,9 @@ import { DocumentChunk } from './Store.js';
 export type VectorSearchResult = { text: string; score: number };
 
 export function cosineSimilarity(a: number[], b: number[]): number {
-  let dot = 0, normA = 0, normB = 0;
+  let dot = 0,
+    normA = 0,
+    normB = 0;
   for (let i = 0; i < a.length; i++) {
     const ai = a[i] ?? 0;
     const bi = b[i] ?? 0;
@@ -25,7 +27,7 @@ export class VectorIndex {
   lastUsedExactFallback = false;
 
   constructor(chunks: DocumentChunk[]) {
-    this.chunks = chunks.filter(c => c.embedding);
+    this.chunks = chunks.filter((c) => c.embedding);
     for (const chunk of this.chunks) {
       for (let table = 0; table < this.tables; table++) {
         const key = this.key(chunk.embedding!, table);
@@ -43,7 +45,7 @@ export class VectorIndex {
   search(query: number[], topK: number): VectorSearchResult[] {
     const candidates = this.candidates(query, topK);
     return candidates
-      .map(c => ({ text: c.chunk_text, score: cosineSimilarity(query, c.embedding!) }))
+      .map((c) => ({ text: c.chunk_text, score: cosineSimilarity(query, c.embedding!) }))
       .sort((a, b) => b.score - a.score)
       .slice(0, topK);
   }

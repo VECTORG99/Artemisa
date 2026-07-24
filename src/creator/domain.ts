@@ -3,7 +3,8 @@ export type CreatorAnswerValue = string | boolean | string[];
 export type CreatorAnswers = Record<string, CreatorAnswerValue>;
 
 export type EnvironmentScope = 'development' | 'production' | 'both';
-export type QuestionType = 'text' | 'textarea' | 'select' | 'multiselect' | 'boolean' | 'catalog-multiselect' | 'catalog-select';
+export type QuestionType =
+  'text' | 'textarea' | 'select' | 'multiselect' | 'boolean' | 'catalog-multiselect' | 'catalog-select';
 
 export interface CatalogCategory {
   id: string;

@@ -6,7 +6,20 @@
   "allowed_commands": {
     "description": "Structured allowlist of shell commands.",
     "entries": [
-      { "binary": "npm", "allowed_args": ["ci", "install", "run build", "run test", "run test:unit", "run lint", "run typecheck", "run format:check", "audit"] },
+      {
+        "binary": "npm",
+        "allowed_args": [
+          "ci",
+          "install",
+          "run build",
+          "run test",
+          "run test:unit",
+          "run lint",
+          "run typecheck",
+          "run format:check",
+          "audit"
+        ]
+      },
       { "binary": "npx", "allowed_args": ["tsc --noEmit", "prettier --check ."] },
       { "binary": "node", "allowed_args": ["--test", "--import"] },
       { "binary": "git", "allowed_args": ["status", "log", "diff", "branch", "show", "ls-files", "rev-parse"] },
@@ -24,6 +37,19 @@
   },
   "blocked_tool_patterns": ["sudo", "terminal"],
   "blocked_args_substrings": {
-    "*": ["bypass_secret", "BYPASS_SECRET", "--dangerously-force", "rm -rf /", "mkfs", "dd if=", "> /dev/sd", "chmod 777", "curl | sh", "wget | sh", "curl | bash", "wget | bash"]
+    "*": [
+      "bypass_secret",
+      "BYPASS_SECRET",
+      "--dangerously-force",
+      "rm -rf /",
+      "mkfs",
+      "dd if=",
+      "> /dev/sd",
+      "chmod 777",
+      "curl | sh",
+      "wget | sh",
+      "curl | bash",
+      "wget | bash"
+    ]
   }
 }

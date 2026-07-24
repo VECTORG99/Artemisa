@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from 'react';
 
-import { getHistory } from "@/lib/api";
-import type { HistoryRecord } from "@/types/agent";
+import { getHistory } from '@/lib/api';
+import type { HistoryRecord } from '@/types/agent';
 
 export function useExecutionHistory() {
   const [history, setHistory] = useState<HistoryRecord[]>([]);
@@ -19,7 +19,9 @@ export function useExecutionHistory() {
     }
   }, []);
 
-  useEffect(() => { void Promise.resolve().then(fetchHistory); }, [fetchHistory]);
+  useEffect(() => {
+    void Promise.resolve().then(fetchHistory);
+  }, [fetchHistory]);
 
   return { history, historyLoading, expandedId, setExpandedId, fetchHistory };
 }

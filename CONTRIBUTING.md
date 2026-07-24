@@ -4,23 +4,23 @@ Audience: AI agents changing this repository. Keep changes issue-scoped, schema-
 
 ## Quick Reference
 
-| Scenario | Read first | Change here | Required check |
-|---|---|---|---|
-| Any code/doc change | `AGENTS.md`, `docs/CONVENTIONS.md` | Issue branch from `origin/development` | `git diff`, relevant tests |
-| Architecture/route/persistence/RAG/auth/deploy integration | `CONTEXT.md`, relevant `docs/adr/*` | Smallest owning module | Update `CONTEXT.md` if state changed |
-| Add backend route | `src/app.ts`, nearby `src/routes/*.ts`, `test/app.test.mjs` | `src/routes/<resource>.ts`, `src/app.ts` | `npm run test:unit`, `npx tsc --noEmit` |
-| Change request validation | Target route/parser tests | Route-owned parser/helper | Unit test for accepted/rejected input |
-| Add migration | `src/engine/Migrations.ts`, `src/engine/migrations/index.ts` | New numbered file only | Store/migration unit test |
-| Change SQLite persistence | `src/engine/Store.ts`, migrations | Store method + migration if durable shape changes | `npm run test:unit` |
-| Add steering role | `src/kiro/steering.json`, schema | `roles.<KEY>` | `npm run test:unit` |
-| Add MCP server | `src/kiro/mcps.json`, schema | `mcpServers.<name>` | `npm run test:unit` |
-| Add RAG source | `src/kiro/rag.json`, schema | `knowledge_bases[]` | `npm run test:unit` |
-| Add security rule | `src/kiro/security-policy.json`, `src/kiro/hooks.ts` | Policy JSON first; code only if needed | Hook/schema unit tests |
-| Frontend dashboard change | `frontend/src/app/page.tsx`, `frontend/src/lib/api.ts` | Existing page/component | Root checks if backend types changed |
-| Add frontend route | Existing `frontend/src/app/**/page.tsx` pattern | `frontend/src/app/<route>/page.tsx` | Frontend build/test if available |
-| Register agent behavior | `src/routes/agents.ts`, `src/engine/HuascarEngine.ts` | Route/engine owner | Agents route/session tests |
-| OpenAPI/API contract change | `src/routes/openapi.ts`, route tests | OpenAPI + route response together | `npm run test:unit` |
-| Env/config change | `src/config.ts`, `.env.example` if present | Config boundary only | Config/unit test, no secret output |
+| Scenario                                                   | Read first                                                   | Change here                                       | Required check                          |
+| ---------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------- | --------------------------------------- |
+| Any code/doc change                                        | `AGENTS.md`, `docs/CONVENTIONS.md`                           | Issue branch from `origin/development`            | `git diff`, relevant tests              |
+| Architecture/route/persistence/RAG/auth/deploy integration | `CONTEXT.md`, relevant `docs/adr/*`                          | Smallest owning module                            | Update `CONTEXT.md` if state changed    |
+| Add backend route                                          | `src/app.ts`, nearby `src/routes/*.ts`, `test/app.test.mjs`  | `src/routes/<resource>.ts`, `src/app.ts`          | `npm run test:unit`, `npx tsc --noEmit` |
+| Change request validation                                  | Target route/parser tests                                    | Route-owned parser/helper                         | Unit test for accepted/rejected input   |
+| Add migration                                              | `src/engine/Migrations.ts`, `src/engine/migrations/index.ts` | New numbered file only                            | Store/migration unit test               |
+| Change SQLite persistence                                  | `src/engine/Store.ts`, migrations                            | Store method + migration if durable shape changes | `npm run test:unit`                     |
+| Add steering role                                          | `src/kiro/steering.json`, schema                             | `roles.<KEY>`                                     | `npm run test:unit`                     |
+| Add MCP server                                             | `src/kiro/mcps.json`, schema                                 | `mcpServers.<name>`                               | `npm run test:unit`                     |
+| Add RAG source                                             | `src/kiro/rag.json`, schema                                  | `knowledge_bases[]`                               | `npm run test:unit`                     |
+| Add security rule                                          | `src/kiro/security-policy.json`, `src/kiro/hooks.ts`         | Policy JSON first; code only if needed            | Hook/schema unit tests                  |
+| Frontend dashboard change                                  | `frontend/src/app/page.tsx`, `frontend/src/lib/api.ts`       | Existing page/component                           | Root checks if backend types changed    |
+| Add frontend route                                         | Existing `frontend/src/app/**/page.tsx` pattern              | `frontend/src/app/<route>/page.tsx`               | Frontend build/test if available        |
+| Register agent behavior                                    | `src/routes/agents.ts`, `src/engine/HuascarEngine.ts`        | Route/engine owner                                | Agents route/session tests              |
+| OpenAPI/API contract change                                | `src/routes/openapi.ts`, route tests                         | OpenAPI + route response together                 | `npm run test:unit`                     |
+| Env/config change                                          | `src/config.ts`, `.env.example` if present                   | Config boundary only                              | Config/unit test, no secret output      |
 
 ## PR Quality Gate
 

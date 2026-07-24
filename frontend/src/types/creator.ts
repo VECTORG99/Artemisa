@@ -13,7 +13,7 @@ export interface CreatorQuestion {
   section: string;
   prompt: string;
   description?: string;
-  type: "text" | "textarea" | "select" | "multiselect" | "boolean" | "catalog-select" | "catalog-multiselect";
+  type: 'text' | 'textarea' | 'select' | 'multiselect' | 'boolean' | 'catalog-select' | 'catalog-multiselect';
   required: boolean;
   placeholder?: string;
   options?: CreatorOption[];

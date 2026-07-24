@@ -23,6 +23,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  transpilePackages: ['@huascar/types'],
   turbopack: {
     root: monorepoRoot,
   },

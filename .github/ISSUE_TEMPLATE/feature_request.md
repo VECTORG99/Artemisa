@@ -5,13 +5,17 @@ labels: enhancement
 ---
 
 ## Problem
+
 <!-- What problem does this solve? -->
 
 ## Proposed Solution
+
 <!-- How should it work? -->
 
 ## Acceptance Criteria
+
 - [ ]
 
 ## Priority
+
 <!-- critical / high / medium / low -->

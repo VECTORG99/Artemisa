@@ -4,7 +4,10 @@ import { ApiError, ErrorCodes } from '../errors.js';
 import type { SessionMessageRecord, SessionRecord, Store } from './Store.js';
 
 export class SessionManager {
-  constructor(private readonly store: Store, private readonly ttlMs = config.sessions.ttlMs) {}
+  constructor(
+    private readonly store: Store,
+    private readonly ttlMs = config.sessions.ttlMs,
+  ) {}
 
   getOrCreate(sessionId: string | undefined, role: string): SessionRecord {
     const now = Date.now();
@@ -12,7 +15,8 @@ export class SessionManager {
 
     const session = this.store.getSession(sessionId);
     if (!session) throw new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'session_id no existe', 404);
-    if (session.role !== role) throw new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'session_id pertenece a otro rol', 409);
+    if (session.role !== role)
+      throw new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'session_id pertenece a otro rol', 409);
     if (session.last_active_at < now - this.ttlMs) {
       this.store.deleteExpiredSessions(this.ttlMs, now);
       throw new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'session_id expiro', 404);
