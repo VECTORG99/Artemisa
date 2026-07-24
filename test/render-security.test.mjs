@@ -28,8 +28,8 @@ describe('Render deployment security (issue #286)', () => {
     assert.doesNotMatch(apiTs, /https:\/\/huascar\./);
   });
 
-  it('frontend api.ts falls back to empty string (relative path)', () => {
+  it('frontend api.ts falls back to localhost (safe default)', () => {
     const apiTs = fs.readFileSync(path.resolve('frontend/src/lib/api.ts'), 'utf8');
-    assert.match(apiTs, /process\.env\.NEXT_PUBLIC_API_URL \|\| ['"]{2}/);
+    assert.match(apiTs, /process\.env\.NEXT_PUBLIC_API_URL \|\| ['"]http:\/\/localhost:3001['"]/);
   });
 });
