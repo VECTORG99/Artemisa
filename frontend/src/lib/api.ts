@@ -8,8 +8,22 @@ import type {
   RegisteredAgent,
 } from '@/types/creator';
 
-export const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+export const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 const apiKey = process.env.NEXT_PUBLIC_API_KEY || '';
+
+// Warn in development if API URL points to a non-local address
+if (
+  typeof window !== 'undefined' &&
+  process.env.NODE_ENV === 'development' &&
+  apiUrl &&
+  !apiUrl.includes('localhost') &&
+  !apiUrl.includes('127.0.0.1')
+) {
+  console.warn(
+    `[Huascar] NEXT_PUBLIC_API_URL points to a non-local address (${apiUrl}). ` +
+      'This may send development traffic to production. Set NEXT_PUBLIC_API_URL=http://localhost:3001 in your .env.local',
+  );
+}
 
 export function authHeaders(): Record<string, string> {
   if (!apiKey) return {};
