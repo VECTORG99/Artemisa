@@ -35,18 +35,28 @@ if (AUTH_REQUIRED && API_KEYS.length === 0) {
 
 /** Timing-safe token comparison — constant-time regardless of key lengths.
  * Uses HMAC-SHA256 to normalize to fixed-length digests before comparison,
- * preventing key length oracle attacks via timing differences. */
-function isValidToken(provided: string): boolean {
+ * preventing key length oracle attacks via timing differences.
+ * Returns the key index (tenant identifier) or -1 if invalid. */
+function findValidKeyIndex(provided: string): number {
   const providedHash = crypto.createHmac('sha256', 'huascar-auth').update(provided).digest();
-  let valid = false;
-  for (const key of API_KEYS) {
+  let foundIndex = -1;
+  for (let i = 0; i < API_KEYS.length; i++) {
+    const key = API_KEYS[i]!;
     const keyHash = crypto.createHmac('sha256', 'huascar-auth').update(key).digest();
     if (crypto.timingSafeEqual(providedHash, keyHash)) {
-      valid = true;
+      foundIndex = i;
     }
   }
-  return valid;
+  return foundIndex;
 }
+
+/** Derive a stable tenant ID from an API key (first 8 chars of SHA-256 hash). */
+function deriveTenantId(key: string): string {
+  return crypto.createHash('sha256').update(key).digest('hex').slice(0, 8);
+}
+
+// Pre-compute tenant IDs for all configured keys
+const TENANT_IDS = API_KEYS.map(deriveTenantId);
 
 function extractToken(req: Request): string | null {
   // Check Authorization: Bearer <token>
@@ -67,10 +77,12 @@ function extractToken(req: Request): string | null {
 /**
  * Middleware that requires authentication on protected routes.
  * Public routes (health) should be mounted BEFORE this middleware.
+ * On success, sets req.tenantId for downstream isolation.
  */
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
-  // If auth is not required (development mode), pass through
+  // If auth is not required (development mode), set default tenant and pass through
   if (!AUTH_REQUIRED) {
+    (req as TenantRequest).tenantId = 'dev';
     next();
     return;
   }
@@ -93,7 +105,8 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     return;
   }
 
-  if (!isValidToken(token)) {
+  const keyIndex = findValidKeyIndex(token);
+  if (keyIndex < 0) {
     res.status(403).json({
       error: 'Invalid API key',
       code: 'AUTH_INVALID',
@@ -101,5 +114,17 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     return;
   }
 
+  // Set tenant context for downstream isolation
+  (req as TenantRequest).tenantId = TENANT_IDS[keyIndex];
   next();
+}
+
+/** Extended request type with tenant identity. */
+export interface TenantRequest extends Request {
+  tenantId?: string;
+}
+
+/** Helper to extract tenant ID from a request (returns 'anonymous' if not set). */
+export function getTenantId(req: Request): string {
+  return (req as TenantRequest).tenantId || 'anonymous';
 }
