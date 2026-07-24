@@ -3,6 +3,7 @@ import { createOpenAI, openai } from '@ai-sdk/openai';
 import { generateText, type LanguageModel } from 'ai';
 import { config } from '../config.js';
 import { logger } from '../logger.js';
+import { getCircuitBreaker } from './CircuitBreaker.js';
 
 type ProviderName = 'openai' | 'anthropic' | 'local';
 
@@ -103,11 +104,22 @@ export async function generateTextWithFallback(
   const random = retryOptions.random ?? Math.random;
 
   for (const providerModel of models) {
+    const breaker = getCircuitBreaker(providerModel.provider);
+
+    // Skip provider if circuit is open (fail fast)
+    if (!breaker.canExecute()) {
+      logger.info({ provider: providerModel.provider }, '[LlmProvider] Circuit open — skipping provider');
+      continue;
+    }
+
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        return await generate({ ...options, model: providerModel.model } as GenerateTextOptions);
+        const result = await generate({ ...options, model: providerModel.model } as GenerateTextOptions);
+        breaker.recordSuccess();
+        return result;
       } catch (err) {
         lastError = err;
+        breaker.recordFailure();
         if (!canFallback()) throw err;
         if (attempt < maxAttempts && isRetryableError(err)) {
           const retryAfterMs = getRetryAfterMs(err);

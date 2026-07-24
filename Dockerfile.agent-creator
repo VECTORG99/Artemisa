@@ -6,12 +6,24 @@ RUN npm ci
 COPY agent-creator/ ./
 RUN npm run build
 
-# Stage 2: Serve static files
+# Stage 2: Serve static files as non-root user
 FROM node:22-alpine AS runner
-RUN npm install -g serve@14
 WORKDIR /app
-COPY --from=builder /app/dist ./dist
+
+# Install serve as a local dependency (not global) with exact version
+RUN npm init -y && npm install --save-exact serve@14.2.4
+
+# Create non-root user
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -S appuser -u 1001 -G appgroup
+
+# Copy built assets
+COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
+
+# Switch to non-root user
+USER appuser
+
 EXPOSE 5173
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD wget -qO- http://localhost:5173/ || exit 1
-CMD ["serve", "-s", "dist", "-l", "5173"]
+CMD ["npx", "serve", "-s", "dist", "-l", "5173"]

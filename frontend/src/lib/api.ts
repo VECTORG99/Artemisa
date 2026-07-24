@@ -16,11 +16,25 @@ import type { AgentConfig, AgentRole, HistoryRecord } from '@/types/agent';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-export const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+export const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 const apiKey = process.env.NEXT_PUBLIC_API_KEY || '';
 
 const CREATOR_BASE = `${apiUrl}/api/v1/creator`;
 const RUNTIME_BASE = `${apiUrl}/api`;
+
+// Warn in development if API URL points to a non-local address
+if (
+  typeof window !== 'undefined' &&
+  process.env.NODE_ENV === 'development' &&
+  apiUrl &&
+  !apiUrl.includes('localhost') &&
+  !apiUrl.includes('127.0.0.1')
+) {
+  console.warn(
+    `[Huascar] NEXT_PUBLIC_API_URL points to a non-local address (${apiUrl}). ` +
+      'This may send development traffic to production. Set NEXT_PUBLIC_API_URL=http://localhost:3001 in your .env.local',
+  );
+}
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
