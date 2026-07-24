@@ -3,6 +3,7 @@ import { createOpenAI, openai } from '@ai-sdk/openai';
 import { generateText, type LanguageModel } from 'ai';
 import { config } from '../config.js';
 import { logger } from '../logger.js';
+import { getCircuitBreaker } from './CircuitBreaker.js';
 
 type ProviderName = 'openai' | 'anthropic' | 'local';
 
@@ -26,7 +27,7 @@ const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
 const NON_RETRYABLE_STATUS = new Set([400, 401, 403]);
 
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function getStatus(err: unknown): number | undefined {
@@ -63,13 +64,15 @@ function isRetryableError(err: unknown): boolean {
   if (!err || typeof err !== 'object') return false;
   const code = String((err as Record<string, unknown>).code ?? '').toLowerCase();
   const name = String((err as Record<string, unknown>).name ?? '').toLowerCase();
-  return ['etimedout', 'econnreset', 'econnrefused', 'enotfound', 'timeout', 'aborterror'].some(v => code.includes(v) || name.includes(v));
+  return ['etimedout', 'econnreset', 'econnrefused', 'enotfound', 'timeout', 'aborterror'].some(
+    (v) => code.includes(v) || name.includes(v),
+  );
 }
 
 export function parseProviderChain(value = config.llm.providerChain): ProviderName[] {
   const providers = value
     .split(',')
-    .map(v => v.trim())
+    .map((v) => v.trim())
     .filter((v): v is ProviderName => v === 'openai' || v === 'anthropic' || v === 'local');
 
   return providers.length ? providers : ['openai'];
@@ -78,8 +81,9 @@ export function parseProviderChain(value = config.llm.providerChain): ProviderNa
 export function getConfiguredModels(): ConfiguredModel[] {
   const local = createOpenAI({ baseURL: config.llm.localBaseUrl, apiKey: config.llm.localApiKey });
 
-  return parseProviderChain().map(provider => {
-    if (provider === 'anthropic') return { provider, modelId: config.llm.anthropicModel, model: anthropic(config.llm.anthropicModel) };
+  return parseProviderChain().map((provider) => {
+    if (provider === 'anthropic')
+      return { provider, modelId: config.llm.anthropicModel, model: anthropic(config.llm.anthropicModel) };
     if (provider === 'local') return { provider, modelId: config.llm.localModel, model: local(config.llm.localModel) };
     return { provider, modelId: config.llm.openaiModel, model: openai(config.llm.openaiModel) };
   });
@@ -100,17 +104,34 @@ export async function generateTextWithFallback(
   const random = retryOptions.random ?? Math.random;
 
   for (const providerModel of models) {
+    const breaker = getCircuitBreaker(providerModel.provider);
+
+    // Skip provider if circuit is open (fail fast)
+    if (!breaker.canExecute()) {
+      logger.info({ provider: providerModel.provider }, '[LlmProvider] Circuit open — skipping provider');
+      continue;
+    }
+
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        return await generate({ ...options, model: providerModel.model } as GenerateTextOptions);
+        const result = await generate({ ...options, model: providerModel.model } as GenerateTextOptions);
+        breaker.recordSuccess();
+        return result;
       } catch (err) {
         lastError = err;
+        breaker.recordFailure();
         if (!canFallback()) throw err;
         if (attempt < maxAttempts && isRetryableError(err)) {
           const retryAfterMs = getRetryAfterMs(err);
           const exponentialMs = Math.min(baseDelayMs * 2 ** (attempt - 1), maxDelayMs);
-          const delayMs = Math.min(retryAfterMs ?? exponentialMs + Math.floor(exponentialMs * 0.25 * random()), maxDelayMs);
-          logger.warn({ err, provider: providerModel.provider, model: providerModel.modelId, attempt, delayMs }, '[LlmProvider] Provider failed, retrying');
+          const delayMs = Math.min(
+            retryAfterMs ?? exponentialMs + Math.floor(exponentialMs * 0.25 * random()),
+            maxDelayMs,
+          );
+          logger.warn(
+            { err, provider: providerModel.provider, model: providerModel.modelId, attempt, delayMs },
+            '[LlmProvider] Provider failed, retrying',
+          );
           if (delayMs > 0) await wait(delayMs);
           continue;
         }
@@ -119,7 +140,10 @@ export async function generateTextWithFallback(
     }
 
     if (!canFallback()) throw lastError;
-    logger.warn({ err: lastError, provider: providerModel.provider, model: providerModel.modelId }, '[LlmProvider] Provider failed, trying next');
+    logger.warn(
+      { err: lastError, provider: providerModel.provider, model: providerModel.modelId },
+      '[LlmProvider] Provider failed, trying next',
+    );
   }
 
   throw lastError;
