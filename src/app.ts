@@ -12,7 +12,7 @@ import { notFound } from './middleware/notFound.js';
 import { enforceJsonContentType, validatePathParams } from './middleware/validation.js';
 import { agentRouter } from './routes/agent.js';
 import { agentsRouter } from './routes/agents.js';
-import { healthRouter } from './routes/health.js';
+import { createHealthRouter } from './routes/health.js';
 import { historyRouter } from './routes/history.js';
 import { hooksRouter } from './routes/hooks.js';
 import { createMetricsState, metricsMiddleware, metricsRouter } from './routes/metrics.js';
@@ -125,14 +125,14 @@ app.use('/api/v1/creator', creatorLimiter, creatorPublicRouter);
 app.use(metricsMiddleware(metricsState));
 if (debugState.enabled) app.use(debugMiddleware(debugState));
 app.use('/api', metricsRouter(metricsState));
-app.use('/api', healthRouter);
+app.use('/api', createHealthRouter(store));
 app.use('/api', mcpStatusRouter);
 app.use('/api', openApiRouter);
 app.use('/api', toolsRouter());
 
 app.use('/api', (req, res, next) => {
   // Health and metrics are already handled above
-  if (req.path === '/health' || req.path === '/metrics') return next();
+  if (req.path === '/health' || req.path.startsWith('/health/') || req.path === '/metrics') return next();
   requireAuth(req, res, next);
 });
 
