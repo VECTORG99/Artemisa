@@ -227,10 +227,11 @@ function buildSystemPrompt(blueprint: AgentBlueprint): string {
   return constraints.join('\n');
 }
 
-function mapRagSources(sourceIds: string[]): unknown[] {
+function mapRagSources(sourceIds: string[], languages: string[]): unknown[] {
   return sourceIds.map((source) => {
     if (source === 'repository-docs') return { type: 'local_directory', path: './docs', pattern: '*.md' };
-    if (source === 'source-code') return { type: 'local_directory', path: './src', pattern: '*.ts' };
+    if (source === 'source-code')
+      return { type: 'local_directory', path: './src', pattern: inferSourcePattern(languages) };
     if (source === 'runbooks') return { type: 'local_directory', path: './runbooks', pattern: '*.md' };
     if (source === 'web-documentation')
       return { type: 'inline', content: 'Configura únicamente URLs de documentación aprobadas en el entorno destino.' };
@@ -248,11 +249,40 @@ function mapRagSources(sourceIds: string[]): unknown[] {
   });
 }
 
+/** Map language selections to source file glob patterns. */
+function inferSourcePattern(languages: string[]): string {
+  const extensionMap: Record<string, string> = {
+    typescript: '*.ts',
+    javascript: '*.js',
+    python: '*.py',
+    java: '*.java',
+    kotlin: '*.kt',
+    go: '*.go',
+    rust: '*.rs',
+    csharp: '*.cs',
+    ruby: '*.rb',
+    php: '*.php',
+    swift: '*.swift',
+    scala: '*.scala',
+    elixir: '*.ex',
+    haskell: '*.hs',
+    cpp: '*.cpp',
+    c: '*.c',
+  };
+  const patterns = languages.map((lang) => extensionMap[lang.replace('custom:', '')]).filter(Boolean);
+  if (patterns.length === 0) return '*.*';
+  if (patterns.length === 1) return patterns[0]!;
+  return `*.{${patterns.map((p) => p!.replace('*.', '')).join(',')}}`;
+}
+
 function buildMcpConfig(blueprint: AgentBlueprint): Record<string, unknown> {
   const servers: Record<string, unknown> = {};
   const repository = blueprint.project.repositoryProvider;
   const capabilities = blueprint.agent.capabilities;
-  if (repository === 'github' && (blueprint.prReview.enabled || capabilities.includes('manage-issues'))) {
+  if (
+    repository === 'github' &&
+    (blueprint.prReview.enabled || capabilities.includes('manage-issues') || capabilities.includes('review-pr'))
+  ) {
     servers['github-integration'] = {
       command: 'npx',
       args: ['-y', '@modelcontextprotocol/server-github'],
@@ -261,14 +291,15 @@ function buildMcpConfig(blueprint: AgentBlueprint): Record<string, unknown> {
         'Integración GitHub; usa un token de mínimo privilegio y fija la versión del paquete antes de producción.',
     };
   }
-  if (blueprint.environments.target !== 'production' && capabilities.includes('read-repository')) {
+  const developmentOnly = blueprint.environments.target === 'development';
+  if (developmentOnly && capabilities.includes('read-repository')) {
     servers['local-fs'] = {
       command: 'npx',
       args: ['-y', '@modelcontextprotocol/server-filesystem', './target-repo'],
       description: 'Acceso limitado al workspace del repositorio.',
     };
   }
-  if (blueprint.environments.target !== 'production' && capabilities.includes('run-tests')) {
+  if (developmentOnly && capabilities.includes('run-tests')) {
     servers['bash-terminal'] = {
       command: 'npx',
       args: ['-y', 'mcp-server-bash'],
@@ -323,6 +354,25 @@ ${recommendations}
 
 function buildInstall(blueprint: AgentBlueprint): string {
   const production = blueprint.environments.target === 'production' || blueprint.environments.target === 'both';
+  const development = blueprint.environments.target === 'development' || blueprint.environments.target === 'both';
+  const devSection = development
+    ? `## ${production ? '4a' : '4'}. Uso en desarrollo
+
+- Limita filesystem al repositorio destino.
+- Allowlista comandos de build/test.
+- Revisa los parches antes de aplicarlos o hacer commit.
+`
+    : '';
+  const prodSection = production
+    ? `## ${development ? '4b' : '4'}. Paso a producción
+
+- Despliega primero en staging.
+- Configura logs, métricas, trazas y alertas.
+- Verifica backup, rollback y límites de costo.
+- Ejecuta con identidad separada del usuario administrador.
+- Mantén deploy y operación detrás de aprobación humana.
+`
+    : '';
   return `# Instalación del agente ${blueprint.identity.name}
 
 > Este bundle es un **preview**: Huascar no escribió archivos ni ejecutó herramientas. Revisa cada contenido antes de copiarlo.
@@ -345,24 +395,7 @@ Copia únicamente los archivos del target que utilizarás. Conserva las rutas re
 4. Ejecuta lint, tests y una prueba en modo asesor.
 5. Verifica que herramientas no seleccionadas permanezcan deshabilitadas.
 
-${
-  production
-    ? `## 4. Paso a producción
-
-- Despliega primero en staging.
-- Configura logs, métricas, trazas y alertas.
-- Verifica backup, rollback y límites de costo.
-- Ejecuta con identidad separada del usuario administrador.
-- Mantén deploy y operación detrás de aprobación humana.
-`
-    : `## 4. Uso en desarrollo
-
-- Limita filesystem al repositorio destino.
-- Allowlista comandos de build/test.
-- Revisa los parches antes de aplicarlos o hacer commit.
-`
-}
-`;
+${devSection}${prodSection}`;
 }
 
 function buildAgentsMd(blueprint: AgentBlueprint): string {
@@ -590,7 +623,7 @@ export function generateAgentBundle(input: unknown): GeneratedAgentBundle {
           'huascar/rag.json',
           'configuration',
           'Fuentes RAG declaradas; deben revisarse antes de cargarlas.',
-          { knowledge_bases: mapRagSources(blueprint.knowledge.sources) },
+          { knowledge_bases: mapRagSources(blueprint.knowledge.sources, blueprint.project.technologies) },
         ),
       );
     if (blueprint.prReview.enabled)
