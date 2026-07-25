@@ -11,7 +11,10 @@ async function assertJson(method, path, body, expectedStatus, expectedKey) {
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(`${BASE}${path}`, opts);
   const data = await res.json();
-  const ok = res.status === expectedStatus && data[expectedKey] !== undefined;
+  // Support both legacy { error } and RFC 7807 { title, issues } formats
+  const keyPresent = data[expectedKey] !== undefined
+    || (expectedKey === 'error' && (data.title !== undefined || data.issues !== undefined));
+  const ok = res.status === expectedStatus && keyPresent;
   const label = `${method} ${path} -> ${res.status} ${ok ? 'PASS' : 'FAIL'}`;
   console.log(label);
   if (ok) passed++; else { failed++; console.log('  expected:', expectedStatus, 'got:', res.status, JSON.stringify(data).slice(0, 200)); }
