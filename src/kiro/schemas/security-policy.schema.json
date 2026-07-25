@@ -39,6 +39,8 @@
     "blocked_args_substrings": {
       "type": "object",
       "additionalProperties": { "type": "array", "items": { "type": "string" } }
-    }
+    },
+    "require_approval_patterns": { "type": "array", "items": { "type": "string" } },
+    "default_filesystem_mode": { "type": "string", "enum": ["read-only", "read-write"] }
   }
 }

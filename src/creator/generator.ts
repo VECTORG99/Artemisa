@@ -10,6 +10,12 @@ import { describeCatalogSelection, evaluateDecisionTree } from './decisionTree.j
 
 export const GENERATOR_VERSION = '1.0.0';
 
+/** Shell command allowlist entry, matching src/kiro/schemas/security-policy.schema.json. */
+interface AllowedCommandEntry {
+  binary: string;
+  allowed_args: string[];
+}
+
 function stableValue(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stableValue);
   if (value && typeof value === 'object') {
@@ -234,6 +240,79 @@ function buildSystemPrompt(blueprint: AgentBlueprint): string {
   return constraints.join('\n');
 }
 
+/**
+ * Map blueprint capabilities to the MCP tool names the agent is allowed to call.
+ * Conservative by design: a capability only unlocks the tools it strictly needs,
+ * and no capability grants write/exec tools implicitly.
+ */
+const CAPABILITY_ALLOWED_TOOLS: Record<string, string[]> = {
+  'read-repository': ['read_file', 'list_directory', 'search_files', 'get_file_info'],
+  'edit-code': ['read_file', 'list_directory', 'search_files', 'write_file', 'edit_file'],
+  'run-tests': ['read_file', 'list_directory', 'execute_bash'],
+  'review-pr': ['read_file', 'list_directory', 'search_files', 'get_pull_request', 'create_pull_request_comment'],
+  'manage-issues': ['get_issue', 'list_issues', 'create_issue', 'update_issue'],
+  'inspect-infrastructure': ['read_file', 'list_directory', 'describe_resources', 'get_metrics', 'get_logs'],
+  'operate-production': ['read_file', 'describe_resources', 'get_metrics', 'get_logs', 'execute_bash'],
+  deploy: ['read_file', 'describe_resources', 'execute_bash'],
+  'analyze-data': ['read_file', 'list_directory', 'search_files', 'execute_bash'],
+  'train-models': ['read_file', 'list_directory', 'execute_bash'],
+  'scan-vulnerabilities': ['read_file', 'list_directory', 'search_files', 'execute_bash'],
+  pentest: ['read_file', 'list_directory', 'search_files', 'execute_bash'],
+  'manage-network': ['read_file', 'describe_resources', 'get_metrics', 'execute_bash'],
+  'automate-workflows': ['read_file', 'list_directory', 'write_file', 'execute_bash'],
+  'audit-compliance': ['read_file', 'list_directory', 'search_files', 'get_file_info'],
+  'generate-reports': ['read_file', 'list_directory', 'search_files', 'write_file'],
+};
+
+/**
+ * Map blueprint capabilities to allowlisted shell commands. Only capabilities
+ * that genuinely need shell access contribute entries, and argument allowlists
+ * stay narrow (read-only or quality-gate commands) so the generated policy is
+ * safe to apply before review.
+ */
+function buildAllowedCommands(capabilities: string[], languages: string[]): AllowedCommandEntry[] {
+  const entries = new Map<string, Set<string>>();
+  const add = (binary: string, args: string[]) => {
+    const existing = entries.get(binary) ?? new Set<string>();
+    for (const arg of args) existing.add(arg);
+    entries.set(binary, existing);
+  };
+
+  // Read-only inspection commands are safe for any agent that reads a repo.
+  if (capabilities.includes('read-repository') || capabilities.includes('review-pr')) {
+    add('git', ['status', 'log', 'diff', 'branch', 'show', 'ls-files', 'rev-parse']);
+  }
+
+  if (capabilities.includes('run-tests')) {
+    const hasNode = languages.some((lang) => ['typescript', 'javascript', 'nodejs'].includes(lang));
+    const hasPython = languages.includes('python');
+    const hasGo = languages.includes('go');
+    const hasRust = languages.includes('rust');
+    const hasJava = languages.some((lang) => ['java', 'kotlin'].includes(lang));
+
+    if (hasNode || languages.length === 0) {
+      add('npm', ['ci', 'install', 'run build', 'run test', 'run lint', 'run typecheck']);
+      add('npx', ['tsc --noEmit']);
+    }
+    if (hasPython) {
+      add('python', ['-m pytest', '-m unittest']);
+      add('pytest', []);
+    }
+    if (hasGo) add('go', ['test', 'build', 'vet']);
+    if (hasRust) add('cargo', ['test', 'build', 'check', 'clippy']);
+    if (hasJava) add('mvn', ['test', 'verify']);
+  }
+
+  if (capabilities.includes('inspect-infrastructure') || capabilities.includes('operate-production')) {
+    add('kubectl', ['get', 'describe', 'logs']);
+    add('docker', ['ps', 'logs', 'inspect']);
+  }
+
+  return [...entries.entries()]
+    .map(([binary, args]) => ({ binary, allowed_args: [...args].sort() }))
+    .sort((a, b) => a.binary.localeCompare(b.binary));
+}
+
 function buildSecurityPolicy(blueprint: AgentBlueprint): Record<string, unknown> {
   const autonomy = blueprint.agent.autonomy;
   const target = blueprint.environments.target;
@@ -279,7 +358,23 @@ function buildSecurityPolicy(blueprint: AgentBlueprint): Record<string, unknown>
     approvalRequired.push('restart', 'scale', 'rollback');
   }
 
+  // Allowlist derived from capabilities. The runtime (src/kiro/hooks.ts) loads
+  // this against src/kiro/schemas/security-policy.schema.json and fails closed
+  // on an invalid shape, so version/mode/allowed_tools/allowed_commands must all
+  // be present or the applied policy silently blocks every tool.
+  const allowedTools = [
+    ...new Set(capabilities.flatMap((capability) => CAPABILITY_ALLOWED_TOOLS[capability] ?? [])),
+  ].sort();
+
   const policy: Record<string, unknown> = {
+    version: '1.0.0',
+    mode: 'allowlist',
+    description: `Generated allowlist policy for ${blueprint.identity.name}. Review and tighten before production use.`,
+    allowed_tools: allowedTools,
+    allowed_commands: {
+      description: 'Commands derived from the selected agent capabilities and project stack.',
+      entries: buildAllowedCommands(capabilities, blueprint.project.technologies),
+    },
     blocked_tool_patterns: blockedTools,
     blocked_args_substrings: {
       execute_bash: blockedArgs,
@@ -768,6 +863,11 @@ export function generateAgentBundle(input: unknown): GeneratedAgentBundle {
         roles: {
           [roleKey]: {
             name: blueprint.identity.name,
+            description: blueprint.purpose.objective,
+            recommended_tools: [
+              ...new Set(blueprint.agent.capabilities.flatMap((c) => CAPABILITY_ALLOWED_TOOLS[c] ?? [])),
+            ].sort(),
+            examples: [blueprint.purpose.successCriteria],
             system_prompt: buildSystemPrompt(blueprint),
             temperature: 0.2,
           },
