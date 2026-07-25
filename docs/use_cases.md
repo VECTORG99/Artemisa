@@ -1,16 +1,23 @@
-# Casos de Uso: Productividad del Desarrollador
+# Casos de Uso
 
-Automatización de tareas repetitivas para acelerar el desarrollo.
+Huascar permite disenar y generar configuracion de agentes de desarrollo y operacion mediante un arbol de decisiones determinista.
 
-## Qué genera el agente
-- **Scaffolding**: Estructuras base de proyectos, módulos y componentes.
-- **Pruebas**: Tests unitarios y de integración automáticos.
-- **Revisiones de PR**: Análisis de código, detección de bugs y sugerencias de mejora.
+## Creator
 
-## Qué necesita del usuario (Interfaz)
-Para la hackathon usaremos un formulario web simple (Next.js) que pasa un JSON al backend, evitando la complejidad de una GitHub App completa.
+- Disenar agentes desde cero: seleccionar stack, arquitectura, cloud, CI/CD, observabilidad y permisos.
+- Obtener bundles de configuracion reproducibles con blueprint, manifest hash y guias de instalacion.
+- Evaluar multiples caminos arquitectonicos cambiando respuestas y recalculando el arbol.
+- Generar configuracion target para Huascar, Kiro o portable.
 
-### Datos Requeridos
-- Contexto del proyecto (repositorio, dependencias, stack).
-- Instrucciones claras o tickets (Jira/GitHub).
-- Código fuente existente para analizar.
+## Runtime
+
+- Ejecutar tareas con el motor ReAct usando steering, RAG, MCP y hooks.
+- Integrar fuentes de conocimiento locales para contexto de agentes.
+- Revisar PRs con criterios configurables.
+- Ejecutar agentes registrados con sesiones persistentes en SQLite.
+
+## Público objetivo
+
+- Equipos de desarrollo que quieren estandarizar la configuracion de sus agentes.
+- Proyectos que necesitan documentacion de arquitectura explicable (WHY.md, INSTALL.md).
+- Usuarios de Kiro y Huascar que buscan un creador visual de configuraciones.
