@@ -29,7 +29,9 @@ async function executeFn(task, role) {
       body: JSON.stringify({ task, role }),
     });
     const data = await res.json();
-    return { status: data.status || 'error', response: data.response, error: data.error };
+    const errorMessage =
+      typeof data.error === 'string' ? data.error : data.error?.message ? data.error.message : undefined;
+    return { status: data.status || (errorMessage ? 'blocked' : 'error'), response: data.response, error: errorMessage };
   } catch (err) {
     return { status: 'blocked', error: err.message };
   }

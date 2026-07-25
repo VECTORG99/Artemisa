@@ -81,7 +81,7 @@ export class EvalRunner {
     try {
       const result = await this.executeFn(evalCase.task, evalCase.role);
       const latencyMs = Date.now() - startTime;
-      const response = result.response ?? result.error ?? '';
+      const response = String(result.response ?? result.error ?? '');
 
       // Check expected content
       if (evalCase.expectedContains) {
