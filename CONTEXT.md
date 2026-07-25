@@ -4,7 +4,7 @@ Updated: 2026-07-23
 
 ## State
 
-- Repository is a multi-app repo without npm workspaces: root Express/TypeScript backend, `frontend/` Next dashboard, and `agent-creator/` Vite tool. Root `package.json` owns backend scripts/tests.
+- Repository uses npm workspaces (`packages/*`, `frontend`, `agent-creator`): root Express/TypeScript backend, `frontend/` Next dashboard, and `agent-creator/` Vite tool. Root `package.json` owns backend scripts/tests and hoists shared dependencies; per-app installs still work via `npm --prefix <app> run <script>` but `npm --prefix <app> ci` fails (use root `npm ci` instead, which installs all workspaces).
 - Backend entrypoint: `src/server.ts` -> `src/app.ts`. Express app mounts public creator catalog/workflow/tutorial before auth, then `/api` health/openapi/metrics, then protected API routes.
 - Persistent state uses SQLite through `better-sqlite3` in `src/engine/Store.ts`; database path defaults to `./data/huascar.db` via `HUASCAR_DB_PATH`.
 - SQLite retention cleanup is bounded by `RETENTION_EXECUTION_MAX_AGE_DAYS`, `RETENTION_EXECUTION_MAX_COUNT`, and `RETENTION_RAG_CHUNKS_MAX_PER_SOURCE`; `RETENTION_CLEANUP_ON_START=false` by default.
