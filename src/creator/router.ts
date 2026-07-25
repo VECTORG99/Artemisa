@@ -54,6 +54,29 @@ function versionHeaders(_req: express.Request, res: express.Response, next: expr
   next();
 }
 
+// #324: Creator error handler with application/problem+json content-type
+function creatorErrorHandler(
+  err: unknown,
+  _req: express.Request,
+  res: express.Response,
+  next: express.NextFunction,
+): void {
+  if (res.headersSent) {
+    next(err);
+    return;
+  }
+  if (err instanceof CreatorInputError) {
+    res.status(err.statusCode).type('application/problem+json').json({
+      type: 'about:blank',
+      title: err.message,
+      status: err.statusCode,
+      issues: err.issues,
+    });
+    return;
+  }
+  next(err);
+}
+
 creatorPublicRouter.use(versionHeaders);
 creatorProtectedRouter.use(versionHeaders);
 
@@ -79,7 +102,14 @@ creatorProtectedRouter.post('/evaluate', (req, res, next) => {
   try {
     const body = parseBody(req.body);
     assertVersions(body);
-    res.json(evaluateDecisionTree(body.answers));
+    const evaluation = evaluateDecisionTree(body.answers);
+    // #333: compact mode omits visibleQuestions and answers
+    if (req.query.compact === 'true') {
+      const { visibleQuestions: _vq, answers: _ans, answeredQuestionIds: _aq, ...compact } = evaluation;
+      res.json(compact);
+    } else {
+      res.json(evaluation);
+    }
   } catch (error: unknown) {
     next(error);
   }
@@ -97,3 +127,7 @@ function previewHandler(req: express.Request, res: express.Response, next: expre
 
 creatorProtectedRouter.post('/preview', previewHandler);
 creatorProtectedRouter.post('/generate', previewHandler);
+
+// Attach error handler after all routes
+creatorPublicRouter.use(creatorErrorHandler);
+creatorProtectedRouter.use(creatorErrorHandler);

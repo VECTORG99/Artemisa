@@ -15,6 +15,12 @@ export const WORKFLOW_VERSION = '1.0.0';
 
 const option = (id: string, label: string, description: string): QuestionOption => ({ id, label, description });
 
+/**
+ * Canonical question field IDs for the Creator workflow.
+ * The exact IDs and their order are documented in /api/v1/creator/workflow.
+ * Do not rely on the README for field names — use the API endpoint as the
+ * single source of truth for question identifiers and branching logic.
+ */
 export const creatorQuestions: DecisionQuestion[] = [
   {
     id: 'agent_name',
@@ -166,11 +172,12 @@ export const creatorQuestions: DecisionQuestion[] = [
   {
     id: 'ci_cd',
     section: 'DevOps',
-    prompt: '¿Qué plataforma de CI/CD utilizarás?',
+    prompt: '¿Qué plataformas de CI/CD utilizarás?',
     description: 'El agente documentará quality gates y promoción sin desplegar automáticamente.',
-    type: 'catalog-select',
+    type: 'catalog-multiselect',
     required: true,
     catalogCategories: ['cicd'],
+    maxSelections: 4,
   },
   {
     id: 'infrastructure',
@@ -509,6 +516,20 @@ function buildRecommendations(answers: CreatorAnswers): CreatorRecommendation[] 
       ),
     );
   }
+  if (deployment === 'vps') {
+    result.push(
+      recommendation(
+        'vps-baseline',
+        'recommended',
+        'Operar VPS con proceso reproducible y acceso restringido',
+        'Un VPS auto-gestionado requiere parches del SO, acceso restringido por SSH/VPN, monitorización activa y backups verificados.',
+        ['deployment_target=vps'],
+        ['Control total del entorno', 'Sin dependencia de proveedor cloud'],
+        ['Responsabilidad completa de parches, seguridad y disponibilidad'],
+        ['Plataforma administrada (Render, Fly.io)', 'Contenedores con orquestador'],
+      ),
+    );
+  }
   if (architecture === 'microservices') {
     result.push(
       recommendation(
@@ -712,10 +733,26 @@ function buildWarnings(answers: CreatorAnswers): string[] {
   }
   // #335: mismatched repo provider and CI/CD
   const repo = answers.repository_provider;
-  const ciCd = answers.ci_cd;
-  if ((repo === 'gitlab' || repo === 'bitbucket') && ciCd === 'github-actions') {
+  const ciCdList = Array.isArray(answers.ci_cd) ? answers.ci_cd : [];
+  if ((repo === 'gitlab' || repo === 'bitbucket') && ciCdList.includes('github-actions')) {
     warnings.push(
       `CI/CD configurado como GitHub Actions pero el repositorio es ${repo === 'gitlab' ? 'GitLab' : 'Bitbucket'}: la integración nativa no estará disponible sin configuración adicional.`,
+    );
+  }
+  // #339: deployment_target + container_platforms inconsistency
+  const deployment = answers.deployment_target;
+  const containers = Array.isArray(answers.container_platforms) ? answers.container_platforms : [];
+  if (
+    (deployment === 'aws-lambda' || deployment === 'azure-functions' || deployment === 'gcp-cloud-functions') &&
+    containers.includes('kubernetes')
+  ) {
+    warnings.push(
+      'Kubernetes seleccionado como plataforma de contenedores pero el destino de producción es serverless: Kubernetes no aplica en un entorno sin servidores administrados.',
+    );
+  }
+  if (deployment === 'vps' && containers.includes('kubernetes') && !containers.includes('k3s')) {
+    warnings.push(
+      'Kubernetes seleccionado en un VPS sin orquestador ligero: considera k3s o Docker Compose para entornos auto-gestionados sin un clúster dedicado.',
     );
   }
   return warnings;

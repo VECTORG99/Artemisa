@@ -109,7 +109,7 @@ export interface AgentBlueprint {
     containerPlatforms: string[];
   };
   devops: {
-    ciCd: string;
+    ciCd: string[];
     infrastructure: string[];
     observability: string[];
     compliance: string[];

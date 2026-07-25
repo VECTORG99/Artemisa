@@ -168,7 +168,7 @@ function buildBlueprint(answers: CreatorAnswers): AgentBlueprint {
       containerPlatforms: production ? listAnswer(answers, 'container_platforms') : [],
     },
     devops: {
-      ciCd: stringAnswer(answers, 'ci_cd'),
+      ciCd: listAnswer(answers, 'ci_cd'),
       infrastructure: production ? listAnswer(answers, 'infrastructure') : [],
       observability: production ? listAnswer(answers, 'observability') : [],
       compliance: listAnswer(answers, 'security_controls'),
@@ -404,9 +404,44 @@ function buildWhy(blueprint: AgentBlueprint): string {
 - **Arquitectura:** ${describeCatalogSelection(blueprint.project.architecture)}
 - **Entorno:** ${blueprint.environments.target}
 - **Destino de producción:** ${blueprint.environments.deploymentTarget ? describeCatalogSelection(blueprint.environments.deploymentTarget) : 'No aplica'}
-- **CI/CD:** ${describeCatalogSelection(blueprint.devops.ciCd)}
+- **CI/CD:** ${blueprint.devops.ciCd.map(describeCatalogSelection).join(', ')}
 
-## Decisiones de seguridad
+${
+  blueprint.environments.developmentSetup
+    ? `## Entorno de desarrollo
+
+- **Setup:** ${blueprint.environments.developmentSetup}
+${blueprint.environments.developmentSetup === 'docker-compose' ? '- Se recomienda Docker Compose para reproducibilidad local.\n' : ''}${blueprint.environments.developmentSetup === 'devcontainer' ? '- Se recomienda Dev Container para consistencia de toolchain.\n' : ''}
+`
+    : ''
+}${
+    blueprint.environments.containerPlatforms.length > 0
+      ? `## Plataformas de contenedores
+
+- **Seleccionadas:** ${blueprint.environments.containerPlatforms.map(describeCatalogSelection).join(', ')}
+- Estos artefactos de contenedores deben fijarse con versiones exactas antes de producción.
+
+`
+      : ''
+  }${
+    blueprint.devops.infrastructure.length > 0
+      ? `## Infraestructura como código
+
+- **Herramientas:** ${blueprint.devops.infrastructure.map(describeCatalogSelection).join(', ')}
+- La infraestructura debe versionarse junto al código de la aplicación.
+
+`
+      : ''
+  }${
+    blueprint.devops.observability.length > 0
+      ? `## Observabilidad
+
+- **Stack:** ${blueprint.devops.observability.map(describeCatalogSelection).join(', ')}
+- Se recomienda cubrir al menos logs, métricas y trazas para producción.
+
+`
+      : ''
+  }## Decisiones de seguridad
 
 El agente opera en modo **${blueprint.agent.autonomy}**. ${blueprint.agent.requireHumanApproval ? 'Las acciones con efectos requieren aprobación humana.' : 'El alcance generado es asesor y sin acciones con efectos.'} Los secretos sólo se expresan como referencias de variables de entorno.
 
@@ -425,6 +460,50 @@ ${recommendations}
 function buildInstall(blueprint: AgentBlueprint): string {
   const production = blueprint.environments.target === 'production' || blueprint.environments.target === 'both';
   const development = blueprint.environments.target === 'development' || blueprint.environments.target === 'both';
+
+  // #317: stack-specific guidance
+  const stackHints: string[] = [];
+  const containers = blueprint.environments.containerPlatforms;
+  const technologies = blueprint.project.technologies;
+  const ciCd = blueprint.devops.ciCd;
+
+  if (
+    containers.includes('docker') ||
+    containers.includes('docker-compose') ||
+    blueprint.environments.developmentSetup === 'docker-compose'
+  ) {
+    stackHints.push('- **Docker Compose:** ejecuta `docker-compose up` para levantar el entorno de desarrollo.');
+  }
+  if (containers.includes('kubernetes') || containers.includes('helm')) {
+    stackHints.push('- **Kubernetes/Helm:** usa `helm install <release> <chart>` para desplegar en un clúster.');
+  }
+  if (technologies.includes('nextjs'))
+    stackHints.push('- **Next.js:** ejecuta `npm run dev` para el servidor de desarrollo.');
+  else if (technologies.includes('express'))
+    stackHints.push('- **Express:** ejecuta `npm run dev` para el servidor de desarrollo.');
+  else if (technologies.includes('django'))
+    stackHints.push('- **Django:** ejecuta `python manage.py runserver` para desarrollo.');
+  else if (technologies.includes('rails')) stackHints.push('- **Rails:** ejecuta `bin/rails server` para desarrollo.');
+  else if (technologies.includes('spring-boot'))
+    stackHints.push('- **Spring Boot:** ejecuta `./mvnw spring-boot:run` para desarrollo.');
+  else if (technologies.includes('fastapi'))
+    stackHints.push('- **FastAPI:** ejecuta `uvicorn main:app --reload` para desarrollo.');
+
+  if (ciCd.length > 0) {
+    stackHints.push(
+      `- **CI/CD (${ciCd.map(describeCatalogSelection).join(', ')}):** configura el pipeline para lint, test y build automáticos.`,
+    );
+  }
+
+  const stackSection =
+    stackHints.length > 0
+      ? `## 3b. Comandos específicos del stack
+
+${stackHints.join('\n')}
+
+`
+      : '';
+
   const devSection = development
     ? `## ${production ? '4a' : '4'}. Uso en desarrollo
 
@@ -465,7 +544,7 @@ Copia únicamente los archivos del target que utilizarás. Conserva las rutas re
 4. Ejecuta lint, tests y una prueba en modo asesor.
 5. Verifica que herramientas no seleccionadas permanezcan deshabilitadas.
 
-${devSection}${prodSection}`;
+${stackSection}${devSection}${prodSection}`;
 }
 
 function buildAgentsMd(blueprint: AgentBlueprint): string {
@@ -564,10 +643,11 @@ function inferKiroHookPatterns(technologies: string[]): string[] {
   return patterns.length > 0 ? patterns : ['src/**/*'];
 }
 
-function buildPrReview(blueprint: AgentBlueprint): Record<string, unknown> {
-  return {
+function buildPrReview(blueprint: AgentBlueprint): { config: Record<string, unknown>; warning: string | null } {
+  const provider = blueprint.project.repositoryProvider;
+  const config: Record<string, unknown> = {
     enabled: true,
-    provider: blueprint.project.repositoryProvider,
+    provider,
     trigger: 'pull_request',
     focus: blueprint.prReview.focus,
     output: {
@@ -582,7 +662,16 @@ function buildPrReview(blueprint: AgentBlueprint): Record<string, unknown> {
       merge: false,
     },
     requireHumanApproval: true,
+    limitations: {
+      mcpSupported: ['github'],
+      note: 'El servidor MCP de PR review sólo soporta GitHub actualmente. Otros proveedores requieren un adaptador personalizado.',
+    },
   };
+  const warning =
+    provider !== 'github'
+      ? `PR review configurado con ${provider}: el MCP de integración sólo soporta GitHub nativamente. Se requiere un adaptador personalizado.`
+      : null;
+  return { config, warning };
 }
 
 function buildApplicationGuide(blueprint: AgentBlueprint): GeneratedAgentBundle['applicationGuide'] {
@@ -670,6 +759,8 @@ export function generateAgentBundle(input: unknown): GeneratedAgentBundle {
       ),
     );
 
+  let prReviewWarning: string | null = null;
+
   if (blueprint.agent.targets.includes('huascar')) {
     const roleKey = blueprint.identity.slug.replace(/-/g, '_').toUpperCase();
     add(
@@ -723,15 +814,18 @@ export function generateAgentBundle(input: unknown): GeneratedAgentBundle {
           { knowledge_bases: mapRagSources(blueprint.knowledge.sources, blueprint.project.technologies) },
         ),
       );
-    if (blueprint.prReview.enabled)
+    if (blueprint.prReview.enabled) {
+      const prReview = buildPrReview(blueprint);
       add(
         jsonArtifact(
           'huascar/pr-review.json',
           'configuration',
           'Rúbrica y permisos para revisión de pull requests.',
-          buildPrReview(blueprint),
+          prReview.config,
         ),
       );
+      if (prReview.warning) prReviewWarning = prReview.warning;
+    }
   }
 
   if (blueprint.features.kiro) {
@@ -765,6 +859,7 @@ export function generateAgentBundle(input: unknown): GeneratedAgentBundle {
 
   const applicationGuide = buildApplicationGuide(blueprint);
   const warnings = [...evaluation.warnings];
+  if (prReviewWarning) warnings.push(prReviewWarning);
   if (blueprint.agent.targets.includes('huascar'))
     warnings.push('Fija versiones exactas de los paquetes MCP antes de usar el bundle fuera de una demo.');
   if (blueprint.environments.target !== 'development')
@@ -781,7 +876,7 @@ export function generateAgentBundle(input: unknown): GeneratedAgentBundle {
 
   const manifest = {
     agent: blueprint.identity.slug,
-    artifactCount: artifacts.length,
+    artifactCount: artifacts.length + 1,
     targets: blueprint.agent.targets,
     files: artifacts.map((artifact) => ({ path: artifact.path, sha256: artifact.sha256, kind: artifact.kind })),
   };
