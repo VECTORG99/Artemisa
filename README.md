@@ -474,8 +474,9 @@ test/
 
 - [`docs/architecture.md`](docs/architecture.md): motor y arquitectura interna.
 - [`docs/deployment.md`](docs/deployment.md): despliegue local, Docker y Render.
-- [`docs/use_cases.md`](docs/use_cases.md): casos de uso iniciales.
+- [`docs/use_cases.md`](docs/use_cases.md): casos de uso.
 - [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md): ejemplo de conocimiento versionado.
+- OpenAPI spec: disponible en `/api/openapi.json` al ejecutar el backend.
 
 ## Licencia
 
