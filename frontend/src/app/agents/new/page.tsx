@@ -3,6 +3,16 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
+import {
+  CompletionScreen,
+  DynamicQuestion,
+  ModelTuningPanel,
+  type ModelTuningState,
+  ModeSelect,
+  type CreatorMode,
+  ReviewScreen,
+  StepContainer,
+} from '@/features/creator/components';
 import { creator, registerAgent } from '@/lib/api';
 import type { AgentConfig } from '@/types/agent';
 import type {
@@ -13,7 +23,10 @@ import type {
   GeneratedAgentBundle,
   QuestionOption,
   Workflow,
+  DecisionEvaluation,
 } from '@huascar/types';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 interface RegisteredAgent {
   id: string;
@@ -54,17 +67,35 @@ function buildRegistryConfig(bundle: GeneratedAgentBundle, answers: CreatorAnswe
   };
 }
 
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
 export default function NewAgentPage() {
+  const [mode, setMode] = useState<CreatorMode | null>(null);
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [catalogVersion, setCatalogVersion] = useState('');
+
   const [answers, setAnswers] = useState<CreatorAnswers>({});
   const [question, setQuestion] = useState<DecisionQuestion | null>(null);
+
   const [progress, setProgress] = useState(0);
+
   const [bundle, setBundle] = useState<GeneratedAgentBundle | null>(null);
   const [registered, setRegistered] = useState<RegisteredAgent | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [transitioning, setTransitioning] = useState(false);
+  const [questionHistory, setQuestionHistory] = useState<string[]>([]);
+
+  // State for ultra-technical parameters
+  const [tuningState, setTuningState] = useState<ModelTuningState>({
+    provider: 'openai',
+    temperature: 0.7,
+  });
+
+  const [evaluationData, setEvaluationData] = useState<DecisionEvaluation | null>(null);
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     Promise.all([creator.getCatalog(), creator.getWorkflow()])
@@ -77,6 +108,7 @@ export default function NewAgentPage() {
       .then((evaluation) => {
         setQuestion(evaluation.nextQuestion);
         setProgress(evaluation.progress.percent);
+        setEvaluationData(evaluation);
       })
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
@@ -94,24 +126,73 @@ export default function NewAgentPage() {
     setError('');
     const nextAnswers = { ...answers, [question.id]: value };
     try {
+      setTransitioning(true);
       const evaluation = await creator.evaluate(nextAnswers, {
         workflowVersion: workflow.version,
         catalogVersion,
       });
+      await new Promise((r) => setTimeout(r, 150));
       setAnswers(evaluation.answers);
       setProgress(evaluation.progress.percent);
+      setEvaluationData(evaluation);
+
       if (evaluation.progress.complete) {
-        const generated = await creator.generate(evaluation.answers, {
-          workflowVersion: workflow.version,
-          catalogVersion,
-        });
-        setBundle(generated);
         setQuestion(null);
+        setIsReviewing(true);
       } else {
+        setQuestionHistory((h) => [...h, question.id]);
         setQuestion(evaluation.nextQuestion);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo evaluar la respuesta.');
+    } finally {
+      setTransitioning(false);
+    }
+  }
+
+  async function goBack() {
+    if (!workflow || questionHistory.length === 0) return;
+    setError('');
+    const prevHistory = [...questionHistory];
+    prevHistory.pop();
+    setQuestionHistory(prevHistory);
+
+    const nextAnswers = { ...answers };
+    if (question) delete nextAnswers[question.id];
+
+    try {
+      setTransitioning(true);
+      const evaluation = await creator.evaluate(nextAnswers, {
+        workflowVersion: workflow.version,
+        catalogVersion,
+      });
+      await new Promise((r) => setTimeout(r, 150));
+      setAnswers(evaluation.answers);
+      setProgress(evaluation.progress.percent);
+      setEvaluationData(evaluation);
+      setQuestion(evaluation.nextQuestion);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo volver atrás.');
+    } finally {
+      setTransitioning(false);
+    }
+  }
+
+  async function handleGenerate() {
+    if (!workflow) return;
+    setGenerating(true);
+    setError('');
+    try {
+      const generated = await creator.generate(answers, {
+        workflowVersion: workflow.version,
+        catalogVersion,
+      });
+      setBundle(generated);
+      setIsReviewing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo generar el agente.');
+    } finally {
+      setGenerating(false);
     }
   }
 
@@ -129,183 +210,115 @@ export default function NewAgentPage() {
   const canContinue =
     question?.type === 'boolean' || (Array.isArray(value) ? value.length > 0 : String(value).trim().length > 0);
 
+  // Advanced controls shown on fine-tuning or behind advanced button
+  const advancedControls = (
+    <div className="mt-4">
+      <ModelTuningPanel value={tuningState} onChange={setTuningState} />
+    </div>
+  );
+
   return (
-    <main className="min-h-screen bg-zinc-950 p-8 text-zinc-50">
-      <div className="mx-auto flex max-w-5xl flex-col gap-8">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-medium text-emerald-300">Creador integrado</p>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-50">Nuevo agente</h1>
-            <p className="text-zinc-400">Flujo mínimo guiado por el backend: preguntas, bundle y registro.</p>
-          </div>
-          <Link href="/dashboard" className="text-sm text-zinc-400 transition-colors hover:text-emerald-300">
-            Volver al dashboard
-          </Link>
-        </header>
+    <>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-6 text-center md:hidden">
+        <div className="mb-6 text-4xl">🖥️</div>
+        <h1 className="text-xl font-semibold text-zinc-100">Usa un computador para diseñar agentes</h1>
+        <p className="mt-3 text-sm text-zinc-400">
+          El creador de agentes requiere una pantalla más grande para la mejor experiencia.
+        </p>
+        <Link
+          href="/"
+          className="mt-8 rounded-full border border-emerald-500/30 bg-emerald-600/20 px-6 py-3 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-600/30"
+        >
+          ← Volver al inicio
+        </Link>
+      </div>
 
-        <section className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl shadow-emerald-950/20">
-          <div className="h-1 bg-zinc-800">
-            <div className="h-full bg-emerald-400 transition-all" style={{ width: `${progress}%` }} />
-          </div>
-          <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="flex min-h-96 flex-col gap-6 p-6 sm:p-8">
-              {loading && <p className="text-zinc-400">Cargando workflow...</p>}
-              {error && (
-                <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
-                  {error}
-                </div>
-              )}
+      <div className="hidden md:block">
+        {!mode && !loading && (
+          <StepContainer>
+            <ModeSelect onSelect={setMode} />
+          </StepContainer>
+        )}
 
-              {question && (
-                <>
-                  <div>
-                    <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
-                      {question.section}
-                    </span>
-                    <h2 className="mt-4 text-2xl font-semibold text-zinc-100">{question.prompt}</h2>
-                    {question.description && <p className="mt-2 text-zinc-400">{question.description}</p>}
-                  </div>
+        {mode && !isReviewing && !bundle && !loading && (
+          <StepContainer progress={progress} progressLabel={question?.section}>
+            {error && (
+              <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-6 py-4 text-sm text-red-200">
+                {error}
+              </div>
+            )}
 
-                  <QuestionInput
-                    question={question}
-                    options={options}
-                    value={value}
-                    onChange={(next) => setAnswers((current) => ({ ...current, [question.id]: next }))}
-                  />
+            {question && (
+              <div
+                className={`transition-all duration-200 ${
+                  transitioning ? 'translate-y-2 opacity-0' : 'translate-y-0 opacity-100'
+                }`}
+              >
+                <DynamicQuestion
+                  question={question}
+                  options={options}
+                  value={value}
+                  onChange={(next) => setAnswers((current) => ({ ...current, [question.id]: next }))}
+                  advancedControls={advancedControls}
+                />
 
-                  <button
-                    onClick={submitAnswer}
-                    disabled={!canContinue}
-                    className="mt-auto rounded-md bg-emerald-600 px-5 py-3 font-medium text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:bg-zinc-700"
-                  >
-                    Continuar
-                  </button>
-                </>
-              )}
-
-              {bundle && (
-                <div className="flex flex-col gap-5">
-                  <div>
-                    <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
-                      Bundle generado
-                    </span>
-                    <h2 className="mt-4 text-2xl font-semibold">
-                      {bundle.blueprint?.identity?.name || answers.agent_name}
-                    </h2>
-                    <p className="mt-2 text-zinc-400">
-                      {bundle.artifacts.length} artefactos listos. Regístralo para usarlo desde el dashboard.
-                    </p>
-                  </div>
-                  {registered ? (
-                    <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-4 text-emerald-100">
-                      Agente registrado: {registered.name}
-                    </div>
+                <div className="mt-8 flex items-center justify-between">
+                  {questionHistory.length > 0 ? (
+                    <button
+                      type="button"
+                      onClick={goBack}
+                      className="text-sm text-zinc-400 transition-colors hover:text-emerald-400"
+                    >
+                      ← Atrás
+                    </button>
                   ) : (
                     <button
-                      onClick={registerGeneratedAgent}
-                      className="rounded-md bg-emerald-600 px-5 py-3 font-medium text-white transition-colors hover:bg-emerald-500"
+                      type="button"
+                      onClick={() => setMode(null)}
+                      className="text-sm text-zinc-400 transition-colors hover:text-emerald-400"
                     >
-                      Registrar agente
+                      ← Cambiar modo
                     </button>
                   )}
+                  <button
+                    type="button"
+                    onClick={submitAnswer}
+                    disabled={!canContinue}
+                    className="rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-emerald-900/30 transition-all hover:bg-emerald-500 hover:shadow-emerald-800/40 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:shadow-none"
+                    style={canContinue ? { boxShadow: '0 4px 20px rgba(16,185,129,0.25)' } : undefined}
+                  >
+                    Continuar →
+                  </button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+          </StepContainer>
+        )}
 
-            <aside className="border-t border-zinc-800 bg-zinc-950/70 p-6 lg:border-l lg:border-t-0">
-              <h3 className="font-semibold text-zinc-200">Resumen</h3>
-              <dl className="mt-4 space-y-3 text-sm">
-                {Object.entries(answers).map(([key, item]) => (
-                  <div key={key}>
-                    <dt className="text-zinc-500">{key}</dt>
-                    <dd className="break-words text-zinc-300">
-                      {Array.isArray(item) ? item.join(', ') : String(item)}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-              {bundle && (
-                <pre className="mt-6 max-h-64 overflow-auto rounded-lg border border-zinc-800 bg-zinc-900 p-3 text-xs text-zinc-300">
-                  {bundle.artifacts.map((item) => item.path).join('\n')}
-                </pre>
-              )}
-            </aside>
-          </div>
-        </section>
+        {isReviewing && evaluationData && (
+          <StepContainer progress={100} progressLabel="Revisión">
+            <ReviewScreen
+              answers={answers}
+              recommendations={evaluationData.recommendations}
+              warnings={evaluationData.warnings}
+              onGenerate={handleGenerate}
+              generating={generating}
+              error={error}
+            />
+          </StepContainer>
+        )}
+
+        {bundle && (
+          <StepContainer progress={100} progressLabel="Completado">
+            <CompletionScreen
+              bundle={bundle}
+              onRegister={registerGeneratedAgent}
+              registered={registered}
+              error={error}
+            />
+          </StepContainer>
+        )}
       </div>
-    </main>
-  );
-}
-
-function QuestionInput({
-  question,
-  options,
-  value,
-  onChange,
-}: {
-  question: DecisionQuestion;
-  options: (QuestionOption | CatalogItem)[];
-  value: string | boolean | string[];
-  onChange: (value: string | boolean | string[]) => void;
-}) {
-  const base =
-    'w-full rounded-md border border-zinc-700 bg-zinc-950 p-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500';
-  if (question.type === 'textarea')
-    return (
-      <textarea
-        className={`${base} h-40 resize-none`}
-        placeholder={question.placeholder}
-        value={String(value)}
-        onChange={(event) => onChange(event.target.value)}
-      />
-    );
-  if (question.type === 'text')
-    return (
-      <input
-        className={base}
-        placeholder={question.placeholder}
-        value={String(value)}
-        onChange={(event) => onChange(event.target.value)}
-      />
-    );
-  if (question.type === 'boolean')
-    return (
-      <label className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-950 p-4 text-zinc-200">
-        <input type="checkbox" checked={Boolean(value)} onChange={(event) => onChange(event.target.checked)} /> Sí
-      </label>
-    );
-  if (question.type === 'select' || question.type === 'catalog-select')
-    return (
-      <select className={base} value={String(value)} onChange={(event) => onChange(event.target.value)}>
-        <option value="">Selecciona una opción</option>
-        {options.map((option) => (
-          <option key={option.id} value={option.id}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    );
-  const selected = Array.isArray(value) ? value : [];
-  return (
-    <div className="grid gap-2 sm:grid-cols-2">
-      {options.map((option) => (
-        <label
-          key={option.id}
-          className="flex gap-3 rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-sm text-zinc-200"
-        >
-          <input
-            type="checkbox"
-            checked={selected.includes(option.id)}
-            onChange={(event) =>
-              onChange(event.target.checked ? [...selected, option.id] : selected.filter((id) => id !== option.id))
-            }
-          />
-          <span>
-            <span className="block font-medium">{option.label}</span>
-            {option.description && <span className="text-zinc-500">{option.description}</span>}
-          </span>
-        </label>
-      ))}
-    </div>
+    </>
   );
 }

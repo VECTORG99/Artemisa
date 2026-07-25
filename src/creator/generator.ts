@@ -159,6 +159,7 @@ function buildBlueprint(answers: CreatorAnswers): AgentBlueprint {
       type: stringAnswer(answers, 'purpose'),
       objective: stringAnswer(answers, 'objective').trim(),
       successCriteria: stringAnswer(answers, 'success_criteria').trim(),
+      persona: stringAnswer(answers, 'agent_persona').trim() || null,
     },
     project: {
       stage: stringAnswer(answers, 'project_stage'),
@@ -231,6 +232,8 @@ function buildSystemPrompt(blueprint: AgentBlueprint): string {
       : 'Trabaja en modo asesor y no realices acciones con efectos.',
   ];
   if (blueprint.prReview.enabled) constraints.push(`Enfoque de PR review: ${blueprint.prReview.focus.join(', ')}.`);
+  if (blueprint.purpose.persona)
+    constraints.push(`Estilo/tono/restricciones específicas: ${blueprint.purpose.persona}`);
   if (blueprint.knowledge.enabled)
     constraints.push(
       `Fuentes de conocimiento: ${blueprint.knowledge.sources.map(describeCatalogSelection).join(', ')}.`,
