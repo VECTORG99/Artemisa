@@ -1,3 +1,33 @@
+# Guia para Contribuidores
+
+Bienvenido a Huascar. Este proyecto acepta contribuciones de humanos y agentes de IA.
+
+- **Contribuidores humanos**: leer esta seccion. Para cambios de codigo, la guia detallada para IA mas abajo tambien aplica.
+- **Agentes de IA**: la seccion "AI Contributor Guide" es tu entrada principal.
+
+## Flujo para humanos
+
+1. Busca un issue con label `good first issue` o `help wanted`.
+2. Crea un branch desde `origin/development` con prefijo `feature/`, `fix/` o `docs/`.
+3. Haz cambios enfocados en el issue. Sin refactors ni formateo no solicitado.
+4. Ejecuta `npm run test:unit` y `npx tsc --noEmit`.
+5. Abre un PR a `development` con `Closes #N` en el cuerpo.
+6. Espera revision. Los mantenedores revisan PRs semanalmente.
+
+## Primeros pasos
+
+```bash
+git clone https://github.com/VECTORG99/Huascar
+cd Huascar
+npm ci
+cp .env.example .env
+npm run dev
+```
+
+Lee `README.md` para entender la arquitectura y `docs/CONVENTIONS.md` para las convenciones de codigo.
+
+---
+
 # AI Contributor Guide
 
 Audience: AI agents changing this repository. Keep changes issue-scoped, schema-valid, tested, and routed through PRs to `development`.
