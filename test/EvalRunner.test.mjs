@@ -111,6 +111,24 @@ describe('EvalRunner (#27)', () => {
     assert.equal(report.summary.passRate, 0.5);
   });
 
+  it('does not crash when error is a non-string value', async () => {
+    const runner = new EvalRunner(async () => ({
+      status: 'blocked',
+      error: undefined,
+      response: undefined,
+    }));
+
+    const result = await runner.runCase({
+      id: 'test-error-object',
+      task: 'Trigger role error',
+      role: 'NONEXISTENT_ROLE',
+      shouldComplete: false,
+    });
+
+    assert.equal(result.passed, true);
+    assert.equal(typeof result.response, 'string');
+  });
+
   it('captures metrics', async () => {
     const runner = new EvalRunner(async () => ({
       status: 'success',

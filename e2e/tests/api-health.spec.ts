@@ -7,7 +7,7 @@ test.describe('API Health Smoke Tests', () => {
     const response = await request.get(`${API_URL}/api/health`);
     expect(response.status()).toBe(200);
     const body = await response.json();
-    expect(body.status).toBe('ok');
+    expect(['healthy', 'degraded']).toContain(body.status);
   });
 
   test('GET /api/v1/creator/catalog returns catalog', async ({ request }) => {

@@ -84,7 +84,12 @@ export function getConfiguredModels(): ConfiguredModel[] {
   return parseProviderChain().map((provider) => {
     if (provider === 'anthropic')
       return { provider, modelId: config.llm.anthropicModel, model: anthropic(config.llm.anthropicModel) };
-    if (provider === 'local') return { provider, modelId: config.llm.localModel, model: local(config.llm.localModel) };
+    // Use .chat() explicitly (Chat Completions API), not the default callable form
+    // (Responses API). Third-party OpenAI-compatible endpoints (NVIDIA NIM,
+    // OpenRouter, Ollama, vLLM, LM Studio, ...) implement Chat Completions, not
+    // the newer Responses API — calling local(modelId) directly 404s against them.
+    if (provider === 'local')
+      return { provider, modelId: config.llm.localModel, model: local.chat(config.llm.localModel) };
     return { provider, modelId: config.llm.openaiModel, model: openai(config.llm.openaiModel) };
   });
 }

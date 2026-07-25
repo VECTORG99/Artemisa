@@ -72,5 +72,8 @@
     "*.{ts,js,mjs,json,md}": [
       "prettier --check"
     ]
+  },
+  "allowScripts": {
+    "better-sqlite3@13.0.1": true
   }
 }
