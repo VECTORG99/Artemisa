@@ -47,6 +47,14 @@ export const creatorQuestions: DecisionQuestion[] = [
       option('security', 'Seguridad', 'Revisa código, dependencias, configuración y amenazas.'),
       option('data-ai', 'Datos e IA', 'Pipelines, modelos, RAG y calidad de datos.'),
       option('documentation', 'Documentación', 'Mantiene documentación técnica y runbooks.'),
+      option('machine-learning', 'Machine Learning', 'Entrenamiento, evaluación y serving de modelos.'),
+      option('data-engineering', 'Ingeniería de datos', 'Pipelines ETL/ELT, calidad y gobierno de datos.'),
+      option('cybersecurity-offensive', 'Seguridad ofensiva', 'Pentesting, análisis de vulnerabilidades y red team.'),
+      option('cybersecurity-defensive', 'Seguridad defensiva', 'SIEM, detección de amenazas y blue team.'),
+      option('blockchain-dev', 'Blockchain/Web3', 'Smart contracts, protocolos y dApps.'),
+      option('networking', 'Redes y sistemas', 'Administración de redes, SDN y conectividad.'),
+      option('embedded-systems', 'Sistemas embebidos', 'Firmware, IoT y bajo nivel.'),
+      option('research', 'Investigación', 'Exploración, prototipado y experimentación.'),
       option('custom', 'Otro propósito', 'Conserva un objetivo personalizado.'),
     ],
   },
@@ -218,7 +226,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     description: 'Concede sólo lo necesario. Producción no habilita escritura o despliegue por defecto.',
     type: 'multiselect',
     required: true,
-    maxSelections: 8,
+    maxSelections: 16,
     options: [
       option('read-repository', 'Leer repositorio', 'Analiza código y documentación.'),
       option('edit-code', 'Proponer cambios', 'Genera parches, sin aplicarlos automáticamente.'),
@@ -228,6 +236,14 @@ export const creatorQuestions: DecisionQuestion[] = [
       option('inspect-infrastructure', 'Inspeccionar infraestructura', 'Consulta estado operacional en modo lectura.'),
       option('operate-production', 'Operar producción', 'Acciones operacionales con aprobación obligatoria.'),
       option('deploy', 'Desplegar', 'Promoción controlada con aprobación y rollback.'),
+      option('analyze-data', 'Analizar datos', 'Lee datasets, genera visualizaciones y reportes.'),
+      option('train-models', 'Entrenar modelos', 'Ejecuta pipelines de entrenamiento ML.'),
+      option('scan-vulnerabilities', 'Escanear vulnerabilidades', 'Ejecuta herramientas de seguridad.'),
+      option('pentest', 'Pentesting guiado', 'Ejecuta pruebas de intrusión controladas.'),
+      option('manage-network', 'Gestionar red', 'Configura y monitoriza infraestructura de red.'),
+      option('automate-workflows', 'Automatizar workflows', 'Crea y ejecuta pipelines de automatización.'),
+      option('audit-compliance', 'Auditar cumplimiento', 'Verifica políticas y estándares.'),
+      option('generate-reports', 'Generar reportes', 'Produce documentación y dashboards.'),
     ],
   },
   {
@@ -487,6 +503,179 @@ function buildRecommendations(answers: CreatorAnswers): CreatorRecommendation[] 
   const architecture = answers.architecture;
   const deployment = answers.deployment_target;
   const targets = Array.isArray(answers.agent_targets) ? answers.agent_targets : [];
+  const purpose = answers.purpose;
+
+  // Domain-specific recommendations based on purpose
+  if (purpose === 'machine-learning') {
+    result.push(
+      recommendation(
+        'ml-experiment-tracking',
+        'recommended',
+        'Implementar experiment tracking y versionado de modelos',
+        'Un proyecto de ML necesita registrar hiperparámetros, métricas, artefactos y linaje de datos para garantizar reproducibilidad y comparabilidad entre experimentos.',
+        ['purpose=machine-learning'],
+        ['Reproducibilidad de resultados', 'Comparación sistemática de modelos', 'Auditoría de decisiones'],
+        ['Infraestructura adicional de tracking', 'Disciplina de registro en equipo'],
+        ['Versionado manual con Git tags y archivos de configuración'],
+      ),
+    );
+    result.push(
+      recommendation(
+        'ml-reproducibility',
+        'recommended',
+        'Garantizar reproducibilidad con seeds, pinning y pipelines declarativos',
+        'Modelos no reproducibles impiden debugging, auditoría y validación. Fijar seeds, versiones de dependencias y datos de entrada asegura que el mismo código produce los mismos resultados.',
+        ['purpose=machine-learning'],
+        ['Debugging efectivo', 'Validación por terceros', 'Compliance regulatorio'],
+        ['Overhead de versionado de datasets grandes', 'Mayor tiempo de setup'],
+        ['Documentar configuración sin automatización'],
+      ),
+    );
+  }
+  if (purpose === 'cybersecurity-offensive') {
+    result.push(
+      recommendation(
+        'offensive-scope-authorization',
+        'warning',
+        'Definir alcance, autorización y cadena de evidencia antes de ejecutar',
+        'Pentesting sin autorización explícita y alcance documentado es ilegal. Cada prueba debe tener permiso escrito, scope definido, ventana temporal y procedimiento de reporting.',
+        ['purpose=cybersecurity-offensive'],
+        ['Protección legal', 'Resultados válidos y accionables', 'Trazabilidad completa'],
+        ['Tiempo de preparación y aprobación', 'Restricción del alcance'],
+        ['Bug bounty con scope público', 'Evaluación de seguridad automatizada con herramientas passivas'],
+      ),
+    );
+    result.push(
+      recommendation(
+        'offensive-evidence-chain',
+        'recommended',
+        'Mantener cadena de custodia y evidencia reproducible',
+        'Los hallazgos de seguridad pierden valor si no pueden reproducirse y verificarse. Cada vulnerabilidad necesita PoC, impacto y pasos exactos.',
+        ['purpose=cybersecurity-offensive'],
+        ['Credibilidad de hallazgos', 'Priorización de remediación', 'Validación de fixes'],
+        ['Tiempo extra de documentación', 'Almacenamiento seguro de evidencia'],
+        ['Escáneres automáticos con reporting integrado'],
+      ),
+    );
+  }
+  if (purpose === 'cybersecurity-defensive') {
+    result.push(
+      recommendation(
+        'defensive-siem-integration',
+        'recommended',
+        'Integrar SIEM con triage automatizado y respuesta a incidentes',
+        'Un SOC efectivo necesita correlación de eventos, reglas de detección, priorización automática y playbooks de respuesta documentados.',
+        ['purpose=cybersecurity-defensive'],
+        ['Detección temprana', 'Reducción de tiempo de respuesta', 'Priorización objetiva'],
+        ['Volumen de alertas y falsos positivos', 'Inversión en infraestructura y reglas'],
+        ['Alertas manuales por servicio', 'Monitoreo de logs sin correlación'],
+      ),
+    );
+    result.push(
+      recommendation(
+        'defensive-incident-response',
+        'recommended',
+        'Documentar playbooks de respuesta y realizar simulacros',
+        'Sin procedimientos probados, los incidentes escalan por improvisación. Los playbooks reducen MTTR y los simulacros validan la capacidad del equipo.',
+        ['purpose=cybersecurity-defensive'],
+        ['Respuesta consistente', 'Menor tiempo de recuperación', 'Aprendizaje de incidentes'],
+        ['Mantenimiento de playbooks', 'Tiempo dedicado a simulacros'],
+        ['Post-mortems reactivos sin playbooks previos'],
+      ),
+    );
+  }
+  if (purpose === 'data-engineering') {
+    result.push(
+      recommendation(
+        'data-quality-lineage',
+        'recommended',
+        'Implementar calidad de datos, schema registry y linaje',
+        'Pipelines sin validación de calidad propagan errores silenciosamente. Schema registry previene roturas por cambios incompatibles y el linaje permite debugging.',
+        ['purpose=data-engineering'],
+        ['Detección temprana de errores', 'Compatibilidad entre productores y consumidores', 'Trazabilidad'],
+        ['Infraestructura adicional', 'Governance y ownership de schemas'],
+        ['Validación manual en cada step', 'Tests de integración end-to-end'],
+      ),
+    );
+    result.push(
+      recommendation(
+        'data-idempotency',
+        'recommended',
+        'Garantizar idempotencia y reintentos seguros en pipelines',
+        'Los pipelines de datos fallan. Si las transformaciones no son idempotentes, los reintentos producen duplicados o corrupción.',
+        ['purpose=data-engineering'],
+        ['Reintentos seguros', 'Recuperación automática', 'Consistencia de datos'],
+        ['Diseño más complejo', 'Necesidad de claves de deduplicación'],
+        ['Pipelines manuales con verificación post-ejecución'],
+      ),
+    );
+  }
+  if (purpose === 'blockchain-dev') {
+    result.push(
+      recommendation(
+        'blockchain-formal-verification',
+        'recommended',
+        'Aplicar verificación formal y auditorías de seguridad a smart contracts',
+        'Los smart contracts son inmutables una vez desplegados. Errores en contratos manejan fondos reales y no pueden parchearse sin migración. La verificación formal y auditorías externas son críticas.',
+        ['purpose=blockchain-dev'],
+        ['Prevención de exploits', 'Confianza de usuarios', 'Conformidad regulatoria'],
+        ['Costo y tiempo de auditorías', 'Curva de aprendizaje de verificación formal'],
+        ['Testing extensivo con fuzzing', 'Bug bounty post-deploy'],
+      ),
+    );
+    result.push(
+      recommendation(
+        'blockchain-gas-optimization',
+        'recommended',
+        'Optimizar gas y costos de ejecución on-chain',
+        'Cada operación on-chain tiene costo directo para usuarios. Contratos ineficientes desincentivan adopción y aumentan el vector de ataque por complejidad.',
+        ['purpose=blockchain-dev'],
+        ['Menor costo para usuarios', 'Menor superficie de ataque', 'Mejor UX'],
+        ['Trade-off entre optimización y legibilidad', 'Tiempo extra de profiling'],
+        ['Patrones de proxy para upgrades', 'Off-chain computation con verificación on-chain'],
+      ),
+    );
+  }
+  if (purpose === 'embedded-systems') {
+    result.push(
+      recommendation(
+        'embedded-hardware-abstraction',
+        'recommended',
+        'Implementar capa de abstracción de hardware y gestión de memoria',
+        'Sistemas embebidos con acoplamiento directo al hardware son imposibles de testear y portar. Una HAL (Hardware Abstraction Layer) facilita testing, portabilidad y mantenimiento.',
+        ['purpose=embedded-systems'],
+        ['Testabilidad sin hardware', 'Portabilidad entre plataformas', 'Mantenimiento a largo plazo'],
+        ['Overhead mínimo de indirección', 'Disciplina de diseño'],
+        ['Código directo con testing manual en hardware'],
+      ),
+    );
+    result.push(
+      recommendation(
+        'embedded-memory-rtos',
+        'recommended',
+        'Definir presupuesto de memoria y evaluar RTOS vs bare-metal',
+        'Sin presupuesto de memoria explícito, los sistemas embebidos fallan impredeciblemente. La decisión RTOS vs bare-metal afecta latencia, determinismo y complejidad.',
+        ['purpose=embedded-systems'],
+        ['Predicibilidad del sistema', 'Detección temprana de overflows', 'Determinismo temporal'],
+        ['Restricción de funcionalidades', 'Complejidad de RTOS si no es necesario'],
+        ['Allocación estática sin RTOS para sistemas simples'],
+      ),
+    );
+  }
+  if (purpose === 'networking') {
+    result.push(
+      recommendation(
+        'networking-observability',
+        'recommended',
+        'Instrumentar red con métricas, logs de flujo y alertas de latencia',
+        'Sin observabilidad de red, los problemas de conectividad se diagnostican por síntomas en aplicaciones. Métricas de red (latencia, pérdida, throughput) permiten detección proactiva.',
+        ['purpose=networking'],
+        ['Diagnóstico proactivo', 'Capacity planning', 'SLA medibles'],
+        ['Volumen de datos de telemetría', 'Complejidad de correlación'],
+        ['Monitoreo básico con ping y uptime checks'],
+      ),
+    );
+  }
 
   if (environment === 'production' || environment === 'both') {
     result.push(
