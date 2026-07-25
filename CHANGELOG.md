@@ -1,34 +1,193 @@
 # Changelog
 
-## Unreleased
+All notable changes to this project are documented here.
 
-### Creator
+## [0.1.0] - unreleased
 
-- Implementacion completa del arbol de decisiones con 26 preguntas
-- API REST Creator v1 (catalog, workflow, tutorial, evaluate, preview, generate)
-- Generacion de bundles con blueprint, manifest, INSTALL.md y WHY.md
-- Targets Huascar, Kiro y portable con artefactos condicionales
-- Catastro tecnologico versionado con 12+ categorias
-- Recomendaciones explicables deterministas
-- Validacion de seguridad: no filesystem, no red, no LLM en el Creator
-- Tests unitarios y de integracion para ramas, validacion y determinismo
+### Features
 
-### UI
+- Creator UI Redesign (Base implementation) (#391) (fddfcb8)
+- expand cloud catalog — 44 AWS/Azure/GCP services + cloud-native recommendations (#346) (creator) (5c95f72)
+- massive catalog expansion — 100+ technologies across all computing domains (#345) (creator) (3796495)
+- landing minimalista, liquid glass y licencia MPL-2.0 (#315) (frontend) (0c4c8ee)
+- implement 11 features — eval, engine, testing, config, MCP, DX, SDK (#208) (01cec42)
+- DevContainer, config cache, MCP retry & status (#207) (2aa7e17)
+- migrate to npm workspaces (#146) (monorepo) (4fe75a8)
+- coverage reports, Docker build verification, deploy stages (#147) (ci) (a5fce2b)
+- expand CI with parallel lint, test, and security audit (#140) (ci) (ea1f384)
+- update branch strategy — target master + development (#138) (ci) (ec61181)
+- frontend test infra with Vitest + RTL (#153) (testing) (da4ee6c)
+- release automation with semantic versioning (#159) (ci) (49e766b)
+- deep health monitoring with self-healing alerts (#151) (ops) (e6a2eb1)
+- implement webhook event system for execution notifications (#164) (integration) (3dd3060)
+- add OpenTelemetry scaffolding for ReAct loop tracing (#162) (observability) (80e0e4f)
+- enable strict TypeScript sub-flags (#160) (type-safety) (054d797)
+- configure lint-staged for pre-commit type-check (#139) (dx) (ed3e114)
+- configure Renovate for automated dependency updates (#137) (deps) (ab41edb)
+- implement rate limiting per IP and global (#133) (security) (6509322)
+- enhance structured logging with correlation IDs (#149) (observability) (86d3274)
+- add TypeScript config to agent-creator for JSX→TSX migration (#168) (type-safety) (273bb5b)
+- configure prettier + .editorconfig for consistent formatting (#142) (dx) (fc52392)
+- add monorepo management scripts (#143) (dx) (f5c27dd)
+- CODEOWNERS, PR template, and issue templates (#144) (governance) (501a5da)
+- implement audit log and policy engine (#134) (security) (2a209f2)
+- Zod validation for requests and environment (#148) (type-safety) (520aacd)
+- add integration test helpers and property-based testing utilities (#165) (testing) (536fa2b)
+- mock engine with configurable scenarios (#71) (#201) (91ada81)
+- expand data-driven agent roles (#20) (#200) (f3d06ed)
+- add SQLite data retention policy (#80) (#199) (6d63e18)
+- add Next.js agent creator route (#116) (#189) (8756f2d)
+- add persistent agent registry (#98) (#187) (17faa9b)
+- stream agent execution events (#97) (#184) (8df03cb)
+- persist agent sessions (#35) (#183) (70f9334)
+- retry transient LLM failures (#46) (#182) (502dbe3)
+- expose OpenAPI spec endpoint (#23) (#179) (a6931c2)
+- validate Kiro JSON schemas (#22) (#178) (c8de171)
+- expose dynamic roles endpoint (#82) (#177) (3a16e47)
+- improve RAG pipeline resilience (#55) (#174) (985aea0)
+- add ANN vector index for RAG search (#33) (#173) (b25c1e5)
+- improve RAG semantic chunking (#100) (#172) (728416e)
+- skip unchanged RAG source reindexing (#48) (#171) (465a937)
+- support LLM provider fallback chain (#30) (#163) (cc14ffd)
+- pool MCP connections across requests (#26) (#145) (c758613)
+- add SQLite migration runner (#56) (#25) (#135) (9977702)
+- add pino structured logging (#54) (#122) (01cd8e7)
+- require authentication for protected API routes (#106) (security) (0b77082)
+- render server-driven workflow (agent-creator) (f1fad1d)
+- add guided agent configuration backend (creator) (b84ee85)
+- deploy production — Docker, docs, RAG vectorial, CI migration (1a07961)
+- deep robustness pass (3 phases, 3 Oracle reviews) (7c7a1f6)
+- add request monitoring middleware + metrics endpoint (0f3c515)
+- add Fly.io config for free-tier deploy (cb6567d)
+- complete Phase 2 - RAG web URLs, test suite, deploy config (09ec3d4)
+- add RAG engine, SQLite persistence, integration tests (9387433)
+- add Docker setup, comprehensive README, finalize project (7ac73bf)
+- Phase 2+3 complete - Tailwind, knowledge fix, completion screen, error handling (d29af0a)
+- Phase 1 Oracle remediations - validation, dangerouslySetInnerHTML, HTTP errors (e86ff8f)
+- Phase 1 - Vite + React + JS scaffold with 7-step questionnaire architecture (768917b)
+- Phase 3 complete - E2E integration with remediations (43f9e16)
+- complete E2E integration - frontend calls backend API with real fetch (a093853)
+- implement Phase 1 Backend with HuascarEngine and Express API (d33c70d)
+- add base Kiro configuration files (steering, hooks, mcps, rag) (c7f53ca)
 
-- Agent Creator Vite con renderizado dinamico desde workflow API
-- Tutorial visual skippable
-- Recomendaciones y warnings antes de generar
-- Descarga de bundle JSON y artefactos individuales
+### Bug Fixes
 
-### Runtime
+- emit schema-valid huascar/* artifacts so applied bundles work (#381) (creator) (bf7e1b1)
+- repair e2e/eval infra, LLM provider compat, workspace docs (#380) (321baa9)
+- integration test supports problem+json error format (#347) (test) (3d9e024)
+- final quality batch — stack-specific docs, VPS rec, problem+json, compact evaluate (#344) (creator) (0072780)
+- quality enhancements — personalized steering, dynamic security, architecture recommendations (#343) (creator) (5b216ad)
+- 4 critical generation bugs — RAG patterns, MCP config, INSTALL.md (#342) (creator) (293febb)
+- multi-tenancy isolation — derive tenant ID per API key (#314) (arch) (564a31f)
+- agent-creator Docker runs as non-root, local pinned serve (#312) (devops) (6632d9b)
+- add circuit breaker for LLM provider calls (#311) (arch) (e9a064e)
+- add **proto**/constructor/prototype sanitization middleware (#310) (security) (e2dcaf9)
+- wire deep health check to /api/health, add liveness/readiness probes (#309) (arch) (ce5a1b1)
+- frontend API URL defaults to localhost, warns on non-local (#308) (security) (e27ab16)
+- batch reliability — CORS null origin, MCP idle cleanup, ErrorBoundary (#307) (1aab239)
+- batch hardening — 8 issues (#306) (security) (b6529f6)
+- reliability and security improvements (18 issues) (#305) (e4399ff)
+- add AUTH_REQUIRED=false to docker smoke test (#304) (ci) (2cbcdfb)
+- update Next.js to 16.2.11, add sharp>=0.35.0, fix Turbopack root (#303) (security) (13244bd)
+- enable authentication by default (#302) (security) (e7ae046)
+- block command injection via shell metacharacters (#301) (security) (b871840)
+- harden debug routes — remove replay, restrict info, add TTL (#299) (security) (bbd0a38)
+- harden admin bypass — request-scoped, timing-safe, audited (#298) (security) (be873a0)
+- enforce role isolation on memory API (#297) (security) (1873ac9)
+- harden pipeline endpoint with server-side limits (#296) (security) (31f4375)
+- eliminate timing oracle in auth token validation (#295) (security) (ed5dd4d)
+- add auth headers to frontend API clients (#294) (security) (19ae5db)
+- restrict client RAG sources to inline-only (#293) (security) (af0963d)
+- block client-side system_prompt injection (#292) (security) (cc6b624)
+- enforce auth on Render deployment and remove hardcoded URL (#291) (security) (4d564f9)
+- prevent DOM-based injection via URL query parameters (#290) (frontend) (b63ec74)
+- robustness fixes for issues #209-#237 (#238) (#239) (c8751c0)
+- robustness fixes for issues #209-#237 (#238) (dd2d7d2)
+- use socket.destroyed to detect real client disconnection (#206) (routes) (3f1943b)
+- cancel timed-out MCP executions with AbortSignal (#123) (security) (fd0dbef)
+- expand .gitignore for .env, IDE, and OS artifacts (#158) (repo) (9d4a576)
+- bound and paginate execution history (#157) (security) (5c96b31)
+- add dead code detection with knip (#161) (tech-debt) (95acba3)
+- harden backend — helmet, content-type, startup warnings (#131) (security) (777789f)
+- resolve strict TypeScript fallout and integration test drift (#204) (types) (4dd62ed)
+- enforce tool selection and approval controls (#130) (security) (2f97ddb)
+- restrict local files accepted by RAG ingestion (#127) (security) (c9a4ba8)
+- add allowlist for MCP env var interpolation (#125) (security) (bcdb41b)
+- replace bypassable denylist with structured allowlist (#119) (security) (aa7c923)
+- protect /api/metrics with authentication (#136) (security) (db49ac2)
+- configure restrictive CORS with explicit origins (#124) (security) (ae35e2e)
+- prevent SSRF and bound remote RAG downloads (#128) (security) (46a9fdd)
+- add .env.example for frontend API URL configuration (#154) (deploy) (242e31d)
+- add test utilities for race condition and env pollution prevention (#156) (testing) (b64fce8)
+- pin MCP server package versions (#155) (security) (cdc5539)
+- harden .dockerignore with complete secret exclusions (#117) (security) (915ecb7)
+- make Store.close() idempotent (#96) (#203) (9d09bfa)
+- ignore env/OS artifacts and add consistent npm config (#88) (#202) (7d0dade)
+- improve dashboard accessibility and metadata (#19 #41 #84) (#198) (a5642ca)
+- harden agent registry execution (#191) (c0f4722)
+- harden session reuse and retry delays (#186) (77a1923)
+- normalize selected role after dynamic load (#181) (a59b5fd)
+- harden RAG embedding readiness and auth (#175) (918c519)
+- make provider fallback safe after tool calls (#170) (2b51ea9)
+- honor explicit system prompt for existing roles (#31) (#141) (2d9e128)
+- producciónizar agent-creator — replace Vite dev server with static serve (#115) (docker) (d9e851b)
+- frontend fallback to correct backend URL on Render (#114) (deploy) (d98f1d3)
+- restrict CORS origins and protect /api/metrics (#103) (security) (a6fecdf)
+- harden Docker config — resource limits, secrets exclusion, NODE_ENV (#102) (devops) (a1ce7b9)
+- remove bypass from model args and fix MCP timeout cancellation (#105) (security) (227e5b3)
+- remove variable shadowing in ReAct loop — use systemPrompt directly (#107) (3214dae)
+- update repo URL to match current name (Huascar) (render) (745fbae)
+- MCP+ReAct Oracle remediations - hook on tool calls, client.close, timeout, mock path fix (32f3750)
+- set proper HTML title for Huascar agent creator (454caf2)
+- remove node_modules from git tracking (59f59b2)
 
-- HuascarEngine con bucle ReAct, RAG, MCP y hooks
-- Historial SQLite de ejecuciones
-- Sesiones de agentes registrados
-- Configuracion Kiro (steering, MCPs, RAG, security-policy, governance)
+### Documentation
 
-### DevOps
+- apply phase 7 review cleanup (#197) (556dbf5)
+- expand AI agent directives (#14) (#196) (987f405)
+- add AI contributor guide (#79) (#195) (0e150a5)
+- expand coding conventions (#70) (#194) (1ca0567)
+- add machine-readable project context (#86) (#193) (3a2d7cf)
+- add architecture decision records (#45) (#192) (f9d7c00)
+- update AGENTS.md branching strategy — master is production branch (#113) (8275452)
+- add AI-Driven Development directives (AGENTS.md) (c9ece9f)
+- expand implementation plan into a complete hackathon sprint roadmap (1c61230)
+- add Huascar title to README (f520bca)
 
-- CI con typecheck, tests unitarios y de integracion, audit de seguridad
-- Docker Compose para desarrollo local
-- CI/CD deployments
+### Performance
+
+- parallelize server connects, circuit-break repeated failures (#382) (mcp) (243138e)
+
+### Refactor
+
+- split dashboard into components (#44) (#188) (b38aad0)
+- split server into app and route modules (#42) (#176) (0a08f6e)
+- inject HuascarEngine dependencies (#89) (#169) (64f4fb1)
+- use structured AI SDK tool calling (#29) (#152) (a6ebd82)
+- make shutdown idempotent and graceful (#74) (#132) (5c7974f)
+- add error taxonomy and central handler (#91) (#40) (#129) (ab71bcb)
+- extract config and security policy into declarative files (6293a34)
+- allow overriding OpenAI model via MODEL_ID env var (a0ccf20)
+
+### Testing
+
+- add comprehensive security test suite for critical attack vectors (#313) (security) (fc4e650)
+
+### CI/CD
+
+- add GitHub Actions workflow (c063550)
+
+### Chores
+
+- implement pre-commit hooks with husky + lint-staged (#112) (ed75f1e)
+- add monorepo management scripts to root package.json (#111) (50d3fc0)
+- add CODEOWNERS, PR template, and issue templates (#110) (35748ca)
+- add prettier and .editorconfig for consistent formatting (#109) (73e1761)
+- configure Renovate for automated dependency updates (#108) (25ae118)
+- rename project to Huascar (81660d5)
+
+### Other
+
+- Revert "fix: robustness fixes for issues #209-#237 (#238)" (2ab6515)
+- cleanup: remove emojis from source files (4c640d8)
+- Initial commit: Dev Productivity Agent Builder platform (62d34bf)

@@ -3,13 +3,10 @@ name: Release
 on:
   push:
     branches: [master]
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
+  workflow_dispatch:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   release:
@@ -21,58 +18,46 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
       - run: npm run build
 
-      - name: Generate changelog
-        id: changelog
-        run: |
-          # Generate changelog from conventional commits since last tag
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          if [ -z "$LAST_TAG" ]; then
-            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
-          else
-            COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
-          fi
-          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
-          echo "$COMMITS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Set up git-cliff
+        uses: kenji-miyake/setup-git-cliff@v1
 
-      - name: Determine version bump
+      - name: Get next version
         id: version
         run: |
-          # Check commit messages for version bump type
-          COMMITS=$(git log $(git describe --tags --abbrev=0 2>/dev/null || echo "--all")..HEAD --pretty=format:"%s" 2>/dev/null || git log --pretty=format:"%s")
-          if echo "$COMMITS" | grep -q "BREAKING CHANGE\|!:"; then
-            echo "bump=major" >> $GITHUB_OUTPUT
-          elif echo "$COMMITS" | grep -q "^feat"; then
-            echo "bump=minor" >> $GITHUB_OUTPUT
-          else
-            echo "bump=patch" >> $GITHUB_OUTPUT
-          fi
+          NEXT_VERSION=$(git-cliff --bumped-version)
+          echo "version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$NEXT_VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Create release tag
-        if: github.ref == 'refs/heads/master'
+      - name: Generate CHANGELOG.md
+        run: git-cliff -o CHANGELOG.md
+
+      - name: Update package.json version
         run: |
-          CURRENT=$(node -p "require('./package.json').version")
-          echo "Current version: $CURRENT"
-          # In a full setup, use npm version to bump
-          # For now, create a tag with the current version
-          git tag "v${CURRENT}" || true
-          git push origin "v${CURRENT}" || true
+          node -e "
+          const pkg = JSON.parse(require('fs').readFileSync('./package.json', 'utf-8'));
+          pkg.version = '${{ steps.version.outputs.version }}';
+          require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+      - name: Commit and tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md package.json
+          git diff --cached --quiet || git commit -m "chore(release): v${{ steps.version.outputs.version }}"
+          git tag ${{ steps.version.outputs.tag }}
+          git push origin HEAD --tags
 
       - name: Create GitHub Release
-        if: github.ref == 'refs/heads/master'
-        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.version.outputs.bump }}
-          release_name: Release v${{ steps.version.outputs.bump }}
-          body: ${{ steps.changelog.outputs.CHANGELOG }}
-          draft: false
-          prerelease: false
-        continue-on-error: true
+        run: |
+          gh release create ${{ steps.version.outputs.tag }} \
+            --title "v${{ steps.version.outputs.version }}" \
+            --notes "$(git-cliff --latest --strip header)"
