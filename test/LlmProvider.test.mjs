@@ -4,6 +4,24 @@ import assert from 'node:assert';
 import { generateTextWithFallback, parseProviderChain } from '../src/engine/LlmProvider.js';
 
 describe('LlmProvider', () => {
+  it('uses Chat Completions API (not Responses API) for the local provider', async () => {
+    // Third-party OpenAI-compatible endpoints (NVIDIA NIM, OpenRouter, Ollama, vLLM)
+    // implement Chat Completions, not the Responses API. getConfiguredModels() must
+    // build the local model via `.chat(modelId)`, not the default callable form,
+    // or requests 404 against those providers.
+    const { getConfiguredModels } = await import('../src/engine/LlmProvider.js');
+    const previousChain = process.env.LLM_PROVIDER_CHAIN;
+    process.env.LLM_PROVIDER_CHAIN = 'local';
+    try {
+      const [configured] = getConfiguredModels();
+      assert.strictEqual(configured.provider, 'local');
+      assert.strictEqual(configured.model.constructor.name, '_OpenAIChatLanguageModel');
+    } finally {
+      if (previousChain === undefined) delete process.env.LLM_PROVIDER_CHAIN;
+      else process.env.LLM_PROVIDER_CHAIN = previousChain;
+    }
+  });
+
   it('tries the second model when the first throws', async () => {
     const calls = [];
     const models = [
