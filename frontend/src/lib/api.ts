@@ -8,7 +8,9 @@ import type {
   ExecuteResponse,
   GeneratedAgentBundle,
   HealthResponse,
+  McpCatalogResponse,
   PreviewRequest,
+  SkillsCatalogResponse,
   Tutorial,
   Workflow,
 } from '@huascar/types';
@@ -82,6 +84,22 @@ export const creator = {
   getWorkflow: () => request<Workflow>(`${CREATOR_BASE}/workflow`),
 
   getTutorial: () => request<Tutorial>(`${CREATOR_BASE}/tutorial`),
+
+  getSkills: (filter?: { focus?: string; q?: string }) => {
+    const params = new URLSearchParams();
+    if (filter?.focus) params.set('focus', filter.focus);
+    if (filter?.q) params.set('q', filter.q);
+    const qs = params.toString();
+    return request<SkillsCatalogResponse>(`${CREATOR_BASE}/skills${qs ? `?${qs}` : ''}`);
+  },
+
+  getMcps: (filter?: { category?: string; q?: string }) => {
+    const params = new URLSearchParams();
+    if (filter?.category) params.set('category', filter.category);
+    if (filter?.q) params.set('q', filter.q);
+    const qs = params.toString();
+    return request<McpCatalogResponse>(`${CREATOR_BASE}/mcps${qs ? `?${qs}` : ''}`);
+  },
 
   evaluate: (answers: CreatorAnswers, versions: { workflowVersion: string; catalogVersion: string }) =>
     request<DecisionEvaluation>(`${CREATOR_BASE}/evaluate`, {

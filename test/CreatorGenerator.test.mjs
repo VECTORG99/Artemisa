@@ -5,6 +5,22 @@ import { CreatorInputError } from '../src/creator/domain.js';
 import { developmentAnswers, productionAnswers } from './creatorFixture.mjs';
 
 describe('Creator generator', () => {
+  it('applies agent_persona verbatim to the generated system prompt', () => {
+    const persona = 'Tono directo, sin rodeos, siempre cita la línea exacta del código.';
+    const bundle = generateAgentBundle({ ...developmentAnswers, agent_persona: persona });
+    const steering = JSON.parse(bundle.artifacts.find((a) => a.path === 'huascar/steering.json').content);
+    const [role] = Object.values(steering.roles);
+    assert.ok(role.system_prompt.includes(persona), 'system_prompt must include the persona text verbatim');
+  });
+
+  it('omits persona line when agent_persona is not answered', () => {
+    const { agent_persona: _unused, ...withoutPersona } = developmentAnswers;
+    const bundle = generateAgentBundle(withoutPersona);
+    const steering = JSON.parse(bundle.artifacts.find((a) => a.path === 'huascar/steering.json').content);
+    const [role] = Object.values(steering.roles);
+    assert.ok(!role.system_prompt.includes('Estilo/tono/restricciones'));
+  });
+
   it('generates Huascar, Kiro, portable, RAG, PR and skill artifacts when applicable', () => {
     const bundle = generateAgentBundle(developmentAnswers);
     const paths = bundle.artifacts.map(artifact => artifact.path);

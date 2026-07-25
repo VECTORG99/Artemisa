@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile.backend
     ports:
-      - "3001:3001"
+      - '3001:3001'
     env_file: .env
     environment:
       - NODE_ENV=production
@@ -21,14 +21,14 @@ services:
       resources:
         limits:
           memory: 512M
-          cpus: "0.5"
+          cpus: '0.5'
         reservations:
           memory: 256M
     logging:
       driver: json-file
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       - huascar-network
 
@@ -37,9 +37,9 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
       args:
-        NEXT_PUBLIC_API_URL: http://backend:3001
+        NEXT_PUBLIC_API_URL: http://localhost:3001
     ports:
-      - "3000:3000"
+      - '3000:3000'
     restart: unless-stopped
     depends_on:
       backend:
@@ -48,14 +48,14 @@ services:
       resources:
         limits:
           memory: 256M
-          cpus: "0.25"
+          cpus: '0.25'
         reservations:
           memory: 128M
     logging:
       driver: json-file
       options:
-        max-size: "5m"
-        max-file: "3"
+        max-size: '5m'
+        max-file: '3'
     networks:
       - huascar-network
 
@@ -64,9 +64,9 @@ services:
       context: .
       dockerfile: Dockerfile.agent-creator
     ports:
-      - "5173:5173"
+      - '5173:5173'
     environment:
-      - VITE_API_URL=http://backend:3001
+      - VITE_API_URL=http://localhost:3001
     depends_on:
       backend:
         condition: service_healthy
@@ -74,14 +74,14 @@ services:
       resources:
         limits:
           memory: 256M
-          cpus: "0.25"
+          cpus: '0.25'
         reservations:
           memory: 128M
     logging:
       driver: json-file
       options:
-        max-size: "5m"
-        max-file: "3"
+        max-size: '5m'
+        max-file: '3'
     networks:
       - huascar-network
 

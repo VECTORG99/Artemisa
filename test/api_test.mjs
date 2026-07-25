@@ -46,6 +46,8 @@ try {
   await assertJson('GET', '/api/v1/creator/catalog', null, 200, 'items');
   await assertJson('GET', '/api/v1/creator/workflow', null, 200, 'questions');
   await assertJson('GET', '/api/v1/creator/tutorial', null, 200, 'skippable');
+  await assertJson('GET', '/api/v1/creator/skills', null, 200, 'items');
+  await assertJson('GET', '/api/v1/creator/mcps', null, 200, 'items');
   const partial = await assertJson('POST', '/api/v1/creator/evaluate', { answers: {} }, 200, 'nextQuestion');
   if (partial.nextQuestion?.id !== 'agent_name') throw new Error('Creator did not start with agent_name');
   await assertJson('POST', '/api/v1/creator/preview', { answers: { agent_name: 'Incomplete' } }, 422, 'error');

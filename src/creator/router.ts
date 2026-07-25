@@ -3,6 +3,8 @@ import { CATALOG_VERSION, getCreatorCatalog } from './catalog.js';
 import { CreatorInputError } from './domain.js';
 import { creatorTutorial, evaluateDecisionTree, getWorkflowDefinition, WORKFLOW_VERSION } from './decisionTree.js';
 import { generateAgentBundle } from './generator.js';
+import { getSkillsCatalog } from './skillsCatalog.js';
+import { getMcpCatalog } from './mcpCatalog.js';
 
 interface CreatorRequestBody {
   answers?: unknown;
@@ -96,6 +98,20 @@ creatorPublicRouter.get('/workflow', (_req, res) => {
 creatorPublicRouter.get('/tutorial', (_req, res) => {
   res.set('Cache-Control', 'public, max-age=300');
   res.json(creatorTutorial);
+});
+
+creatorPublicRouter.get('/skills', (req, res) => {
+  const focus = typeof req.query.focus === 'string' ? req.query.focus.slice(0, 50) : undefined;
+  const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
+  res.set('Cache-Control', 'public, max-age=300');
+  res.json(getSkillsCatalog({ focus, q }));
+});
+
+creatorPublicRouter.get('/mcps', (req, res) => {
+  const category = typeof req.query.category === 'string' ? req.query.category.slice(0, 50) : undefined;
+  const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
+  res.set('Cache-Control', 'public, max-age=300');
+  res.json(getMcpCatalog({ category, q }));
 });
 
 creatorProtectedRouter.post('/evaluate', (req, res, next) => {

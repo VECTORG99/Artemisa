@@ -4,7 +4,7 @@ export type CreatorAnswers = Record<string, CreatorAnswerValue>;
 
 export type EnvironmentScope = 'development' | 'production' | 'both';
 export type QuestionType =
-  'text' | 'textarea' | 'select' | 'multiselect' | 'boolean' | 'catalog-multiselect' | 'catalog-select';
+  'text' | 'textarea' | 'select' | 'multiselect' | 'boolean' | 'catalog-multiselect' | 'catalog-select' | 'custom';
 
 export interface CatalogCategory {
   id: string;
@@ -94,6 +94,8 @@ export interface AgentBlueprint {
     type: string;
     objective: string;
     successCriteria: string;
+    /** Optional free-text tone/style/restriction, applied verbatim to the generated system prompt. */
+    persona: string | null;
   };
   project: {
     stage: string;

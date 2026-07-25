@@ -20,6 +20,9 @@ export const developmentAnswers = {
   agent_targets: ['huascar', 'kiro', 'portable'],
   hooks_enabled: true,
   skills_enabled: true,
+  skills_focus: 'development',
+  mcps_enabled: true,
+  mcps_selection: ['github-mcp']
 };
 
 export const productionAnswers = {
@@ -47,4 +50,6 @@ export const productionAnswers = {
   agent_targets: ['huascar', 'portable'],
   hooks_enabled: true,
   skills_enabled: true,
+  skills_focus: 'operations',
+  mcps_enabled: false,
 };

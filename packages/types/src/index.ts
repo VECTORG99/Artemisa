@@ -4,13 +4,7 @@ export type CreatorAnswerValue = string | boolean | string[];
 export type CreatorAnswers = Record<string, CreatorAnswerValue>;
 export type EnvironmentScope = 'development' | 'production' | 'both';
 export type QuestionType =
-  | 'text'
-  | 'textarea'
-  | 'select'
-  | 'multiselect'
-  | 'boolean'
-  | 'catalog-multiselect'
-  | 'catalog-select';
+  'text' | 'textarea' | 'select' | 'multiselect' | 'boolean' | 'catalog-multiselect' | 'catalog-select' | 'custom';
 
 // ─── Catalog ──────────────────────────────────────────────────────────────────
 
@@ -258,6 +252,49 @@ export interface HealthResponse {
   status: string;
   uptime: number;
   version?: string;
+}
+
+// ─── Skills catalog ───────────────────────────────────────────────────────────
+
+export interface SkillCatalogItem {
+  id: string;
+  name: string;
+  description: string;
+  focus: 'development' | 'security' | 'data-ai' | 'operations' | 'documentation';
+  tags: string[];
+  sourceUrl: string;
+  sourceName: string;
+}
+
+export interface SkillsCatalogResponse {
+  version: string;
+  items: SkillCatalogItem[];
+}
+
+// ─── MCP catalog ──────────────────────────────────────────────────────────────
+
+export interface McpCatalogItem {
+  id: string;
+  name: string;
+  description: string;
+  category:
+    | 'development'
+    | 'productivity'
+    | 'database'
+    | 'search'
+    | 'web-scraping'
+    | 'file-system'
+    | 'version-control'
+    | 'communication'
+    | 'cloud-service';
+  official: boolean;
+  tags: string[];
+  sourceUrl: string;
+}
+
+export interface McpCatalogResponse {
+  version: string;
+  items: McpCatalogItem[];
 }
 
 // ─── API Error ────────────────────────────────────────────────────────────────
