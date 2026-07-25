@@ -3,23 +3,93 @@ import { CatalogCategory, CatalogItem } from './domain.js';
 export const CATALOG_VERSION = '1.0.0';
 
 export const catalogCategories: CatalogCategory[] = [
-  { id: 'language', label: 'Lenguajes y runtimes', description: 'Lenguaje principal y runtime del proyecto.', multiple: true },
-  { id: 'frontend', label: 'Frontend web', description: 'Frameworks y meta-frameworks para interfaces web.', multiple: true },
-  { id: 'backend', label: 'Backend y APIs', description: 'Frameworks para APIs, servicios y aplicaciones de servidor.', multiple: true },
+  {
+    id: 'language',
+    label: 'Lenguajes y runtimes',
+    description: 'Lenguaje principal y runtime del proyecto.',
+    multiple: true,
+  },
+  {
+    id: 'frontend',
+    label: 'Frontend web',
+    description: 'Frameworks y meta-frameworks para interfaces web.',
+    multiple: true,
+  },
+  {
+    id: 'backend',
+    label: 'Backend y APIs',
+    description: 'Frameworks para APIs, servicios y aplicaciones de servidor.',
+    multiple: true,
+  },
   { id: 'mobile', label: 'Desarrollo móvil', description: 'Stacks nativos y multiplataforma.', multiple: true },
-  { id: 'data-ai', label: 'Datos e IA', description: 'Procesamiento de datos, machine learning y agentes.', multiple: true },
-  { id: 'database', label: 'Persistencia', description: 'Bases relacionales, documentales, caché, búsqueda y vectores.', multiple: true },
-  { id: 'architecture', label: 'Arquitecturas', description: 'Estilos arquitectónicos y patrones de organización.', multiple: false },
-  { id: 'testing', label: 'Pruebas y calidad', description: 'Herramientas para validación funcional, estática y de seguridad.', multiple: true },
+  {
+    id: 'data-ai',
+    label: 'Datos e IA',
+    description: 'Procesamiento de datos, machine learning y agentes.',
+    multiple: true,
+  },
+  {
+    id: 'database',
+    label: 'Persistencia',
+    description: 'Bases relacionales, documentales, caché, búsqueda y vectores.',
+    multiple: true,
+  },
+  {
+    id: 'architecture',
+    label: 'Arquitecturas',
+    description: 'Estilos arquitectónicos y patrones de organización.',
+    multiple: false,
+  },
+  {
+    id: 'testing',
+    label: 'Pruebas y calidad',
+    description: 'Herramientas para validación funcional, estática y de seguridad.',
+    multiple: true,
+  },
   { id: 'cicd', label: 'CI/CD', description: 'Automatización de integración, entrega y promoción.', multiple: false },
-  { id: 'infrastructure', label: 'Infraestructura como código', description: 'Definición reproducible de infraestructura.', multiple: true },
-  { id: 'container', label: 'Contenedores y orquestación', description: 'Empaquetado y operación de workloads.', multiple: true },
+  {
+    id: 'infrastructure',
+    label: 'Infraestructura como código',
+    description: 'Definición reproducible de infraestructura.',
+    multiple: true,
+  },
+  {
+    id: 'container',
+    label: 'Contenedores y orquestación',
+    description: 'Empaquetado y operación de workloads.',
+    multiple: true,
+  },
   { id: 'cloud', label: 'Cloud y hosting', description: 'Proveedores y plataformas de ejecución.', multiple: true },
-  { id: 'observability', label: 'Observabilidad', description: 'Logs, métricas, trazas y gestión de errores.', multiple: true },
-  { id: 'security', label: 'Seguridad y supply chain', description: 'Secretos, análisis y controles de dependencias.', multiple: true },
-  { id: 'repository', label: 'Código y colaboración', description: 'Repositorios, pull requests e incidencias.', multiple: false },
-  { id: 'agent-platform', label: 'Plataformas de agente', description: 'Formatos de configuración que generará Huascar.', multiple: true },
-  { id: 'knowledge', label: 'Conocimiento', description: 'Mecanismos para aportar contexto estable o recuperable.', multiple: true },
+  {
+    id: 'observability',
+    label: 'Observabilidad',
+    description: 'Logs, métricas, trazas y gestión de errores.',
+    multiple: true,
+  },
+  {
+    id: 'security',
+    label: 'Seguridad y supply chain',
+    description: 'Secretos, análisis y controles de dependencias.',
+    multiple: true,
+  },
+  {
+    id: 'repository',
+    label: 'Código y colaboración',
+    description: 'Repositorios, pull requests e incidencias.',
+    multiple: false,
+  },
+  {
+    id: 'agent-platform',
+    label: 'Plataformas de agente',
+    description: 'Formatos de configuración que generará Huascar.',
+    multiple: true,
+  },
+  {
+    id: 'knowledge',
+    label: 'Conocimiento',
+    description: 'Mecanismos para aportar contexto estable o recuperable.',
+    multiple: true,
+  },
 ];
 
 type ItemSpec = [id: string, label: string, description: string, tags?: string[], recommendedFor?: string[]];
@@ -38,13 +108,37 @@ function makeItems(category: string, specs: ItemSpec[]): CatalogItem[] {
 
 export const catalogItems: CatalogItem[] = [
   ...makeItems('language', [
-    ['typescript', 'TypeScript', 'JavaScript tipado para frontend, backend y tooling.', ['node', 'web'], ['web', 'api', 'agent']],
+    [
+      'typescript',
+      'TypeScript',
+      'JavaScript tipado para frontend, backend y tooling.',
+      ['node', 'web'],
+      ['web', 'api', 'agent'],
+    ],
     ['javascript', 'JavaScript', 'Lenguaje universal del ecosistema web y Node.js.', ['node', 'web']],
-    ['python', 'Python', 'Automatización, APIs, datos, IA y scripting.', ['ai', 'data', 'api'], ['agent', 'data', 'automation']],
-    ['java', 'Java', 'Servicios empresariales y plataformas de larga vida.', ['jvm', 'enterprise'], ['api', 'enterprise']],
+    [
+      'python',
+      'Python',
+      'Automatización, APIs, datos, IA y scripting.',
+      ['ai', 'data', 'api'],
+      ['agent', 'data', 'automation'],
+    ],
+    [
+      'java',
+      'Java',
+      'Servicios empresariales y plataformas de larga vida.',
+      ['jvm', 'enterprise'],
+      ['api', 'enterprise'],
+    ],
     ['kotlin', 'Kotlin', 'JVM moderno, Android y servicios multiplataforma.', ['jvm', 'android']],
     ['csharp', 'C#/.NET', 'Aplicaciones empresariales, APIs, escritorio y cloud.', ['dotnet', 'enterprise']],
-    ['go', 'Go', 'Servicios de red, plataformas cloud y herramientas DevOps.', ['cloud', 'systems'], ['microservices', 'devops']],
+    [
+      'go',
+      'Go',
+      'Servicios de red, plataformas cloud y herramientas DevOps.',
+      ['cloud', 'systems'],
+      ['microservices', 'devops'],
+    ],
     ['rust', 'Rust', 'Sistemas seguros, alto rendimiento y WebAssembly.', ['systems', 'wasm']],
     ['php', 'PHP', 'Aplicaciones web y plataformas de contenido.', ['web']],
     ['ruby', 'Ruby', 'Aplicaciones web orientadas a productividad.', ['web']],
@@ -98,7 +192,13 @@ export const catalogItems: CatalogItem[] = [
   ...makeItems('database', [
     ['postgresql', 'PostgreSQL', 'Base relacional general con extensiones avanzadas.', ['sql'], ['production']],
     ['mysql', 'MySQL/MariaDB', 'Base relacional ampliamente soportada.', ['sql']],
-    ['sqlite', 'SQLite', 'Base embebida para desarrollo, edge y baja concurrencia.', ['sql', 'embedded'], ['development']],
+    [
+      'sqlite',
+      'SQLite',
+      'Base embebida para desarrollo, edge y baja concurrencia.',
+      ['sql', 'embedded'],
+      ['development'],
+    ],
     ['mongodb', 'MongoDB', 'Documentos JSON y esquemas flexibles.', ['nosql']],
     ['dynamodb', 'DynamoDB', 'Key-value administrado y serverless en AWS.', ['nosql', 'aws']],
     ['redis', 'Redis', 'Caché, estructuras en memoria y coordinación.', ['cache']],
@@ -109,10 +209,27 @@ export const catalogItems: CatalogItem[] = [
     ['qdrant', 'Qdrant', 'Motor vectorial open-source y administrado.', ['vector', 'rag']],
   ]),
   ...makeItems('architecture', [
-    ['modular-monolith', 'Monolito modular', 'Despliegue único con límites internos explícitos.', ['modular'], ['new-project', 'small-team']],
+    [
+      'modular-monolith',
+      'Monolito modular',
+      'Despliegue único con límites internos explícitos.',
+      ['modular'],
+      ['new-project', 'small-team'],
+    ],
     ['monolith', 'Monolito tradicional', 'Aplicación única optimizada para simplicidad inicial.', ['simple']],
-    ['microservices', 'Microservicios', 'Servicios desplegables de forma independiente.', ['distributed'], ['large-team', 'production']],
-    ['serverless', 'Serverless', 'Funciones y servicios administrados con escalado por demanda.', ['cloud', 'event-driven']],
+    [
+      'microservices',
+      'Microservicios',
+      'Servicios desplegables de forma independiente.',
+      ['distributed'],
+      ['large-team', 'production'],
+    ],
+    [
+      'serverless',
+      'Serverless',
+      'Funciones y servicios administrados con escalado por demanda.',
+      ['cloud', 'event-driven'],
+    ],
     ['event-driven', 'Event-driven', 'Componentes desacoplados por eventos y mensajería.', ['async', 'distributed']],
     ['hexagonal', 'Arquitectura hexagonal', 'Dominio aislado mediante puertos y adaptadores.', ['domain']],
     ['clean-architecture', 'Clean Architecture', 'Dependencias orientadas hacia reglas de negocio.', ['domain']],
@@ -194,7 +311,12 @@ export const catalogItems: CatalogItem[] = [
     ['portable', 'Portable', 'AGENTS.md, skills y documentación independiente.', ['agent']],
   ]),
   ...makeItems('knowledge', [
-    ['repository-docs', 'Documentación del repositorio', 'README, arquitectura, ADR y convenciones versionadas.', ['static']],
+    [
+      'repository-docs',
+      'Documentación del repositorio',
+      'README, arquitectura, ADR y convenciones versionadas.',
+      ['static'],
+    ],
     ['source-code', 'Código fuente', 'Contexto del código y estructura del proyecto.', ['static']],
     ['web-documentation', 'Documentación web', 'Documentación externa revisada y permitida.', ['web']],
     ['tickets', 'Issues y tickets', 'Trabajo vivo desde el sistema de seguimiento.', ['dynamic']],
@@ -203,8 +325,8 @@ export const catalogItems: CatalogItem[] = [
   ]),
 ];
 
-const itemIndex = new Map(catalogItems.map(item => [item.id, item]));
-const categoryIndex = new Map(catalogCategories.map(category => [category.id, category]));
+const itemIndex = new Map(catalogItems.map((item) => [item.id, item]));
+const categoryIndex = new Map(catalogCategories.map((category) => [category.id, category]));
 
 export function getCatalogItem(id: string): CatalogItem | undefined {
   return itemIndex.get(id);
@@ -218,15 +340,27 @@ export function isCatalogItemFor(id: string, categories: string[]): boolean {
 
 export function getCreatorCatalog(filters?: { category?: string; environment?: string; q?: string }) {
   let items = catalogItems;
-  if (filters?.category && categoryIndex.has(filters.category)) {
-    items = items.filter(item => item.category === filters.category);
+  if (filters?.category) {
+    if (categoryIndex.has(filters.category)) {
+      items = items.filter((item) => item.category === filters.category);
+    } else {
+      items = [];
+    }
   }
-  if (filters?.environment === 'development' || filters?.environment === 'production' || filters?.environment === 'both') {
-    items = items.filter(item => item.environments.includes(filters.environment as 'development' | 'production' | 'both'));
+  if (
+    filters?.environment === 'development' ||
+    filters?.environment === 'production' ||
+    filters?.environment === 'both'
+  ) {
+    items = items.filter((item) =>
+      item.environments.includes(filters.environment as 'development' | 'production' | 'both'),
+    );
   }
   if (filters?.q) {
     const query = filters.q.toLowerCase().trim();
-    items = items.filter(item => [item.id, item.label, item.description, ...item.tags].some(value => value.toLowerCase().includes(query)));
+    items = items.filter((item) =>
+      [item.id, item.label, item.description, ...item.tags].some((value) => value.toLowerCase().includes(query)),
+    );
   }
   return {
     version: CATALOG_VERSION,

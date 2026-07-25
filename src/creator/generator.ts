@@ -215,16 +215,86 @@ function buildSystemPrompt(blueprint: AgentBlueprint): string {
     `Objetivo: ${blueprint.purpose.objective}`,
     `Criterio de éxito: ${blueprint.purpose.successCriteria}`,
     `Arquitectura: ${describeCatalogSelection(blueprint.project.architecture)}`,
+    `Stack: ${blueprint.project.technologies.map(describeCatalogSelection).join(', ')}`,
     `Entorno: ${blueprint.environments.target}`,
+    `Capacidades: ${blueprint.agent.capabilities.map((cap) => cap.replace(/-/g, ' ')).join(', ')}`,
     'Explica evidencia, supuestos, riesgos y cambios propuestos.',
     'No reveles secretos ni inventes acceso a herramientas o datos.',
     blueprint.agent.requireHumanApproval
       ? 'Solicita aprobación humana antes de cualquier acción con efectos.'
       : 'Trabaja en modo asesor y no realices acciones con efectos.',
   ];
+  if (blueprint.prReview.enabled) constraints.push(`Enfoque de PR review: ${blueprint.prReview.focus.join(', ')}.`);
+  if (blueprint.knowledge.enabled)
+    constraints.push(
+      `Fuentes de conocimiento: ${blueprint.knowledge.sources.map(describeCatalogSelection).join(', ')}.`,
+    );
   if (blueprint.environments.target !== 'development')
     constraints.push('En producción prioriza mínimo privilegio, observabilidad, rollback y disponibilidad.');
   return constraints.join('\n');
+}
+
+function buildSecurityPolicy(blueprint: AgentBlueprint): Record<string, unknown> {
+  const autonomy = blueprint.agent.autonomy;
+  const target = blueprint.environments.target;
+  const capabilities = blueprint.agent.capabilities;
+  const isProduction = target === 'production' || target === 'both';
+  const isDevelopment = target === 'development' || target === 'both';
+
+  // Base blocked patterns
+  const blockedTools: string[] = ['sudo'];
+  const blockedArgs: string[] = ['rm -rf', 'git push --force', 'mkfs', 'dd if='];
+
+  // Autonomous agents: stricter blocklist
+  if (autonomy === 'autonomous') {
+    blockedTools.push('shell');
+    blockedArgs.push('deploy', 'DROP TABLE', 'DELETE FROM', 'TRUNCATE', 'ALTER TABLE');
+  } else {
+    blockedTools.push('shell');
+  }
+
+  // Production: block filesystem writes, restrict to read-only by default
+  if (isProduction) {
+    blockedArgs.push('> /etc/', 'chmod 777', 'chown root', 'systemctl stop');
+    if (!capabilities.includes('deploy')) {
+      blockedArgs.push('docker push', 'kubectl apply', 'terraform apply');
+    }
+  }
+
+  // Development: allow more commands (fewer blocks)
+  if (isDevelopment && !isProduction) {
+    // Remove shell from blocked tools for dev-only agents that can run tests
+    if (capabilities.includes('run-tests')) {
+      const shellIndex = blockedTools.indexOf('shell');
+      if (shellIndex !== -1) blockedTools.splice(shellIndex, 1);
+    }
+  }
+
+  // Capability-aware: deploy capability allowed with approval requirement
+  const approvalRequired: string[] = [];
+  if (capabilities.includes('deploy')) {
+    approvalRequired.push('deploy', 'promote', 'release');
+  }
+  if (capabilities.includes('operate-production')) {
+    approvalRequired.push('restart', 'scale', 'rollback');
+  }
+
+  const policy: Record<string, unknown> = {
+    blocked_tool_patterns: blockedTools,
+    blocked_args_substrings: {
+      execute_bash: blockedArgs,
+    },
+  };
+
+  if (approvalRequired.length > 0) {
+    policy.require_approval_patterns = approvalRequired;
+  }
+
+  if (isProduction) {
+    policy.default_filesystem_mode = 'read-only';
+  }
+
+  return policy;
 }
 
 function mapRagSources(sourceIds: string[], languages: string[]): unknown[] {
@@ -285,7 +355,7 @@ function buildMcpConfig(blueprint: AgentBlueprint): Record<string, unknown> {
   ) {
     servers['github-integration'] = {
       command: 'npx',
-      args: ['-y', '@modelcontextprotocol/server-github'],
+      args: ['-y', '@modelcontextprotocol/server-github@0.6.2'],
       env: { GITHUB_PERSONAL_ACCESS_TOKEN: '${GITHUB_TOKEN}' },
       description:
         'Integración GitHub; usa un token de mínimo privilegio y fija la versión del paquete antes de producción.',
@@ -295,14 +365,14 @@ function buildMcpConfig(blueprint: AgentBlueprint): Record<string, unknown> {
   if (developmentOnly && capabilities.includes('read-repository')) {
     servers['local-fs'] = {
       command: 'npx',
-      args: ['-y', '@modelcontextprotocol/server-filesystem', './target-repo'],
+      args: ['-y', '@modelcontextprotocol/server-filesystem@0.6.2', './target-repo'],
       description: 'Acceso limitado al workspace del repositorio.',
     };
   }
   if (developmentOnly && capabilities.includes('run-tests')) {
     servers['bash-terminal'] = {
       command: 'npx',
-      args: ['-y', 'mcp-server-bash'],
+      args: ['-y', 'mcp-server-bash@0.1.1'],
       description: 'Sólo para comandos de build/test allowlisted dentro de un sandbox.',
     };
   }
@@ -459,12 +529,39 @@ function buildKiroHook(blueprint: AgentBlueprint): Record<string, unknown> {
     name: `${blueprint.identity.name} quality gate`,
     description: 'Solicita una revisión guiada después de modificar archivos relevantes.',
     version: '1',
-    when: { type: 'fileEdited', patterns: ['**/*'] },
+    when: { type: 'fileEdited', patterns: inferKiroHookPatterns(blueprint.project.technologies) },
     then: {
       type: 'askAgent',
       prompt: `Aplica la skill ${blueprint.identity.slug}, valida el criterio de éxito y no ejecutes acciones con efectos sin aprobación.`,
     },
   };
+}
+
+function inferKiroHookPatterns(technologies: string[]): string[] {
+  const langPatterns: Record<string, string[]> = {
+    typescript: ['src/**/*.{ts,tsx}', 'test/**/*.{ts,tsx}'],
+    javascript: ['src/**/*.{js,jsx}', 'test/**/*.{js,jsx}'],
+    python: ['src/**/*.py', 'tests/**/*.py'],
+    go: ['**/*.go'],
+    java: ['src/**/*.java'],
+    kotlin: ['src/**/*.{kt,kts}'],
+    rust: ['src/**/*.rs'],
+    csharp: ['src/**/*.cs'],
+    ruby: ['src/**/*.rb', 'spec/**/*.rb'],
+    php: ['src/**/*.php'],
+    swift: ['Sources/**/*.swift'],
+    elixir: ['lib/**/*.ex', 'test/**/*.exs'],
+  };
+  const patterns: string[] = [];
+  for (const tech of technologies) {
+    const lang = tech.replace(/^custom:/, '');
+    if (langPatterns[lang]) {
+      for (const p of langPatterns[lang]) {
+        if (!patterns.includes(p)) patterns.push(p);
+      }
+    }
+  }
+  return patterns.length > 0 ? patterns : ['src/**/*'];
 }
 
 function buildPrReview(blueprint: AgentBlueprint): Record<string, unknown> {
@@ -587,12 +684,12 @@ export function generateAgentBundle(input: unknown): GeneratedAgentBundle {
       }),
     );
     add(
-      jsonArtifact('huascar/security-policy.json', 'configuration', 'Política compatible con el hook runtime actual.', {
-        blocked_tool_patterns: ['shell', 'sudo'],
-        blocked_args_substrings: {
-          execute_bash: ['rm -rf', 'git push --force', 'drop table', 'mkfs', 'dd if='],
-        },
-      }),
+      jsonArtifact(
+        'huascar/security-policy.json',
+        'configuration',
+        'Política compatible con el hook runtime actual.',
+        buildSecurityPolicy(blueprint),
+      ),
     );
     add(
       jsonArtifact(

@@ -132,6 +132,17 @@ export const creatorQuestions: DecisionQuestion[] = [
     ],
   },
   {
+    id: 'testing_tools',
+    section: 'Pruebas',
+    prompt: '¿Qué herramientas de prueba y calidad utiliza el proyecto?',
+    description: 'Selecciona las prácticas de validación activas o deseadas.',
+    type: 'catalog-multiselect',
+    required: false,
+    catalogCategories: ['testing'],
+    maxSelections: 6,
+    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['development', 'both'] },
+  },
+  {
     id: 'deployment_target',
     section: 'Producción',
     prompt: '¿Dónde se ejecuta la aplicación o el agente?',
@@ -525,6 +536,88 @@ function buildRecommendations(answers: CreatorAnswers): CreatorRecommendation[] 
         ['Contenedores administrados'],
       ),
     );
+    result.push(
+      recommendation(
+        'serverless-cost-monitoring',
+        'recommended',
+        'Monitorizar costos y cold starts en serverless',
+        'El modelo pay-per-invocation requiere alertas de costo y optimización de cold starts para mantener latencia predecible.',
+        ['architecture=serverless'],
+        ['Escalado automático sin servidores', 'Pago por uso'],
+        ['Cold starts', 'Vendor lock-in', 'Gestión de estado externo'],
+        ['Contenedores administrados con escalado a cero'],
+      ),
+    );
+  }
+  if (architecture === 'cqrs') {
+    result.push(
+      recommendation(
+        'cqrs-separation',
+        'recommended',
+        'Separar stores de lectura y escritura en CQRS',
+        'CQRS aporta flexibilidad al independizar modelos de consulta y comandos, pero añade complejidad de sincronización y testing.',
+        ['architecture=cqrs'],
+        ['Optimización independiente de lectura y escritura', 'Escalado selectivo'],
+        ['Consistencia eventual', 'Complejidad de testing', 'Necesidad de event sourcing o proyecciones'],
+        ['Monolito modular con vistas materializadas'],
+      ),
+    );
+  }
+  if (architecture === 'event-driven') {
+    result.push(
+      recommendation(
+        'event-driven-resilience',
+        'recommended',
+        'Garantizar idempotencia y dead letter queues en event-driven',
+        'Componentes desacoplados por eventos necesitan broker confiable, idempotencia, DLQ y observabilidad de mensajes.',
+        ['architecture=event-driven'],
+        ['Desacoplamiento de componentes', 'Escalado por particiones'],
+        ['Complejidad de orquestación', 'Debugging distribuido', 'Selección de broker'],
+        ['Comunicación síncrona con circuit breakers'],
+      ),
+    );
+  }
+  if (architecture === 'hexagonal') {
+    result.push(
+      recommendation(
+        'hexagonal-ports-adapters',
+        'recommended',
+        'Mantener disciplina de puertos y adaptadores',
+        'La arquitectura hexagonal aísla el dominio de la infraestructura; la inversión de dependencias y los contratos explícitos facilitan testing unitario.',
+        ['architecture=hexagonal'],
+        ['Dominio testeable sin infraestructura', 'Adaptadores intercambiables'],
+        ['Más indirección inicial', 'Disciplina de equipo para no violar límites'],
+        ['Clean Architecture', 'Monolito modular con módulos internos'],
+      ),
+    );
+  }
+  if (architecture === 'clean-architecture') {
+    result.push(
+      recommendation(
+        'clean-architecture-layers',
+        'recommended',
+        'Respetar la regla de dependencia y los límites de capas',
+        'Clean Architecture exige que las dependencias apunten hacia el centro; los use cases orquestan sin conocer frameworks.',
+        ['architecture=clean-architecture'],
+        ['Use cases explícitos y testeables', 'Independencia de frameworks'],
+        ['Más código de adaptación', 'Posible sobre-ingeniería para proyectos simples'],
+        ['Hexagonal', 'Monolito modular con convenciones de carpetas'],
+      ),
+    );
+  }
+  if (architecture === 'data-pipeline') {
+    result.push(
+      recommendation(
+        'data-pipeline-quality',
+        'recommended',
+        'Implementar calidad de datos, linaje y reintentos',
+        'Un pipeline de datos necesita validación de esquemas, tracking de linaje, dead letter para registros fallidos y políticas de reintento.',
+        ['architecture=data-pipeline'],
+        ['Trazabilidad de datos', 'Detección temprana de errores', 'Reproducibilidad'],
+        ['Infraestructura de schema registry', 'Complejidad de orquestación', 'Costos de almacenamiento de linaje'],
+        ['ETL simple con validación manual', 'Procesamiento batch con alertas de calidad'],
+      ),
+    );
   }
   if ((environment === 'production' || environment === 'both') && technologies.includes('sqlite')) {
     result.push(
@@ -586,7 +679,46 @@ function buildRecommendations(answers: CreatorAnswers): CreatorRecommendation[] 
       ),
     );
   }
+  // #327: production without identity/secrets controls
+  const securityControls = Array.isArray(answers.security_controls) ? answers.security_controls : [];
+  if (
+    (environment === 'production' || environment === 'both') &&
+    !securityControls.includes('secrets-manager') &&
+    !securityControls.includes('least-privilege')
+  ) {
+    result.push(
+      recommendation(
+        'production-identity-secrets',
+        'warning',
+        'Producción requiere gestión de identidad y secretos',
+        'Un agente en producción sin gestor de secretos ni mínimo privilegio expone credenciales y amplía el radio de impacto.',
+        [`environment=${environment}`, 'security_controls no incluye secrets-manager ni least-privilege'],
+        ['Secretos rotables y auditables', 'Permisos acotados por tarea'],
+        ['Configuración adicional del gestor de secretos'],
+        ['Añadir secrets-manager y least-privilege a los controles de seguridad'],
+      ),
+    );
+  }
   return result;
+}
+
+function buildWarnings(answers: CreatorAnswers): string[] {
+  const warnings: string[] = [];
+  // #334: PR review with local repository
+  if (answers.pr_review_enabled === true && answers.repository_provider === 'local-repository') {
+    warnings.push(
+      'PR review habilitado con repositorio local: la integración de PR no funcionará sin un proveedor remoto (GitHub, GitLab, etc.).',
+    );
+  }
+  // #335: mismatched repo provider and CI/CD
+  const repo = answers.repository_provider;
+  const ciCd = answers.ci_cd;
+  if ((repo === 'gitlab' || repo === 'bitbucket') && ciCd === 'github-actions') {
+    warnings.push(
+      `CI/CD configurado como GitHub Actions pero el repositorio es ${repo === 'gitlab' ? 'GitLab' : 'Bitbucket'}: la integración nativa no estará disponible sin configuración adicional.`,
+    );
+  }
+  return warnings;
 }
 
 export function evaluateDecisionTree(input: unknown): DecisionEvaluation {
@@ -635,6 +767,8 @@ export function evaluateDecisionTree(input: unknown): DecisionEvaluation {
       'Producción sin aprobación humana: el preview documentará el conflicto y no recomendará ejecución autónoma.',
     );
   }
+
+  warnings.push(...buildWarnings(answers));
 
   return {
     workflowVersion: WORKFLOW_VERSION,

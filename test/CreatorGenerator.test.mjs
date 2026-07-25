@@ -49,7 +49,10 @@ describe('Creator generator', () => {
     assert.ok(bundle.warnings.some(message => message.includes('producción')));
 
     const policy = JSON.parse(bundle.artifacts.find(file => file.path === 'huascar/security-policy.json').content);
-    assert.deepEqual(Object.keys(policy).sort(), ['blocked_args_substrings', 'blocked_tool_patterns']);
+    assert.ok(policy.blocked_tool_patterns.length > 0);
+    assert.ok(policy.blocked_args_substrings.execute_bash.length > 0);
+    assert.equal(policy.default_filesystem_mode, 'read-only');
+    assert.ok(Array.isArray(policy.require_approval_patterns));
   });
 
   it('quotes YAML frontmatter descriptions containing colons', () => {
