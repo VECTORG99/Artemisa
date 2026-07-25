@@ -1,5 +1,10 @@
 # Huascar
 
+[CI](https://github.com/VECTORG99/Huascar/actions/workflows/ci.yml) | [License](LICENSE) | [Homepage](https://huascar.vercel.app)
+
+> Construido para el Hackathon Kiro x Código Facilito 2026.
+> Documentación en español. Lectores LLM: leer AGENTS.md y CONTEXT.md para el contexto completo del proyecto.
+
 **Plataforma open-source para diseñar agentes de desarrollo y operación mediante un árbol de decisiones, generar su configuración y explicar por qué fue construida de esa manera.**
 
 Huascar separa dos responsabilidades:
@@ -53,7 +58,7 @@ El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no 
 [Recomendaciones explicables]
       ↓
 [Preview del bundle]
-      ├─ configuraciones
+      ├─ configuraciónes
       ├─ manifest + hashes
       ├─ INSTALL.md
       └─ WHY.md
@@ -316,7 +321,7 @@ El Creator:
 - calcula SHA-256 para cada artefacto;
 - no usa filesystem, red, SQLite, LLM, MCP ni shell.
 
-Las configuraciones MCP generadas son sugerencias. Antes de producción deben fijarse versiones exactas, aplicarse allowlists y ejecutarse en sandbox.
+Las configuraciónes MCP generadas son sugerencias. Antes de producción deben fijarse versiones exactas, aplicarse allowlists y ejecutarse en sandbox.
 
 ---
 
@@ -338,6 +343,8 @@ El runtime mantiene las rutas anteriores:
 ---
 
 ## Quick start
+
+Web app: https://huascar.vercel.app
 
 ### Backend
 
