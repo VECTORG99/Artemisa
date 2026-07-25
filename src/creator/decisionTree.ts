@@ -705,6 +705,96 @@ function buildRecommendations(answers: CreatorAnswers): CreatorRecommendation[] 
       ),
     );
   }
+  // Cloud-native observability recommendations
+  const observabilityList = Array.isArray(answers.observability) ? answers.observability : [];
+  if (typeof deployment === 'string' && deployment.startsWith('aws-') && !observabilityList.includes('cloudwatch')) {
+    result.push(
+      recommendation(
+        'aws-native-observability',
+        'recommended',
+        'Integrar CloudWatch para observabilidad nativa de AWS',
+        'Servicios AWS emiten métricas, logs y trazas a CloudWatch de forma nativa. Sin esta integración se pierde visibilidad operacional inmediata y alertas automáticas.',
+        [`deployment_target=${deployment}`, 'observability no incluye cloudwatch'],
+        [
+          'Visibilidad nativa sin agentes adicionales',
+          'Alertas integradas con servicios AWS',
+          'Dashboards automáticos',
+        ],
+        ['Vendor lock-in en observabilidad', 'Costos por volumen de logs y métricas'],
+        ['OpenTelemetry con exportador a backend independiente', 'Datadog o Grafana Cloud'],
+      ),
+    );
+  }
+  if (
+    typeof deployment === 'string' &&
+    deployment.startsWith('azure-') &&
+    !observabilityList.some((o) => o.startsWith('azure-') || o === 'azure-monitor')
+  ) {
+    result.push(
+      recommendation(
+        'azure-native-observability',
+        'recommended',
+        'Integrar Azure Monitor para observabilidad nativa',
+        'Los servicios Azure emiten telemetría a Azure Monitor y Application Insights. Sin esta integración se pierde correlación automática entre recursos.',
+        [`deployment_target=${deployment}`, 'observability no incluye herramientas Azure'],
+        ['Correlación automática entre servicios Azure', 'KQL para análisis avanzado', 'Alertas integradas'],
+        ['Vendor lock-in', 'Costos por ingesta y retención'],
+        ['OpenTelemetry exportando a backend multi-cloud', 'Datadog o Elastic'],
+      ),
+    );
+  }
+  if (
+    typeof deployment === 'string' &&
+    deployment.startsWith('gcp-') &&
+    !observabilityList.some((o) => o.startsWith('gcp-') || o === 'google-cloud-operations')
+  ) {
+    result.push(
+      recommendation(
+        'gcp-native-observability',
+        'recommended',
+        'Integrar Google Cloud Operations para observabilidad nativa',
+        'Los servicios GCP emiten logs y métricas a Cloud Logging y Monitoring. Sin esta integración se pierde la trazabilidad automática del stack.',
+        [`deployment_target=${deployment}`, 'observability no incluye herramientas GCP'],
+        ['Integración nativa con servicios GCP', 'Trazas distribuidas con Cloud Trace', 'Alertas y SLOs integrados'],
+        ['Vendor lock-in', 'Costos por volumen de telemetría'],
+        ['OpenTelemetry con exportador independiente', 'Datadog o Grafana Cloud'],
+      ),
+    );
+  }
+  // Data engineering on AWS: recommend Glue/Athena/EMR
+  if (purpose === 'data-engineering' && typeof deployment === 'string' && deployment.startsWith('aws-')) {
+    result.push(
+      recommendation(
+        'aws-data-stack',
+        'info',
+        'Considerar Glue, Athena y EMR para el stack de datos en AWS',
+        'AWS ofrece servicios nativos para ETL (Glue), consultas ad-hoc (Athena) y procesamiento big data (EMR) que se integran con S3 como data lake.',
+        ['purpose=data-engineering', `deployment_target=${deployment}`],
+        ['Integración nativa con S3', 'Serverless para ETL y consultas', 'Escalado elástico con EMR'],
+        ['Vendor lock-in', 'Curva de aprendizaje de Glue', 'Costos por escaneo en Athena'],
+        ['Spark autoservido en Kubernetes', 'dbt + warehouse independiente'],
+      ),
+    );
+  }
+  // Machine learning on AWS: recommend SageMaker
+  if (purpose === 'machine-learning' && typeof deployment === 'string' && deployment.startsWith('aws-')) {
+    result.push(
+      recommendation(
+        'aws-ml-sagemaker',
+        'info',
+        'Considerar SageMaker para entrenamiento y serving de modelos',
+        'SageMaker ofrece notebooks, entrenamiento distribuido, tuning de hiperparámetros y endpoints de inferencia integrados con el ecosistema AWS.',
+        ['purpose=machine-learning', `deployment_target=${deployment}`],
+        [
+          'Entrenamiento distribuido administrado',
+          'Endpoints de inferencia autoescalables',
+          'Integración con S3 y IAM',
+        ],
+        ['Vendor lock-in', 'Costos elevados en instancias GPU', 'Complejidad de configuración'],
+        ['Vertex AI en GCP', 'MLflow + Kubernetes autoservido', 'Ray en EKS'],
+      ),
+    );
+  }
   if (deployment === 'vps') {
     result.push(
       recommendation(
