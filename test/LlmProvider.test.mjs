@@ -10,15 +10,18 @@ describe('LlmProvider', () => {
     // build the local model via `.chat(modelId)`, not the default callable form,
     // or requests 404 against those providers.
     const { getConfiguredModels } = await import('../src/engine/LlmProvider.js');
-    const previousChain = process.env.LLM_PROVIDER_CHAIN;
-    process.env.LLM_PROVIDER_CHAIN = 'local';
+    const { config } = await import('../src/config.js');
+    // config.llm.providerChain is read once at module load from
+    // process.env.LLM_PROVIDER_CHAIN; mutating process.env afterwards has no
+    // effect, so mutate the already-loaded config object directly instead.
+    const previousChain = config.llm.providerChain;
+    config.llm.providerChain = 'local';
     try {
       const [configured] = getConfiguredModels();
       assert.strictEqual(configured.provider, 'local');
       assert.strictEqual(configured.model.constructor.name, '_OpenAIChatLanguageModel');
     } finally {
-      if (previousChain === undefined) delete process.env.LLM_PROVIDER_CHAIN;
-      else process.env.LLM_PROVIDER_CHAIN = previousChain;
+      config.llm.providerChain = previousChain;
     }
   });
 
