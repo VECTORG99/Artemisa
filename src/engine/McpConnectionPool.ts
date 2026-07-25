@@ -4,6 +4,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { config } from '../config.js';
 import { ErrorCodes, McpError } from '../errors.js';
 import { logger } from '../logger.js';
+import { getCircuitBreaker } from './CircuitBreaker.js';
 
 export interface ConnectedMcpClient {
   name: string;
@@ -34,6 +35,11 @@ type ConnectMcpServer = (name: string, serverConfig: McpServerConfig) => Promise
 
 const MAX_CONNECT_RETRIES = 3;
 const INITIAL_RETRY_DELAY_MS = 500;
+// Opens after 2 consecutive failures (a misconfigured/uninstalled MCP server
+// fails deterministically, so there's no value in re-paying the full
+// retry-with-backoff cost — 500ms+1000ms+2000ms — on every single execution).
+// Short cooldown since local dev setups fix MCP config frequently.
+const MCP_CIRCUIT_BREAKER_OPTIONS = { failureThreshold: 2, cooldownMs: 30_000, windowMs: 5 * 60_000 };
 
 export class McpConnectionPool {
   private mcpConfig: McpServersConfig | null = null;
@@ -119,9 +125,15 @@ export class McpConnectionPool {
     const mcpConfig = this.getConfig();
     if (!mcpConfig) return [];
 
-    for (const [name, serverConfig] of Object.entries(mcpConfig.mcpServers)) {
-      if (this.connections.has(name)) continue;
-      const connection = await this.connectWithRetry(name, serverConfig);
+    // Connect to all not-yet-connected servers in parallel. Servers are
+    // independent, so sequential connection needlessly sums each server's
+    // (possibly-failing, retried-with-backoff) connect time onto every
+    // execution instead of taking the max.
+    const pending = Object.entries(mcpConfig.mcpServers).filter(([name]) => !this.connections.has(name));
+    const results = await Promise.all(
+      pending.map(async ([name, serverConfig]) => [name, await this.connectWithRetry(name, serverConfig)] as const),
+    );
+    for (const [name, connection] of results) {
       if (connection) {
         this.connections.set(name, connection);
         this.serverErrors.delete(name);
@@ -132,6 +144,17 @@ export class McpConnectionPool {
   }
 
   private async connectWithRetry(name: string, serverConfig: McpServerConfig): Promise<ConnectedMcpClient | null> {
+    // A server that keeps failing shouldn't pay full retry-with-backoff cost on
+    // every single execution — once it has failed repeatedly, skip straight to
+    // "unavailable" until the cooldown elapses, then allow one probe attempt.
+    const breaker = getCircuitBreaker(`mcp:${name}`, MCP_CIRCUIT_BREAKER_OPTIONS);
+    if (!breaker.canExecute()) {
+      const errMsg = this.serverErrors.get(name) ?? 'circuit open (repeated recent failures)';
+      logger.info(`[McpConnectionPool] MCP "${name}" circuit open — skipping connect attempt`);
+      this.serverErrors.set(name, errMsg);
+      return null;
+    }
+
     let lastErr: unknown;
     for (let attempt = 0; attempt < MAX_CONNECT_RETRIES; attempt++) {
       try {
@@ -139,6 +162,7 @@ export class McpConnectionPool {
         if (attempt > 0) {
           logger.info(`[McpConnectionPool] MCP "${name}" connected on retry ${attempt}`);
         }
+        breaker.recordSuccess();
         return connection;
       } catch (err: unknown) {
         lastErr = err;
@@ -151,6 +175,7 @@ export class McpConnectionPool {
         }
       }
     }
+    breaker.recordFailure();
     const errMsg = lastErr instanceof Error ? lastErr.message : String(lastErr);
     logger.error(`[McpConnectionPool] MCP "${name}" failed after ${MAX_CONNECT_RETRIES} attempts: ${errMsg}`);
     this.serverErrors.set(name, errMsg);
