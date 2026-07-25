@@ -4,6 +4,8 @@ TypeScript client library for consuming the Huascar API programmatically.
 
 ## Installation
 
+> Nota: @huascar/sdk no esta publicado en npm. El codigo fuente esta en sdk/ y se consume localmente como workspace del monorepo o copiando sdk/src/ al proyecto destino.
+
 ```bash
 npm install @huascar/sdk
 ```
