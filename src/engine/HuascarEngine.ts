@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import { config } from '../config.js';
 import { agentHooks } from '../kiro/hooks.js';
 import { isStepCount, jsonSchema, tool, type ToolSet } from 'ai';
@@ -14,6 +15,7 @@ import { ConfigCache } from './ConfigCache.js';
 import { ToolResultCache } from './ToolResultCache.js';
 import { withSpan } from '../telemetry.js';
 import { emitWebhook } from '../webhooks.js';
+import { promptTemplate, type PromptTemplate } from './PromptTemplate.js';
 
 interface RagConfig {
   knowledge_bases: RagSource[];
@@ -68,6 +70,7 @@ export interface HuascarEngineDeps {
   mcpPool?: { getConnections(): Promise<ConnectedMcpClient[]>; closeAll?(): Promise<void> };
   generateTextWithFallback?: typeof generateTextWithFallback;
   toolResultCache?: ToolResultCache;
+  promptTemplate?: PromptTemplate;
 }
 
 export function buildAiTools(
@@ -162,6 +165,8 @@ export class HuascarEngine {
   private deps: Required<Pick<HuascarEngineDeps, 'readFile' | 'exists' | 'mcpPool' | 'generateTextWithFallback'>>;
   private hasCustomReadFile: boolean;
   private toolCache: ToolResultCache;
+  private promptTemplate: PromptTemplate;
+  private static partialsLoaded = false;
 
   constructor(roleKey: string, store?: Store);
   constructor(roleKey: string, deps?: HuascarEngineDeps);
@@ -169,7 +174,7 @@ export class HuascarEngine {
     const deps = storeOrDeps instanceof Store ? { store: storeOrDeps } : (storeOrDeps ?? {});
     this.hasCustomReadFile = !!deps.readFile;
     this.deps = {
-      readFile: deps.readFile ?? ((path, encoding) => fs.readFileSync(path, encoding)),
+      readFile: deps.readFile ?? ((filePath, encoding) => fs.readFileSync(filePath, encoding)),
       exists: deps.exists ?? fs.existsSync,
       mcpPool: deps.mcpPool ?? mcpConnectionPool,
       generateTextWithFallback: deps.generateTextWithFallback ?? generateTextWithFallback,
@@ -183,6 +188,30 @@ export class HuascarEngine {
       new RagEngine({ maxContentChars: config.rag.maxContentChars, encoding: config.rag.encoding, store: deps.store });
     this.store = deps.store || null;
     this.toolCache = deps.toolResultCache ?? new ToolResultCache();
+    this.promptTemplate = deps.promptTemplate ?? promptTemplate;
+    // Register partials from src/kiro/prompts/ once per process (skipped when
+    // a custom promptTemplate/readFile is injected, e.g. in unit tests).
+    if (!deps.promptTemplate && !this.hasCustomReadFile) {
+      this.loadPromptPartials();
+    }
+  }
+
+  /** Register every *.md file in config.paths.prompts as a partial (filename without extension). */
+  private loadPromptPartials(): void {
+    if (HuascarEngine.partialsLoaded) return;
+    try {
+      if (!this.deps.exists(config.paths.prompts)) return;
+      const files = fs.readdirSync(config.paths.prompts).filter((f) => f.endsWith('.md'));
+      for (const file of files) {
+        const name = file.replace(/\.md$/, '');
+        const content = fs.readFileSync(path.join(config.paths.prompts, file), config.rag.encoding);
+        this.promptTemplate.registerPartial(name, content);
+      }
+      HuascarEngine.partialsLoaded = true;
+      logger.info(`[HuascarEngine] ${files.length} prompt partial(s) registrados desde ${config.paths.prompts}`);
+    } catch (err: unknown) {
+      logger.warn(`[HuascarEngine] Error cargando prompt partials: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   private async connectMcpServers(): Promise<void> {
@@ -308,7 +337,17 @@ export class HuascarEngine {
         const effectiveTask = sessionContext ? `${sessionContext}\n\nTarea actual:\n${task}` : task;
         const ragContext = await this.rag.getContext(effectiveTask);
         const baseSystemPrompt = systemPrompt ?? this.activeRole.system_prompt;
-        const effectiveSystemPrompt = baseSystemPrompt + (ragContext ? '\n\n' + ragContext : '');
+        const renderedSystemPrompt = this.promptTemplate.render(baseSystemPrompt, {
+          role_name: this.activeRole.name,
+          has_rag: Boolean(ragContext),
+          rag_context: ragContext || undefined,
+        });
+        // Backward compatibility: prompts that don't place {{rag_context}} (directly or
+        // via a partial) keep receiving RAG context appended, matching pre-existing
+        // behavior for roles not yet migrated to the template syntax.
+        const templateConsumedRagContext = Boolean(ragContext) && renderedSystemPrompt.includes(ragContext);
+        const effectiveSystemPrompt =
+          ragContext && !templateConsumedRagContext ? renderedSystemPrompt + '\n\n' + ragContext : renderedSystemPrompt;
 
         const responseText = !useMock
           ? await withSpan('engine.reactLoop', { role: this.roleKey }, () =>

@@ -46,6 +46,7 @@ export const config = {
     steering: process.env.STEERING_CONFIG_PATH || path.resolve('./src/kiro/steering.json'),
     mcps: process.env.MCPS_CONFIG_PATH || path.resolve('./src/kiro/mcps.json'),
     rag: process.env.RAG_CONFIG_PATH || path.resolve('./src/kiro/rag.json'),
+    prompts: process.env.PROMPTS_DIR_PATH || path.resolve('./src/kiro/prompts'),
     db: process.env.HUASCAR_DB_PATH || path.resolve('./data/huascar.db'),
     mockScenarios: process.env.MOCK_SCENARIOS_PATH || '',
   },
