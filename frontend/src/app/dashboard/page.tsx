@@ -9,6 +9,7 @@ import { TabNavigation } from '@/components/dashboard/TabNavigation';
 import { TerminalOutput } from '@/components/dashboard/TerminalOutput';
 import { useAgentExecution } from '@/hooks/useAgentExecution';
 import { useExecutionHistory } from '@/hooks/useExecutionHistory';
+import { useTranslations } from '@/i18n';
 import { getRoles } from '@/lib/api';
 import type { AgentConfig, AgentRole, HistoryRecord, Tab } from '@/types/agent';
 
@@ -30,6 +31,7 @@ interface UrlPrefillRequest {
 }
 
 export default function DashboardPage() {
+  const t = useTranslations('dashboard');
   const [role, setRole] = useState('PR_REVIEWER');
   const [roles, setRoles] = useState<AgentRole[]>([
     { id: 'PR_REVIEWER', name: 'PR_REVIEWER' },
@@ -160,8 +162,8 @@ export default function DashboardPage() {
 
       <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-emerald-400 tracking-tight">Huascar Builder</h1>
-          <p className="text-zinc-400">Panel de despliegue de agentes</p>
+          <h1 className="text-3xl font-bold text-emerald-400 tracking-tight">{t.heading}</h1>
+          <p className="text-zinc-400">{t.subheading}</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
