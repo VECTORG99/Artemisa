@@ -1,19 +1,3 @@
-export interface ExecutionResponse {
-  status: string;
-  agent_role: string;
-  response: string;
-  error?: string;
-  session_id?: string;
-}
-
-export interface HistoryRecord {
-  id: number;
-  role: string;
-  task: string;
-  response: string;
-  created_at: string;
-}
-
 export interface AgentConfig {
   steering?: {
     role?: string;
@@ -28,14 +12,3 @@ export interface AgentConfig {
   tools?: string[];
   knowledge?: unknown[];
 }
-
-export interface AgentRole {
-  id: string;
-  name: string;
-  description?: string;
-  recommended_tools?: string[];
-  examples?: string[];
-  temperature?: number;
-}
-
-export type Tab = 'terminal' | 'history';

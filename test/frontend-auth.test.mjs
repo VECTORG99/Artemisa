@@ -14,11 +14,6 @@ describe('Frontend auth header injection (issue #268)', () => {
     assert.match(apiTs, /\.\.\.authHeaders\(\)/);
   });
 
-  it('frontend useAgentExecution includes auth headers in stream fetch', () => {
-    const hook = fs.readFileSync(path.resolve('frontend/src/hooks/useAgentExecution.ts'), 'utf8');
-    assert.match(hook, /\.\.\.authHeaders\(\)/);
-  });
-
   it('agent-creator includes auth headers in requests', () => {
     const api = fs.readFileSync(path.resolve('agent-creator/src/api/creatorApi.js'), 'utf8');
     assert.match(api, /\.\.\.authHeaders\(\)/);

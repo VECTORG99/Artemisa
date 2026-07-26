@@ -11,13 +11,6 @@ describe('useTranslations', () => {
     expect(useTranslations('creator')).toBe(messages.creator);
   });
 
-  it('returns the dashboard namespace with heading and subheading', () => {
-    const dashboard = useTranslations('dashboard');
-    expect(dashboard).toBe(messages.dashboard);
-    expect(dashboard.heading).toBe('Huascar Builder');
-    expect(dashboard.subheading).toBe('Panel de despliegue de agentes');
-  });
-
   it('returns the landing namespace with hero and cta copy', () => {
     const landing = useTranslations('landing');
     expect(landing).toBe(messages.landing);
@@ -26,6 +19,6 @@ describe('useTranslations', () => {
   });
 
   it('returns the same reference on repeated calls for a namespace', () => {
-    expect(useTranslations('dashboard')).toBe(useTranslations('dashboard'));
+    expect(useTranslations('creator')).toBe(useTranslations('creator'));
   });
 });

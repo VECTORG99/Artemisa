@@ -9,15 +9,15 @@ Bienvenido a Huascar. Este proyecto acepta contribuciones de humanos y agentes d
 
 Toda la documentación del proyecto vive en el repositorio bajo `docs/`:
 
-| Archivo / directorio | Contenido |
-| -------------------- | --------- |
-| `README.md` | Introducción, arquitectura, quick start y roadmap. |
-| `CONTEXT.md` | Estado del proyecto, módulos, rutas críticas y zonas de alto riesgo. |
-| `CONTRIBUTING.md` | Este archivo — guía para contribuidores humanos y agentes. |
-| `docs/architecture.md` | Motor, capas y decisiones de diseño. |
-| `docs/deployment.md` | Despliegue local, Docker y Render. |
-| `docs/CONVENTIONS.md` | Convenciones de código, tests, API y Git. |
-| `docs/adr/` | Architecture Decision Records. |
+| Archivo / directorio   | Contenido                                                            |
+| ---------------------- | -------------------------------------------------------------------- |
+| `README.md`            | Introducción, arquitectura, quick start y roadmap.                   |
+| `CONTEXT.md`           | Estado del proyecto, módulos, rutas críticas y zonas de alto riesgo. |
+| `CONTRIBUTING.md`      | Este archivo — guía para contribuidores humanos y agentes.           |
+| `docs/architecture.md` | Motor, capas y decisiones de diseño.                                 |
+| `docs/deployment.md`   | Despliegue local, Docker y Render.                                   |
+| `docs/CONVENTIONS.md`  | Convenciones de código, tests, API y Git.                            |
+| `docs/adr/`            | Architecture Decision Records.                                       |
 
 El **Wiki de GitHub está deshabilitado** intencionalmente: tener dos lugares para la documentación crea confusión sobre cuál está actualizado. Toda la documentación técnica y de usuario vive con el código para que sea revisable, versionable y consultable sin salir del repositorio.
 
@@ -62,7 +62,6 @@ Audience: AI agents changing this repository. Keep changes issue-scoped, schema-
 | Add MCP server                                             | `src/kiro/mcps.json`, schema                                 | `mcpServers.<name>`                               | `npm run test:unit`                     |
 | Add RAG source                                             | `src/kiro/rag.json`, schema                                  | `knowledge_bases[]`                               | `npm run test:unit`                     |
 | Add security rule                                          | `src/kiro/security-policy.json`, `src/kiro/hooks.ts`         | Policy JSON first; code only if needed            | Hook/schema unit tests                  |
-| Frontend dashboard change                                  | `frontend/src/app/page.tsx`, `frontend/src/lib/api.ts`       | Existing page/component                           | Root checks if backend types changed    |
 | Add frontend route                                         | Existing `frontend/src/app/**/page.tsx` pattern              | `frontend/src/app/<route>/page.tsx`               | Frontend build/test if available        |
 | Register agent behavior                                    | `src/routes/agents.ts`, `src/engine/HuascarEngine.ts`        | Route/engine owner                                | Agents route/session tests              |
 | OpenAPI/API contract change                                | `src/routes/openapi.ts`, route tests                         | OpenAPI + route response together                 | `npm run test:unit`                     |

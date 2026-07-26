@@ -393,7 +393,6 @@ curl http://localhost:3001/api/v1/creator/tutorial
 cd frontend && npm ci && npm run dev
 ```
 
-- Dashboard: `http://localhost:3000/dashboard`
 - Creator: `http://localhost:3000/agents/new`
 
 `agent-creator/` (Vite, `http://localhost:5173`) sigue en el workspace como app legacy sin desarrollo activo del Creator; no recibe nuevas features.

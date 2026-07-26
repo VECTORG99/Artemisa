@@ -4,7 +4,7 @@ Updated: 2026-07-23
 
 ## State
 
-- Repository uses npm workspaces (`packages/*`, `frontend`, `agent-creator`): root Express/TypeScript backend, `frontend/` Next dashboard, and `agent-creator/` Vite tool. Root `package.json` owns backend scripts/tests and hoists shared dependencies; per-app installs still work via `npm --prefix <app> run <script>` but `npm --prefix <app> ci` fails (use root `npm ci` instead, which installs all workspaces).
+- Repository uses npm workspaces (`packages/*`, `frontend`, `agent-creator`): root Express/TypeScript backend, `frontend/` Next app (landing + Creator at `/agents/new`), and `agent-creator/` Vite tool. Root `package.json` owns backend scripts/tests and hoists shared dependencies; per-app installs still work via `npm --prefix <app> run <script>` but `npm --prefix <app> ci` fails (use root `npm ci` instead, which installs all workspaces).
 - Backend entrypoint: `src/server.ts` -> `src/app.ts`. Express app mounts public creator catalog/workflow/tutorial before auth, then `/api` health/openapi/metrics, then protected API routes.
 - Persistent state uses SQLite through `better-sqlite3` in `src/engine/Store.ts`; database path defaults to `./data/huascar.db` via `HUASCAR_DB_PATH`.
 - SQLite retention cleanup is bounded by `RETENTION_EXECUTION_MAX_AGE_DAYS`, `RETENTION_EXECUTION_MAX_COUNT`, and `RETENTION_RAG_CHUNKS_MAX_PER_SOURCE`; `RETENTION_CLEANUP_ON_START=false` by default.
@@ -31,7 +31,6 @@ Updated: 2026-07-23
 - RAG supports `local_file`, `local_directory`, `inline`, and `web_url` sources in code; persisted vector chunks use OpenAI embeddings only when `OPENAI_API_KEY` and a `Store` exist.
 - `src/kiro/rag.json` is schema-tested as a local-file source list and currently indexes the configured docs sources, including `docs/CONVENTIONS.md`, `CONTRIBUTING.md`, and this `CONTEXT.md`.
 - MCP config exists in `src/kiro/mcps.json` for filesystem, bash, and GitHub servers; `McpConnectionPool` supplies connected tools to `HuascarEngine`.
-- Next dashboard in `frontend/src/app/page.tsx` can list roles, submit tasks, show terminal/history tabs, and deep-link imported role/task/config query params.
 - Next creator route `frontend/src/app/agents/new/page.tsx` consumes backend creator workflow/catalog, generates a bundle, and registers it through `/api/agents`. It owns the state machine (mode select -> question flow -> review -> completion) and delegates:
   - `features/creator/lib/flow.ts` — guided navigation. The backend's `nextQuestion` only covers required questions, so the client walks `evaluation.visibleQuestions` with its own visited trail; this is what makes the 4 optional questions reachable and the back button work.
   - `features/creator/lib/session.ts` — `sessionStorage` draft, namespaced by workflow version.
@@ -89,11 +88,6 @@ src/engine/HuascarEngine.ts
      -> src/engine/Store.ts
   -> src/engine/McpConnectionPool.ts
   -> src/engine/LlmProvider.ts
-
-frontend/src/app/page.tsx
-  -> frontend/src/lib/api.ts
-  -> frontend/src/hooks/*
-  -> frontend/src/components/dashboard/*
 
 frontend/src/app/agents/new/page.tsx
   -> frontend/src/lib/api.ts
