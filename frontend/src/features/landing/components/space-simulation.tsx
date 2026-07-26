@@ -163,15 +163,28 @@ interface SpaceSimulationProps {
   /**
    * Renders the accretion disk, photon ring and event horizon shadow.
    * Defaults to true (the Landing's look). The Creator sets this to false
-   * — it reuses the exact same star field, gravitational lensing and
-   * meteor physics (they still orbit/bend around the same invisible
-   * `well`) but without painting the black hole itself, since a
-   * decorative black hole doesn't belong in a configuration tool.
+   * — it disables gravitational lensing on stars and gravity/absorption on
+   * meteors entirely, keeping a lightweight, calm starfield with gentle
+   * meteors that fall straight without being absorbed.
    */
   showBlackHole?: boolean;
+  /**
+   * Maximum number of simultaneous meteors. Defaults to METEOR_COUNT (22)
+   * for the landing. The Creator can pass a lower value for performance.
+   */
+  maxMeteors?: number;
+  /**
+   * Spawn rate multiplier for meteors. 1 = default (landing), lower = calmer.
+   */
+  meteorSpawnRate?: number;
 }
 
-export function SpaceSimulation({ intensity = 1, showBlackHole = true }: SpaceSimulationProps) {
+export function SpaceSimulation({
+  intensity = 1,
+  showBlackHole = true,
+  maxMeteors,
+  meteorSpawnRate,
+}: SpaceSimulationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const accretionEnergyRef = useRef(0);
@@ -179,6 +192,10 @@ export function SpaceSimulation({ intensity = 1, showBlackHole = true }: SpaceSi
   intensityRef.current = intensity;
   const showBlackHoleRef = useRef(showBlackHole);
   showBlackHoleRef.current = showBlackHole;
+  const maxMeteorsRef = useRef(maxMeteors ?? METEOR_COUNT);
+  maxMeteorsRef.current = maxMeteors ?? METEOR_COUNT;
+  const spawnRateRef = useRef(meteorSpawnRate ?? 1);
+  spawnRateRef.current = meteorSpawnRate ?? 1;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -261,6 +278,22 @@ export function SpaceSimulation({ intensity = 1, showBlackHole = true }: SpaceSi
         const baseR = star.baseRadius * (0.75 + Math.abs(twinkle) * 0.5);
 
         const wrappedY = (((star.oy + starOffset) % height) + height) % height;
+
+        // Skip lensing when black hole is hidden — straight rendering path
+        if (!showBlackHoleRef.current) {
+          if (baseOp < 0.02) continue;
+          ctx.beginPath();
+          ctx.arc(star.ox, wrappedY, baseR, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${baseOp})`;
+          ctx.fill();
+          if (twinkle > 0.6) {
+            ctx.beginPath();
+            ctx.arc(star.ox, wrappedY, baseR * 3, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${(baseOp - 0.3) * 0.12})`;
+            ctx.fill();
+          }
+          continue;
+        }
 
         const lensed = lensPoint({ x: star.ox, y: wrappedY }, well);
 
@@ -610,31 +643,40 @@ export function SpaceSimulation({ intensity = 1, showBlackHole = true }: SpaceSi
       // user scrolls the busier and faster the meteor shower feels — while
       // the black hole itself never moves.
       const scrollFactor = Math.min(1, scrollY / (height * 2));
-      const dynamicSpawnRate = METEOR_SPAWN_RATE * (1 + scrollFactor * METEOR_PARALLAX);
-      const dynamicMeteorCount = Math.round(METEOR_COUNT * (1 + scrollFactor * 0.4));
+      const effectiveMaxMeteors = maxMeteorsRef.current;
+      const effectiveSpawnRate = METEOR_SPAWN_RATE * spawnRateRef.current;
+      const dynamicSpawnRate = effectiveSpawnRate * (1 + scrollFactor * METEOR_PARALLAX);
+      const dynamicMeteorCount = Math.round(effectiveMaxMeteors * (1 + scrollFactor * 0.4));
       if (meteors.length < dynamicMeteorCount && Math.random() < dynamicSpawnRate) {
         meteors.push(createMeteor(width, height));
       }
 
       for (let i = meteors.length - 1; i >= 0; i--) {
         const m = meteors[i];
+        let gravInfluence = 0;
 
-        // Apply gravity
-        const grav = gravityEffect({ x: m.x, y: m.y }, well);
-        m.vx += grav.acceleration.x;
-        m.vy += grav.acceleration.y;
+        // Apply gravity only when the black hole is visible
+        if (showBlackHoleRef.current) {
+          const grav = gravityEffect({ x: m.x, y: m.y }, well);
+          m.vx += grav.acceleration.x;
+          m.vy += grav.acceleration.y;
+          m.stretch = grav.tidalStretch;
+          gravInfluence = grav.influence;
+
+          if (grav.absorbed) {
+            m.absorbed = true;
+            accretionEnergyRef.current = Math.min(1, accretionEnergyRef.current + 0.35);
+            meteors.splice(i, 1);
+            continue;
+          }
+        } else {
+          m.stretch = 0;
+        }
+
         m.x += m.vx;
         m.y += m.vy + scrollFactor * 0.6;
         m.life++;
         m.hue = (m.hue + m.hueSpeed) % 360;
-        m.stretch = grav.tidalStretch;
-
-        if (grav.absorbed) {
-          m.absorbed = true;
-          accretionEnergyRef.current = Math.min(1, accretionEnergyRef.current + 0.35);
-          meteors.splice(i, 1);
-          continue;
-        }
 
         const progress = m.life / m.maxLife;
         const fadeOut = progress > 0.7 ? 1 - (progress - 0.7) / 0.3 : 1;
@@ -673,7 +715,7 @@ export function SpaceSimulation({ intensity = 1, showBlackHole = true }: SpaceSi
           // Crank saturation/contrast up and keep it there — no softening
           // toward gray as gravity pulls on it, so the color stays raw.
           const saturation = 100;
-          const lightness = grav.influence > 0.5 ? 68 + grav.influence * 22 : 62;
+          const lightness = gravInfluence > 0.5 ? 68 + gravInfluence * 22 : 62;
 
           if (c === 0) {
             // Tight, hard-edged glow only on the leading character — crude

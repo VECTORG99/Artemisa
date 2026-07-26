@@ -1,4 +1,6 @@
 import { CatalogCategory, CatalogItem } from './domain.js';
+import { skillsCatalog } from './skillsCatalog.js';
+import { mcpCatalog } from './mcpCatalog.js';
 
 export const CATALOG_VERSION = '1.0.0';
 
@@ -515,102 +517,29 @@ export const catalogItems: CatalogItem[] = [
     ['step-functions', 'AWS Step Functions', 'Workflows serverless.', ['aws', 'serverless']],
     ['github-actions-wf', 'GitHub Actions (Workflows)', 'Automatización basada en eventos.', ['ci', 'github']],
   ]),
-  ...makeItems('skill', [
-    [
-      'code-reviewer',
-      'Code Reviewer',
-      'Analiza diffs y archivos para identificar bugs, vulnerabilidades, olores de código y problemas arquitectónicos.',
-      ['review', 'security', 'quality'],
-      ['pr-review'],
-    ],
-    [
-      'security-auditor',
-      'Security Auditor',
-      'Realiza auditorías de seguridad antes del despliegue, bloquea vulnerabilidades críticas.',
-      ['security', 'audit', 'deployment'],
-      ['security'],
-    ],
-    [
-      'test-master',
-      'Test Master',
-      'Genera pruebas, estrategias de mock, analiza cobertura y planes de pruebas.',
-      ['testing', 'qa', 'coverage'],
-      ['testing'],
-    ],
-    [
-      'devops-engineer',
-      'DevOps Engineer',
-      'Crea Dockerfiles, pipelines CI/CD, manifiestos Kubernetes.',
-      ['devops', 'kubernetes', 'docker'],
-      ['devops'],
-    ],
-    [
-      'api-designer',
-      'API Designer',
-      'Diseña APIs REST/GraphQL, especificaciones OpenAPI, modelos de recursos.',
-      ['api', 'design', 'openapi'],
-      ['coding'],
-    ],
-    [
-      'database-optimizer',
-      'Database Optimizer',
-      'Optimiza consultas SQL, índices, analiza planes de ejecución.',
-      ['database', 'sql', 'performance'],
-      ['data-ai'],
-    ],
-    [
-      'architecture-designer',
-      'Architecture Designer',
-      'Diseña arquitecturas, ADRs, evalúa trade-offs tecnológicos.',
-      ['architecture', 'design', 'adr'],
-      ['coding'],
-    ],
-    [
-      'legacy-modernizer',
-      'Legacy Modernizer',
-      'Diseña estrategias de migración, analiza dependencias, strangler fig.',
-      ['legacy', 'migration'],
-      ['coding'],
-    ],
-  ]),
-  ...makeItems('mcp', [
-    [
-      'github-mcp',
-      'GitHub MCP',
-      'Interactúa con GitHub: PRs, issues, repositorios, búsqueda de código.',
-      ['github', 'vcs', 'mcp'],
-    ],
-    [
-      'atlassian-mcp',
-      'Atlassian MCP',
-      'Integración con Jira y Confluence usando JQL y CQL.',
-      ['jira', 'confluence', 'mcp'],
-    ],
-    [
-      'context7-mcp',
-      'Context7 MCP',
-      'Obtiene documentación de librerías, frameworks y SDKs actualizados.',
-      ['docs', 'mcp'],
-    ],
-    [
-      'postgres-mcp',
-      'PostgreSQL MCP',
-      'Conexión a BD Postgres para inspeccionar esquemas y consultar datos.',
-      ['database', 'postgres', 'mcp'],
-    ],
-    [
-      'playwright-mcp',
-      'Playwright MCP',
-      'Controla navegadores Chromium/Firefox/WebKit para pruebas E2E.',
-      ['testing', 'browser', 'mcp'],
-    ],
-    [
-      'brave-search',
-      'Brave Search MCP',
-      'Búsquedas web y noticias a través de la API de Brave.',
-      ['search', 'web', 'mcp'],
-    ],
-  ]),
+  // `skill` and `mcp` are derived from the curated catalogs rather than
+  // duplicated here. The decision tree validates `skills_selection` and
+  // `mcps_selection` against these categories, so any id the /skills and /mcps
+  // endpoints expose must exist here too — otherwise the UI can only offer
+  // choices the tree rejects, which made both questions unanswerable.
+  ...skillsCatalog.map<CatalogItem>((skill) => ({
+    id: skill.id,
+    category: 'skill',
+    label: skill.name,
+    description: skill.description,
+    tags: [...skill.tags, skill.focus],
+    recommendedFor: [skill.focus],
+    environments: ['development', 'production', 'both'],
+  })),
+  ...mcpCatalog.map<CatalogItem>((mcp) => ({
+    id: mcp.id,
+    category: 'mcp',
+    label: mcp.name,
+    description: mcp.description,
+    tags: [...mcp.tags, mcp.category, ...(mcp.official ? ['official'] : [])],
+    recommendedFor: [mcp.category],
+    environments: ['development', 'production', 'both'],
+  })),
 ];
 
 const itemIndex = new Map(catalogItems.map((item) => [item.id, item]));

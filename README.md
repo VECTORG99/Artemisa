@@ -21,7 +21,7 @@ El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no 
 ### Implementado en el backend
 
 - Catálogo tecnológico versionado con lenguajes, frameworks, bases de datos, arquitecturas, cloud, CI/CD, IaC, contenedores, observabilidad, seguridad, repositorios, conocimiento y plataformas de agentes.
-- Árbol de decisiones **stateless** de 26 preguntas con ramas diferentes para desarrollo y producción.
+- Árbol de decisiones **stateless** de 32 preguntas (28 obligatorias, 4 opcionales) con ramas diferentes para desarrollo y producción.
 - Recomendaciones explicables con evidencia, beneficios, trade-offs y alternativas.
 - Preview de un bundle con blueprint, manifest, hashes SHA-256, instalación y justificación.
 - Generación condicional de Huascar, RAG, PR review, `AGENTS.md`, hooks, skills y configuración Kiro.
@@ -31,7 +31,10 @@ El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no 
 ### Implementado en la interfaz
 
 - `frontend/agents/new` carga catálogo, workflow, skills y MCPs directamente desde `/api/v1/creator`.
-- Cuatro modos de entrada: **Auto-corto** (subconjunto curado de preguntas con valores por defecto seguros), **Auto-largo** (árbol de decisiones completo), **Presets** (configuraciones completas listas para revisar y ajustar) y **Avanzado** (panel de control denso con switches, proveedores de modelo, RAG y selección directa de skills/MCPs).
+- Cuatro modos de entrada: **Auto-corto** (8 preguntas curadas más valores por defecto seguros para el resto), **Auto-largo** (recorre todas las preguntas visibles, incluidas las 4 opcionales, que se pueden omitir), **Presets** (8 configuraciones completas listas para revisar y ajustar) y **Avanzado** (panel denso con todas las preguntas del árbol agrupadas por sección, buscador global y rail de respuestas obligatorias pendientes).
+- Buscador, contador de máximo, chips de selección y entrada `custom:<slug>` en cada pregunta de catálogo, en los cuatro modos.
+- Atajos de teclado (`Enter`, `Alt+←`, `1-9`, `S`/`N`, `Esc`, `?`) con panel de ayuda.
+- Borrador conservado en `sessionStorage` por versión de workflow, con acción explícita de reinicio.
 - Renderiza preguntas y ramas del backend sin codificar el orden en React.
 - Fondo espacial y estética "liquid glass" compartidos con el Landing.
 - Revisión de recomendaciones y advertencias antes de generar, con cada respuesta editable.
@@ -273,8 +276,8 @@ Respuesta resumida:
   },
   "progress": {
     "answered": 4,
-    "total": 18,
-    "percent": 22,
+    "total": 19,
+    "percent": 21,
     "complete": false
   },
   "recommendations": [],
@@ -446,9 +449,11 @@ test/
 
 - [x] Renderizar preguntas dinámicas desde `/workflow`.
 - [x] Conservar answers en `sessionStorage` y llamar `/evaluate` por paso.
-- [x] Implementar tutorial visual skippable tipo juego.
-- [x] Mostrar recomendaciones y warnings antes de generar.
-- [x] Descargar el bundle JSON y artefactos individuales.
+- [x] Mostrar recomendaciones y warnings antes de generar, con evidencia, beneficios, trade-offs y alternativas.
+- [x] Editar cualquier respuesta desde la revisión sin reiniciar el flujo.
+- [x] Descargar el bundle JSON y artefactos individuales, con manifest, hashes y guía de aplicación.
+- [x] Atajos de teclado y panel de ayuda.
+- [ ] Implementar el tutorial visual skippable tipo juego. El contenido existe en `GET /api/v1/creator/tutorial`; la interfaz todavía no lo renderiza.
 - [ ] Añadir exportación ZIP validada y comparación visual de revisiones.
 
 ### Identidad y persistencia
