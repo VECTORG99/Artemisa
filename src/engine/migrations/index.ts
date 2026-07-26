@@ -7,6 +7,7 @@ import { createAgents } from './005_create_agents.js';
 import { createAgentConfigs } from './006_create_agent_configs.js';
 import { createMemoryStore } from './007_create_memory_store.js';
 import { executionContextAndSoftDelete } from './008_execution_context_and_soft_delete.js';
+import { addAgentEphemeralFields } from './009_add_agent_ephemeral_fields.js';
 
 export const initialMigrations: Migration[] = [
   createExecutions,
@@ -17,4 +18,5 @@ export const initialMigrations: Migration[] = [
   createAgentConfigs,
   createMemoryStore,
   executionContextAndSoftDelete,
+  addAgentEphemeralFields,
 ];

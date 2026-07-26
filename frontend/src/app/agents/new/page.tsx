@@ -617,6 +617,12 @@ export default function NewAgentPage() {
       const name = bundle.blueprint?.identity?.name || String(answers.agent_name || 'Generated Agent');
       setRegistered(await registerAgent(name, buildRegistryConfig(bundle, answers)));
     } catch (err) {
+      if (err instanceof ApiError && err.status === 429) {
+        setError(
+          'Has alcanzado el límite de pruebas efímeras para tu IP. Vuelve a intentarlo en ~1 hora; el agente se conserva para descargar.',
+        );
+        return;
+      }
       setError(errorMessage(err, 'No se pudo registrar el agente.'));
     }
   }

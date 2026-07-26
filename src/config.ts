@@ -82,6 +82,14 @@ export const config = {
     ttlMs: envInt('SESSION_TTL_MS', 60 * 60 * 1000),
     maxMessages: envInt('SESSION_MAX_MESSAGES', 10),
   },
+  agents: {
+    /** Ephemeral registration TTL (#492). Default 30 min. */
+    ttlMs: envInt('AGENT_TTL_MS', 30 * 60 * 1000),
+    /** Max simultaneous registrations per IP inside the cooldown window. */
+    maxPerIp: envInt('AGENT_MAX_PER_IP', 5),
+    /** Cooldown window after an IP hits maxPerIp before it can register again. */
+    cooldownMs: envInt('AGENT_COOLDOWN_MS', 60 * 60 * 1000),
+  },
   llm: {
     providerChain: process.env.LLM_PROVIDER_CHAIN || 'openai',
     modelId: process.env.MODEL_ID || 'gpt-4o',

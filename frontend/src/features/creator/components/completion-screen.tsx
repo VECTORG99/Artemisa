@@ -419,12 +419,12 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
         {registered ? (
           <span className={glassPill('border-white/20 px-4 py-2 text-sm text-zinc-200')}>
             <LuCheck className="h-4 w-4" aria-hidden="true" />
-            Registrado: {registered.name}
+            Registrado — se eliminará en 30 minutos: {registered.name}
           </span>
         ) : (
           <button type="button" onClick={onRegister} className={glassButton('px-4 py-2.5 text-sm')}>
             <LuRocket className="h-4 w-4" aria-hidden="true" />
-            Registrar en el runtime
+            Probar temporalmente (expira en 30 min)
           </button>
         )}
       </div>

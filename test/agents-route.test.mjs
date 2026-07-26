@@ -121,4 +121,53 @@ describe('registered agents route', () => {
       if (fs.existsSync(db)) fs.unlinkSync(db);
     }
   });
+
+  it('rejects the 6th agent from one IP with 429 (#492)', async () => {
+    const db = '/tmp/huascar_agents_route_429_test.db';
+    if (fs.existsSync(db)) fs.unlinkSync(db);
+    const store = new Store(db);
+    const app = express().use(express.json()).use('/api', agentsRouter(store)).use(errorHandler);
+    const server = http.createServer(app);
+    try {
+      await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+      const config = { steering: { roles: [{ id: 'dev', prompt: 'You code.' }] } };
+      for (let i = 0; i < 5; i++) {
+        const res = await request(server, 'POST', '/api/agents', { name: `Agent ${i}`, config });
+        assert.strictEqual(res.status, 201, `agent ${i} should register`);
+      }
+      const blocked = await request(server, 'POST', '/api/agents', { name: 'Agent 6', config });
+      assert.strictEqual(blocked.status, 429);
+    } finally {
+      await new Promise(resolve => server.close(resolve));
+      store.close();
+      if (fs.existsSync(db)) fs.unlinkSync(db);
+    }
+  });
+
+  it('returns 404 for an expired agent on GET and execute (#492)', async () => {
+    const db = '/tmp/huascar_agents_route_expired_test.db';
+    if (fs.existsSync(db)) fs.unlinkSync(db);
+    const store = new Store(db);
+    class FakeEngine {
+      constructor(role) { this.role = role; }
+      executeTask(task) {
+        return Promise.resolve({ status: 'success', agent_role: this.role, response: `reply:${task}` });
+      }
+    }
+    const app = express().use(express.json()).use('/api', agentsRouter(store, FakeEngine)).use(errorHandler);
+    const server = http.createServer(app);
+    try {
+      await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+      // Insert an agent that already expired (expires_at in the past).
+      const created = store.createAgent('Ghost', { steering: { roles: [{ id: 'dev', prompt: 'x' }] } }, '127.0.0.1', 1, 1000);
+      const got = await request(server, 'GET', `/api/agents/${created.id}`);
+      assert.strictEqual(got.status, 404);
+      const executed = await request(server, 'POST', `/api/agents/${created.id}/execute`, { task: 'run' });
+      assert.strictEqual(executed.status, 404);
+    } finally {
+      await new Promise(resolve => server.close(resolve));
+      store.close();
+      if (fs.existsSync(db)) fs.unlinkSync(db);
+    }
+  });
 });
