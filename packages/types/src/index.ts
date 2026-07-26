@@ -286,7 +286,9 @@ export interface McpCatalogItem {
     | 'file-system'
     | 'version-control'
     | 'communication'
-    | 'cloud-service';
+    | 'cloud-service'
+    | 'observability'
+    | 'storage';
   official: boolean;
   tags: string[];
   sourceUrl: string;
