@@ -22,11 +22,17 @@ describe('Batch security hardening (#257,#260,#264,#266,#269,#270,#279,#283)', (
     assert.match(src, /timingSafeEqual/);
   });
 
-  it('#264: npm audit is blocking (no continue-on-error)', () => {
+  it('#264: npm audit is blocking (no continue-on-error) with retry for registry errors', () => {
     const ci = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
     const securitySection = ci.split('security:')[1] || '';
+    // Audit must remain blocking — no blanket continue-on-error
     assert.doesNotMatch(securitySection, /continue-on-error:\s*true/);
+    // npm audit command is still present
     assert.match(securitySection, /npm audit/);
+    // Retry logic exists for registry brownouts
+    assert.match(securitySection, /max_attempts=3/);
+    // Real vulnerabilities still cause failure
+    assert.match(securitySection, /exit \$exit_code/);
   });
 
   it('#269: production docker-compose does not use env_file', () => {
