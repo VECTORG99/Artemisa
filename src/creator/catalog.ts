@@ -447,9 +447,23 @@ export const catalogItems: CatalogItem[] = [
     ['local-repository', 'Repositorio local', 'Proyecto sin integración remota obligatoria.', ['local']],
   ]),
   ...makeItems('agent-platform', [
-    ['huascar', 'Huascar', 'Configuración nativa para HuascarEngine.', ['agent']],
+    [
+      'agents-md',
+      'AGENTS.md universal',
+      'Estándar agnóstico interpretado por Copilot, Cursor, Zed, Aider, Warp y Gemini CLI.',
+      ['agent', 'universal'],
+    ],
+    ['cursor', 'Cursor', 'Reglas `.cursor/rules/*.mdc` y `.cursorrules` con activación por globs.', ['agent', 'ide']],
+    [
+      'devin-desktop',
+      'Devin Desktop',
+      'Reglas `.windsurf/rules/*.md` y `.windsurfrules` para Devin Local.',
+      ['agent', 'ide'],
+    ],
+    ['coderabbit', 'CodeRabbit', 'Configuración `.coderabbit.yaml` para auditoría async de PRs.', ['agent', 'review']],
+    ['kilo-code', 'Kilo Code', 'Reglas `.kilocode/rules/*.md` y `.kilocodemodes` por roles.', ['agent', 'ide']],
     ['kiro', 'Kiro', 'Steering, hooks y skills bajo `.kiro/`.', ['agent', 'ide']],
-    ['portable', 'Portable', 'AGENTS.md, skills y documentación independiente.', ['agent']],
+    ['portable', 'Portable', 'Skills reutilizables y documentación independiente.', ['agent']],
   ]),
   ...makeItems('knowledge', [
     [

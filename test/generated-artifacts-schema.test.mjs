@@ -1,124 +1,92 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
 import { describe, it } from 'node:test';
-
 import { generateAgentBundle } from '../src/creator/generator.ts';
 import { developmentAnswers, productionAnswers } from './creatorFixture.mjs';
-
-// Generated huascar/*.json artifacts are loaded by the runtime against these
-// schemas. src/kiro/hooks.ts fails closed on an invalid security policy, so a
-// generator/schema mismatch silently blocks every tool instead of erroring
-// loudly — that regression shipped once (issue #379) precisely because nothing
-// validated generator output against the runtime's own schemas.
-const ARTIFACT_SCHEMAS = {
-  'huascar/security-policy.json': 'security-policy.schema.json',
-  'huascar/mcps.json': 'mcps.schema.json',
-  'huascar/steering.json': 'steering.schema.json',
-  'huascar/rag.json': 'rag.schema.json',
-};
-
-function readSchema(schemaFile) {
-  return JSON.parse(fs.readFileSync(path.resolve('src/kiro/schemas', schemaFile), 'utf8'));
-}
-
-function typeOf(value) {
-  if (Array.isArray(value)) return 'array';
-  if (value === null) return 'null';
-  return typeof value;
-}
-
-/** Minimal JSON Schema validator, mirroring test/kiro-schema.test.mjs. */
-function validate(schema, value, at = '$') {
-  const errors = [];
-  const actual = typeOf(value);
-
-  if (schema.type && actual !== schema.type) return [`${at} expected ${schema.type}, got ${actual}`];
-  if (schema.enum && !schema.enum.includes(value)) errors.push(`${at} must be one of ${schema.enum.join(', ')}`);
-  if (schema.type !== 'object' && schema.type !== 'array') return errors;
-
-  if (schema.type === 'array') {
-    value.forEach((item, index) => errors.push(...validate(schema.items ?? {}, item, `${at}[${index}]`)));
-    return errors;
-  }
-
-  for (const key of schema.required ?? []) {
-    if (!Object.hasOwn(value, key)) errors.push(`${at}.${key} is required`);
-  }
-
-  for (const [key, child] of Object.entries(value)) {
-    const childSchema =
-      schema.properties?.[key] ??
-      (schema.additionalProperties && schema.additionalProperties !== true ? schema.additionalProperties : null);
-    if (!childSchema) {
-      if (schema.additionalProperties === false) errors.push(`${at}.${key} is not allowed`);
-      continue;
-    }
-    errors.push(...validate(childSchema, child, `${at}.${key}`));
-  }
-
-  return errors;
-}
 
 function artifactsByPath(bundle) {
   return new Map(bundle.artifacts.map((artifact) => [artifact.path, artifact]));
 }
 
-describe('Generated artifacts validate against runtime Kiro schemas (#379)', () => {
+const VALID_KINDS = new Set([
+  'configuration',
+  'documentation',
+  'instruction',
+  'manifest',
+  'agents-md',
+  'cursor-rules',
+  'devin-rules',
+  'coderabbit-config',
+  'kilocode-rules',
+]);
+
+describe('Generated artifacts validate against multi-format contract (#488)', () => {
   for (const [label, answers] of [
     ['development answers', developmentAnswers],
     ['production answers', productionAnswers],
   ]) {
-    it(`produces schema-valid huascar/*.json for ${label}`, () => {
+    it(`produces a valid manifest.json and blueprint.json for ${label}`, () => {
       const bundle = generateAgentBundle(answers);
-      const artifacts = artifactsByPath(bundle);
+      const byPath = artifactsByPath(bundle);
 
-      let validated = 0;
-      for (const [artifactPath, schemaFile] of Object.entries(ARTIFACT_SCHEMAS)) {
-        const artifact = artifacts.get(artifactPath);
-        if (!artifact) continue; // artifact is conditional on the answers
-        const parsed = JSON.parse(artifact.content);
-        assert.deepEqual(
-          validate(readSchema(schemaFile), parsed),
-          [],
-          `${artifactPath} does not satisfy ${schemaFile}`,
-        );
-        validated++;
+      const manifest = JSON.parse(byPath.get('manifest.json').content);
+      assert.equal(typeof manifest.agent, 'string');
+      assert.equal(typeof manifest.artifactCount, 'number');
+      assert.ok(Array.isArray(manifest.targets));
+      assert.ok(Array.isArray(manifest.files));
+      for (const file of manifest.files) {
+        assert.ok(typeof file.path === 'string' && file.path.length > 0);
+        assert.ok(/^[a-f0-9]{64}$/.test(file.sha256), `invalid sha256 for ${file.path}`);
+        assert.ok(VALID_KINDS.has(file.kind), `unexpected kind ${file.kind} for ${file.path}`);
       }
 
-      assert.ok(validated > 0, 'expected at least one huascar/*.json artifact to validate');
+      const blueprint = JSON.parse(byPath.get('blueprint.json').content);
+      assert.equal(blueprint.schemaVersion, '1.0.0');
+      assert.ok(blueprint.identity.slug);
+      assert.ok(blueprint.agent.targets.length > 0);
+      assert.ok(blueprint.project.technologies.length > 0);
     });
   }
 
-  it('derives a non-empty tool allowlist from capabilities', () => {
+  it('generates a CodeRabbit YAML with required sections', () => {
     const bundle = generateAgentBundle(developmentAnswers);
-    const policy = JSON.parse(artifactsByPath(bundle).get('huascar/security-policy.json').content);
-
-    assert.equal(policy.mode, 'allowlist');
-    assert.ok(policy.allowed_tools.length > 0, 'expected capabilities to grant at least one tool');
-    // developmentAnswers includes read-repository, so read tools must be present.
-    assert.ok(policy.allowed_tools.includes('read_file'));
-    // Nothing should be granted that no selected capability asked for.
-    assert.ok(!policy.allowed_tools.includes('delete_file'));
+    const yaml = bundle.artifacts.find((a) => a.path === '.coderabbit.yaml');
+    assert.ok(yaml, '.coderabbit.yaml should be generated');
+    assert.ok(yaml.content.includes('language: es'));
+    assert.ok(yaml.content.includes('reviews:'));
+    assert.ok(yaml.content.includes('path_instructions:'));
   });
 
-  it('allowlists test commands only when run-tests capability is selected', () => {
-    const withTests = JSON.parse(
-      artifactsByPath(generateAgentBundle(developmentAnswers)).get('huascar/security-policy.json').content,
-    );
-    const binaries = withTests.allowed_commands.entries.map((entry) => entry.binary);
-    assert.ok(binaries.includes('npm'), 'run-tests + TypeScript stack should allowlist npm');
+  it('generates a valid Kilo Code modes JSON', () => {
+    const bundle = generateAgentBundle(developmentAnswers);
+    const modes = bundle.artifacts.find((a) => a.path === '.kilocodemodes');
+    assert.ok(modes, '.kilocodemodes should be generated');
+    const parsed = JSON.parse(modes.content);
+    assert.equal(parsed.version, '1.0.0');
+    assert.ok(Array.isArray(parsed.modes) && parsed.modes.length > 0);
+    for (const mode of parsed.modes) {
+      assert.ok(typeof mode.name === 'string');
+      assert.ok(typeof mode.filePattern === 'string');
+      assert.ok(Array.isArray(mode.allowedCommands));
+    }
+  });
 
-    const withoutTests = JSON.parse(
-      artifactsByPath(
-        generateAgentBundle({
-          ...developmentAnswers,
-          capabilities: ['read-repository'],
-        }),
-      ).get('huascar/security-policy.json').content,
-    );
-    const readOnlyBinaries = withoutTests.allowed_commands.entries.map((entry) => entry.binary);
-    assert.ok(!readOnlyBinaries.includes('npm'), 'read-only agent must not allowlist npm');
-    assert.ok(readOnlyBinaries.includes('git'), 'read-repository should still allow read-only git');
+  it('derives allowed commands from capabilities in rule files', () => {
+    const bundle = generateAgentBundle(developmentAnswers);
+    const cursorRules = bundle.artifacts.find((a) => a.path === '.cursorrules');
+    assert.ok(cursorRules.content.includes('git:'), 'review-pr capability should allowlist git');
+
+    const withRunTests = generateAgentBundle({ ...developmentAnswers, capabilities: ['read-repository', 'run-tests'] });
+    const windsurf = withRunTests.artifacts.find((a) => a.path === `.windsurf/rules/${withRunTests.blueprint.identity.slug}.md`);
+    assert.ok(windsurf.content.includes('npm:'), 'run-tests + TypeScript should allowlist npm');
+  });
+
+  it('does not include disallowed binaries for read-only agents', () => {
+    const bundle = generateAgentBundle({
+      ...developmentAnswers,
+      capabilities: ['read-repository'],
+    });
+    const cursorRules = bundle.artifacts.find((a) => a.path === '.cursorrules');
+    assert.ok(!cursorRules.content.includes('npm:'), 'read-only agent must not allowlist npm');
+    assert.ok(cursorRules.content.includes('git:'), 'read-repository should still allow git');
   });
 });

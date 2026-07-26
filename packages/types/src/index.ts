@@ -176,8 +176,17 @@ export interface AgentBlueprint {
 
 // ─── Generated Bundle ─────────────────────────────────────────────────────────
 
-export type ArtifactKind = 'configuration' | 'documentation' | 'instruction' | 'manifest';
-export type ArtifactMediaType = 'application/json' | 'text/markdown';
+export type ArtifactKind =
+  | 'configuration'
+  | 'documentation'
+  | 'instruction'
+  | 'manifest'
+  | 'agents-md'
+  | 'cursor-rules'
+  | 'devin-rules'
+  | 'coderabbit-config'
+  | 'kilocode-rules';
+export type ArtifactMediaType = 'application/json' | 'text/markdown' | 'text/yaml';
 
 export interface GeneratedArtifact {
   path: string;

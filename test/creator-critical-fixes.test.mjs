@@ -1,74 +1,53 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
+import { generateAgentBundle } from '../src/creator/generator.js';
+import { developmentAnswers, productionAnswers } from './creatorFixture.mjs';
 
-describe('Creator critical bug fixes (#338, #319, #320, #323)', () => {
-
-  const generator = fs.readFileSync('src/creator/generator.ts', 'utf8');
-
-  describe('#338: RAG source-code pattern per language', () => {
-    it('inferSourcePattern function exists', () => {
-      assert.match(generator, /function inferSourcePattern/);
-    });
-
-    it('maps Python to *.py', () => {
-      assert.match(generator, /python.*\*\.py/);
-    });
-
-    it('maps Go to *.go', () => {
-      assert.match(generator, /go.*\*\.go/);
-    });
-
-    it('maps Java to *.java', () => {
-      assert.match(generator, /java.*\*\.java/);
-    });
-
-    it('mapRagSources accepts languages parameter', () => {
-      assert.match(generator, /mapRagSources\(.*languages/);
-    });
-
-    it('call site passes blueprint.project.technologies', () => {
-      assert.match(generator, /mapRagSources\(blueprint\.knowledge\.sources,\s*blueprint\.project\.technologies\)/);
-    });
+describe('Creator multi-format generator bug fixes (#488)', () => {
+  it('does not generate huascar/ artifacts', () => {
+    const bundle = generateAgentBundle(developmentAnswers);
+    const huascar = bundle.artifacts.filter((a) => a.path.startsWith('huascar/'));
+    assert.deepEqual(huascar, []);
   });
 
-  describe('#319: GitHub MCP for review-pr capability', () => {
-    it('buildMcpConfig checks for review-pr capability', () => {
-      assert.match(generator, /capabilities\.includes\('review-pr'\)/);
-    });
+  it('generates a blueprint.json manifest and docs for every bundle', () => {
+    const bundle = generateAgentBundle(developmentAnswers);
+    const paths = bundle.artifacts.map((a) => a.path);
+    for (const expected of ['blueprint.json', 'docs/INSTALL.md', 'docs/WHY.md', 'manifest.json']) {
+      assert.ok(paths.includes(expected), `missing ${expected}`);
+    }
   });
 
-  describe('#320: INSTALL.md includes dev section for env=both', () => {
-    it('buildInstall checks for development flag', () => {
-      assert.match(generator, /const development = blueprint\.environments\.target === 'development' \|\| blueprint\.environments\.target === 'both'/);
-    });
-
-    it('generates both dev and prod sections conditionally', () => {
-      assert.match(generator, /Uso en desarrollo/);
-      assert.match(generator, /Paso a producción/);
-    });
-
-    it('uses numbered subsections (4a/4b) when both', () => {
-      assert.match(generator, /4a.*4b|4b.*4a/s);
-    });
+  it('produces Cursor and Devin Desktop rules when selected', () => {
+    const bundle = generateAgentBundle(developmentAnswers);
+    const paths = bundle.artifacts.map((a) => a.path);
+    assert.ok(paths.some((p) => p.startsWith('.cursor/')));
+    assert.ok(paths.some((p) => p.startsWith('.windsurf/')));
   });
 
-  describe('#323: local-fs/bash-terminal only for development-only env', () => {
-    it('uses developmentOnly check instead of not-production', () => {
-      assert.match(generator, /const developmentOnly = blueprint\.environments\.target === 'development'/);
-    });
+  it('produces CodeRabbit and Kilo Code config when selected', () => {
+    const bundle = generateAgentBundle(developmentAnswers);
+    const paths = bundle.artifacts.map((a) => a.path);
+    assert.ok(paths.includes('.coderabbit.yaml'));
+    assert.ok(paths.some((p) => p.startsWith('.kilocode/')));
+  });
 
-    it('local-fs gated by developmentOnly', () => {
-      assert.match(generator, /developmentOnly && capabilities\.includes\('read-repository'\)/);
-    });
+  it('produces Kiro and portable artifacts when selected', () => {
+    const bundle = generateAgentBundle(developmentAnswers);
+    const paths = bundle.artifacts.map((a) => a.path);
+    assert.ok(paths.some((p) => p.startsWith('.kiro/')));
+    assert.ok(paths.some((p) => p.startsWith('skills/')));
+    assert.ok(paths.includes('AGENTS.md'));
+  });
 
-    it('bash-terminal gated by developmentOnly', () => {
-      assert.match(generator, /developmentOnly && capabilities\.includes\('run-tests'\)/);
-    });
+  it('INSTALL.md includes dev and prod sections conditionally', () => {
+    const devBundle = generateAgentBundle(developmentAnswers);
+    const devInstall = devBundle.artifacts.find((a) => a.path === 'docs/INSTALL.md');
+    assert.ok(devInstall.content.includes('Uso en desarrollo'));
+    assert.ok(!devInstall.content.includes('Paso a producción'));
 
-    it('does NOT use target !== production (which allows both)', () => {
-      assert.doesNotMatch(generator, /target !== 'production' && capabilities\.includes\('read-repository'\)/);
-      assert.doesNotMatch(generator, /target !== 'production' && capabilities\.includes\('run-tests'\)/);
-    });
+    const prodBundle = generateAgentBundle(productionAnswers);
+    const prodInstall = prodBundle.artifacts.find((a) => a.path === 'docs/INSTALL.md');
+    assert.ok(prodInstall.content.includes('Paso a producción'));
   });
 });

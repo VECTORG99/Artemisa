@@ -142,8 +142,17 @@ export interface AgentBlueprint {
 
 export interface GeneratedArtifact {
   path: string;
-  kind: 'configuration' | 'documentation' | 'instruction' | 'manifest';
-  mediaType: 'application/json' | 'text/markdown';
+  kind:
+    | 'configuration'
+    | 'documentation'
+    | 'instruction'
+    | 'manifest'
+    | 'agents-md'
+    | 'cursor-rules'
+    | 'coderabbit-config'
+    | 'devin-rules'
+    | 'kilocode-rules';
+  mediaType: 'application/json' | 'text/markdown' | 'text/yaml';
   description: string;
   content: string;
   sha256: string;
