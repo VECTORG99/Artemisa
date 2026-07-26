@@ -30,11 +30,13 @@ El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no 
 
 ### Implementado en la interfaz
 
-- `agent-creator/` carga catálogo, workflow y tutorial directamente desde `/api/v1/creator`.
+- `frontend/agents/new` carga catálogo, workflow, skills y MCPs directamente desde `/api/v1/creator`.
+- Cuatro modos de entrada: **Auto-corto** (subconjunto curado de preguntas con valores por defecto seguros), **Auto-largo** (árbol de decisiones completo), **Presets** (configuraciones completas listas para revisar y ajustar) y **Avanzado** (panel de control denso con switches, proveedores de modelo, RAG y selección directa de skills/MCPs).
 - Renderiza preguntas y ramas del backend sin codificar el orden en React.
-- Conserva respuestas, pregunta actual y fase de navegación en `sessionStorage`, permite volver y recalcula el árbol mediante `/evaluate`.
-- Incluye tutorial visual skippable, revisión de recomendaciones y advertencias.
+- Fondo espacial y estética "liquid glass" compartidos con el Landing.
+- Revisión de recomendaciones y advertencias antes de generar, con cada respuesta editable.
 - Descarga el bundle JSON completo o artefactos individuales del preview.
+- `agent-creator/` (Vite) queda como app legacy, sin desarrollo activo de Creator.
 - **Login, cuentas y multiusuario están documentados como roadmap; no están implementados.**
 - La descarga ZIP, escritura automática en repositorios y despliegue se dejan para una fase posterior.
 
@@ -368,17 +370,16 @@ curl http://localhost:3001/api/v1/creator/workflow
 curl http://localhost:3001/api/v1/creator/tutorial
 ```
 
-### Frontends actuales
+### Frontend
 
 ```bash
 cd frontend && npm ci && npm run dev
-cd agent-creator && npm ci && npm run dev
 ```
 
-- Dashboard Next.js: `http://localhost:3000`
-- Agent Creator Vite: `http://localhost:5173`
+- Dashboard: `http://localhost:3000/dashboard`
+- Creator: `http://localhost:3000/agents/new`
 
-El Agent Creator consume el workflow dinámico del backend. Configura `VITE_API_URL` con la URL pública del backend antes del build o desarrollo.
+`agent-creator/` (Vite, `http://localhost:5173`) sigue en el workspace como app legacy sin desarrollo activo del Creator; no recibe nuevas features.
 
 ### Docker
 

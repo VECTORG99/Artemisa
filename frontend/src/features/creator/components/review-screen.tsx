@@ -21,10 +21,12 @@ interface ReviewScreenProps {
 export function ReviewScreen({ answers, recommendations, warnings, onGenerate, generating, error }: ReviewScreenProps) {
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <div className="text-center">
         <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Revisión final</span>
-        <h2 className="mt-3 text-2xl font-semibold text-zinc-50">Confirma antes de generar</h2>
-        <p className="mt-2 text-zinc-400">Nada se ejecuta ni se escribe todavía — esto es una vista previa.</p>
+        <h2 className="mt-3 text-2xl font-semibold text-white">Confirma antes de generar</h2>
+        <p className="mx-auto mt-2 max-w-md text-zinc-400">
+          Nada se ejecuta ni se escribe todavía — esto es una vista previa.
+        </p>
       </div>
 
       {warnings.length > 0 && (
@@ -73,7 +75,7 @@ export function ReviewScreen({ answers, recommendations, warnings, onGenerate, g
         type="button"
         onClick={onGenerate}
         disabled={generating}
-        className="self-start rounded-full border border-white/[0.08] bg-white/[0.06] px-6 py-3 text-sm font-medium text-zinc-100 transition-colors hover:border-white/20 hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
+        className="mx-auto rounded-full border border-white/[0.08] bg-white/[0.06] px-6 py-3 text-sm font-medium text-white transition-colors hover:border-white/20 hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
       >
         {generating ? 'Generando...' : 'Generar agente'}
       </button>

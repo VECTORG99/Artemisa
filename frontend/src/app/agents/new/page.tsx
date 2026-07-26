@@ -2,17 +2,22 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { LuMonitor } from 'react-icons/lu';
 
 import {
   CompletionScreen,
   DynamicQuestion,
-  ModelTuningPanel,
-  type ModelTuningState,
+  FineTuningDashboard,
   ModeSelect,
   type CreatorMode,
+  PresetsGallery,
   ReviewScreen,
   StepContainer,
 } from '@/features/creator/components';
+import type { CreatorPreset } from '@/features/creator/presets/presets';
+import { buildShortFlowDefaults, SHORT_FLOW_QUESTION_IDS } from '@/features/creator/presets/short-flow';
+import { StarfieldBackground } from '@/components/backgrounds/starfield-background';
+import { glassButton } from '@/lib/glass';
 import { creator, registerAgent } from '@/lib/api';
 import type { AgentConfig } from '@/types/agent';
 import type {
@@ -87,12 +92,6 @@ export default function NewAgentPage() {
   const [transitioning, setTransitioning] = useState(false);
   const [questionHistory, setQuestionHistory] = useState<string[]>([]);
 
-  // State for ultra-technical parameters
-  const [tuningState, setTuningState] = useState<ModelTuningState>({
-    provider: 'openai',
-    temperature: 0.7,
-  });
-
   const [evaluationData, setEvaluationData] = useState<DecisionEvaluation | null>(null);
   const [isReviewing, setIsReviewing] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -121,6 +120,17 @@ export default function NewAgentPage() {
     return (catalog?.items ?? []).filter((item) => question.catalogCategories?.includes(item.category));
   }, [catalog, question]);
 
+  /** Auto-corto asks only SHORT_FLOW_QUESTION_IDS, in the order the full
+   * tree would visit them, skipping the rest entirely. */
+  function nextShortFlowQuestion(evaluation: DecisionEvaluation): DecisionQuestion | null {
+    const answeredIds = new Set(Object.keys(evaluation.answers));
+    return (
+      evaluation.visibleQuestions.find(
+        (item) => SHORT_FLOW_QUESTION_IDS.includes(item.id) && !answeredIds.has(item.id),
+      ) ?? null
+    );
+  }
+
   async function submitAnswer() {
     if (!workflow || !question) return;
     setError('');
@@ -136,6 +146,19 @@ export default function NewAgentPage() {
       setProgress(evaluation.progress.percent);
       setEvaluationData(evaluation);
 
+      if (mode === 'auto-corto') {
+        const short = nextShortFlowQuestion(evaluation);
+        if (short) {
+          setQuestionHistory((h) => [...h, question.id]);
+          setQuestion(short);
+          return;
+        }
+        // Curated subset answered — fill the rest with safe defaults and
+        // jump straight to review.
+        await finishShortFlow(evaluation.answers);
+        return;
+      }
+
       if (evaluation.progress.complete) {
         setQuestion(null);
         setIsReviewing(true);
@@ -147,6 +170,29 @@ export default function NewAgentPage() {
       setError(err instanceof Error ? err.message : 'No se pudo evaluar la respuesta.');
     } finally {
       setTransitioning(false);
+    }
+  }
+
+  /** Applies buildShortFlowDefaults() for every answer the curated subset
+   * didn't cover, re-evaluates, and opens Review. */
+  async function finishShortFlow(collected: CreatorAnswers) {
+    if (!workflow) return;
+    try {
+      const withDefaults = { ...buildShortFlowDefaults(collected), ...collected };
+      const evaluation = await creator.evaluate(withDefaults, { workflowVersion: workflow.version, catalogVersion });
+      setAnswers(evaluation.answers);
+      setEvaluationData(evaluation);
+      setProgress(evaluation.progress.percent);
+      if (evaluation.progress.complete) {
+        setQuestion(null);
+        setIsReviewing(true);
+      } else {
+        // A default didn't cover a required branch (e.g. an unexpected
+        // condition) — fall back to asking whatever is still missing.
+        setQuestion(evaluation.nextQuestion);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo completar la configuración corta.');
     }
   }
 
@@ -207,28 +253,86 @@ export default function NewAgentPage() {
     }
   }
 
+  function selectMode(next: CreatorMode) {
+    setError('');
+    setMode(next);
+  }
+
+  function backToModeSelect() {
+    setMode(null);
+    setIsReviewing(false);
+    setError('');
+  }
+
+  /** Presets mode: apply a fully-answered preset, validate it against the
+   * real decision tree, and open Review — same "edit before generating"
+   * path as every other mode. */
+  async function applyPreset(preset: CreatorPreset) {
+    if (!workflow) return;
+    setGenerating(true);
+    setError('');
+    try {
+      const evaluation = await creator.evaluate(preset.answers, {
+        workflowVersion: workflow.version,
+        catalogVersion,
+      });
+      setAnswers(evaluation.answers);
+      setEvaluationData(evaluation);
+      setProgress(evaluation.progress.percent);
+      if (evaluation.progress.complete) {
+        setIsReviewing(true);
+      } else {
+        setQuestion(evaluation.nextQuestion);
+        setError('El preset necesita una decisión adicional antes de generar (ver pregunta abajo).');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo aplicar el preset.');
+    } finally {
+      setGenerating(false);
+    }
+  }
+
   const canContinue =
     question?.type === 'boolean' || (Array.isArray(value) ? value.length > 0 : String(value).trim().length > 0);
 
-  // Advanced controls shown on fine-tuning or behind advanced button
-  const advancedControls = (
-    <div className="mt-4">
-      <ModelTuningPanel value={tuningState} onChange={setTuningState} />
-    </div>
-  );
+  /**
+   * Fine-tuning mode: evaluate the accumulated dashboard answers against the
+   * backend decision tree, then move to the review screen (same one the
+   * automated wizard uses) so recommendations/warnings stay consistent
+   * across both modes.
+   */
+  async function evaluateAndReview() {
+    if (!workflow) return;
+    setGenerating(true);
+    setError('');
+    try {
+      const evaluation = await creator.evaluate(answers, { workflowVersion: workflow.version, catalogVersion });
+      setAnswers(evaluation.answers);
+      setEvaluationData(evaluation);
+      if (evaluation.progress.complete) {
+        setIsReviewing(true);
+      } else {
+        setQuestion(evaluation.nextQuestion);
+        setError(
+          'Faltan decisiones requeridas por el árbol (ver siguiente pregunta abajo). El dashboard cubre los campos configurables directamente; el resto usa valores por defecto seguros una vez completado.',
+        );
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo evaluar la configuración.');
+    } finally {
+      setGenerating(false);
+    }
+  }
 
   return (
     <>
-      <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-6 text-center md:hidden">
-        <div className="mb-6 text-4xl">🖥️</div>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-black px-6 text-center md:hidden">
+        <LuMonitor className="mb-6 h-10 w-10 text-zinc-500" aria-hidden="true" />
         <h1 className="text-xl font-semibold text-zinc-100">Usa un computador para diseñar agentes</h1>
         <p className="mt-3 text-sm text-zinc-400">
           El creador de agentes requiere una pantalla más grande para la mejor experiencia.
         </p>
-        <Link
-          href="/"
-          className="mt-8 rounded-full border border-emerald-500/30 bg-emerald-600/20 px-6 py-3 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-600/30"
-        >
+        <Link href="/" className={`mt-8 ${glassButton('px-6 py-3 font-medium')}`}>
           ← Volver al inicio
         </Link>
       </div>
@@ -236,11 +340,42 @@ export default function NewAgentPage() {
       <div className="hidden md:block">
         {!mode && !loading && (
           <StepContainer>
-            <ModeSelect onSelect={setMode} />
+            <ModeSelect onSelect={selectMode} />
           </StepContainer>
         )}
 
-        {mode && !isReviewing && !bundle && !loading && (
+        {mode === 'presets' && !isReviewing && !bundle && !loading && (
+          <StepContainer>
+            <PresetsGallery onSelect={applyPreset} onBack={backToModeSelect} />
+          </StepContainer>
+        )}
+
+        {mode === 'avanzado' && !isReviewing && !bundle && !loading && (
+          <div className="relative min-h-screen px-4 py-8 text-zinc-100 sm:px-8">
+            <StarfieldBackground />
+            <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-6">
+              <header className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={backToModeSelect}
+                  className="text-sm text-zinc-500 transition-colors hover:text-zinc-300"
+                >
+                  ← Cambiar modo
+                </button>
+                <span className="text-xs uppercase tracking-wide text-zinc-600">Avanzado · Huascar Creator</span>
+              </header>
+              <FineTuningDashboard
+                answers={answers}
+                onChange={setAnswers}
+                onGenerate={evaluateAndReview}
+                generating={generating}
+                error={error}
+              />
+            </div>
+          </div>
+        )}
+
+        {(mode === 'auto-corto' || mode === 'auto-largo') && !isReviewing && !bundle && !loading && (
           <StepContainer progress={progress} progressLabel={question?.section}>
             {error && (
               <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-6 py-4 text-sm text-red-200">
@@ -259,7 +394,6 @@ export default function NewAgentPage() {
                   options={options}
                   value={value}
                   onChange={(next) => setAnswers((current) => ({ ...current, [question.id]: next }))}
-                  advancedControls={advancedControls}
                 />
 
                 <div className="mt-8 flex items-center justify-between">
@@ -267,15 +401,15 @@ export default function NewAgentPage() {
                     <button
                       type="button"
                       onClick={goBack}
-                      className="text-sm text-zinc-400 transition-colors hover:text-emerald-400"
+                      className="text-sm text-zinc-400 transition-colors hover:text-zinc-200"
                     >
                       ← Atrás
                     </button>
                   ) : (
                     <button
                       type="button"
-                      onClick={() => setMode(null)}
-                      className="text-sm text-zinc-400 transition-colors hover:text-emerald-400"
+                      onClick={backToModeSelect}
+                      className="text-sm text-zinc-400 transition-colors hover:text-zinc-200"
                     >
                       ← Cambiar modo
                     </button>
@@ -284,8 +418,7 @@ export default function NewAgentPage() {
                     type="button"
                     onClick={submitAnswer}
                     disabled={!canContinue}
-                    className="rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-emerald-900/30 transition-all hover:bg-emerald-500 hover:shadow-emerald-800/40 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:shadow-none"
-                    style={canContinue ? { boxShadow: '0 4px 20px rgba(16,185,129,0.25)' } : undefined}
+                    className={`${glassButton('px-6 py-2.5 font-medium')} disabled:cursor-not-allowed disabled:opacity-40`}
                   >
                     Continuar →
                   </button>

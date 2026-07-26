@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { glassButton, glassInput, glassPill } from '@/lib/glass';
+import { LuCheck } from 'react-icons/lu';
+import { glassButton, glassInput } from '@/lib/glass';
 import type { CatalogItem, DecisionQuestion, QuestionOption } from '@huascar/types';
 import { SkillsBrowser } from './skills-browser';
 import { McpBrowser } from './mcp-browser';
@@ -31,26 +32,30 @@ export function DynamicQuestion({ question, options, value, onChange, advancedCo
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col items-center gap-6 text-center">
       <div>
         <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">{question.section}</span>
-        <h2 className="mt-3 text-2xl font-semibold text-zinc-50">{question.prompt}</h2>
-        {question.description && <p className="mt-2 text-zinc-400">{question.description}</p>}
+        <h2 className="mt-3 text-2xl font-semibold text-white">{question.prompt}</h2>
+        {question.description && <p className="mx-auto mt-2 max-w-xl text-zinc-400">{question.description}</p>}
       </div>
 
-      <QuestionInput question={question} options={options} value={value} onChange={onChange} />
+      <div className="w-full text-left">
+        <QuestionInput question={question} options={options} value={value} onChange={onChange} />
+      </div>
 
       {advancedControls && (
-        <div className="flex flex-col gap-3">
+        <div className="flex w-full flex-col items-center gap-3">
           <button
             type="button"
             onClick={() => setShowAdvanced((current) => !current)}
-            className="self-start text-xs text-zinc-500 underline-offset-4 transition-colors hover:text-zinc-300 hover:underline"
+            className="text-xs text-zinc-500 underline-offset-4 transition-colors hover:text-zinc-300 hover:underline"
           >
             {showAdvanced ? '– Ocultar avanzado' : '+ Avanzado'}
           </button>
           {showAdvanced && (
-            <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">{advancedControls}</div>
+            <div className="w-full rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 text-left">
+              {advancedControls}
+            </div>
           )}
         </div>
       )}
@@ -134,7 +139,7 @@ function QuestionInput({
               key={option.id}
               type="button"
               onClick={() => onChange(option.id)}
-              className={`flex flex-col gap-1 rounded-lg border p-3 text-left text-sm transition-colors ${
+              className={`flex flex-col gap-1 rounded-2xl border p-3.5 text-left text-sm transition-colors ${
                 isSelected
                   ? 'border-white/30 bg-white/[0.08] text-zinc-100'
                   : 'border-white/[0.08] bg-white/[0.02] text-zinc-300 hover:border-white/20 hover:bg-white/[0.05]'
@@ -160,7 +165,7 @@ function QuestionInput({
             key={option.id}
             type="button"
             onClick={() => onChange(isSelected ? selected.filter((id) => id !== option.id) : [...selected, option.id])}
-            className={`flex flex-col gap-1 rounded-lg border p-3 text-left text-sm transition-colors ${
+            className={`flex flex-col gap-1 rounded-2xl border p-3.5 text-left text-sm transition-colors ${
               isSelected
                 ? 'border-white/30 bg-white/[0.08] text-zinc-100'
                 : 'border-white/[0.08] bg-white/[0.02] text-zinc-300 hover:border-white/20 hover:bg-white/[0.05]'
@@ -168,7 +173,7 @@ function QuestionInput({
           >
             <span className="flex items-center justify-between gap-2 font-medium">
               {option.label}
-              {isSelected && <span className={glassPill('text-[10px] text-emerald-300')}>✓</span>}
+              {isSelected && <LuCheck className="h-3.5 w-3.5 shrink-0 text-white" aria-hidden="true" />}
             </span>
             {option.description && <span className="text-xs text-zinc-500">{option.description}</span>}
           </button>

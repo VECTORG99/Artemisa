@@ -19,12 +19,12 @@ interface StepContainerProps {
  */
 export function StepContainer({ children, progress, progressLabel }: StepContainerProps) {
   return (
-    <main className="allow-scroll relative min-h-screen bg-zinc-950 px-4 py-10 text-zinc-50 sm:px-8">
+    <main className="allow-scroll relative min-h-screen px-4 py-10 text-zinc-50 sm:px-8">
       <StarfieldBackground />
       <div className="relative z-10 mx-auto flex max-w-4xl flex-col gap-6">
         <header className="flex items-center justify-between">
-          <Link href="/dashboard" className="text-sm text-zinc-500 transition-colors hover:text-zinc-300">
-            ← Volver al dashboard
+          <Link href="/" className="text-sm text-zinc-500 transition-colors hover:text-zinc-300">
+            ← Volver al inicio
           </Link>
           <span className="text-xs uppercase tracking-wide text-zinc-600">Huascar Creator</span>
         </header>

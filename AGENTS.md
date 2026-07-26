@@ -14,8 +14,8 @@ Audience: AI agents changing this repository. Keep this file as the entrypoint; 
 
 - Multi-app repo using npm workspaces (`packages/*`, `frontend`, `agent-creator`); root `package.json` owns backend scripts/tests and hoists shared deps.
 - Backend: root Express/TypeScript app; entrypoint `src/server.ts` -> `src/app.ts`; root `package.json` owns backend scripts/tests.
-- Frontend dashboard: `frontend/` Next app; separate dependency domain.
-- Agent creator UI/tool: `agent-creator/` Vite app; separate dependency domain.
+- Frontend: `frontend/` Next app; hosts both the dashboard (`/dashboard`) and the Creator (`/agents/new`); separate dependency domain.
+- `agent-creator/` Vite app: legacy, no longer the active Creator UI (superseded by `frontend/agents/new`, see issue #390). Kept in the workspace but not part of active feature work; do not add new Creator features there.
 - Docs: root docs plus `docs/`, `docs/adr/`; docs are machine-readable for agents.
 - Tests: root `test/*.test.mjs` using Node's built-in test runner.
 
