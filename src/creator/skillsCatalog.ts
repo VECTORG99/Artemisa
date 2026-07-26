@@ -143,6 +143,12 @@ export const skillsCatalog: SkillCatalogItem[] = [
 
 const skillIndex = new Map(skillsCatalog.map((item) => [item.id, item]));
 
+// #407: pre-computed, frozen response for the no-filter hot path.
+const fullSkillsResponse = Object.freeze({
+  version: SKILLS_CATALOG_VERSION,
+  items: skillsCatalog,
+});
+
 /** Look up a single skill by its catalog id. */
 export function getSkillById(id: string): SkillCatalogItem | undefined {
   return skillIndex.get(id);
@@ -152,6 +158,11 @@ export function getSkillsCatalog(filter?: { focus?: string; q?: string }): {
   version: string;
   items: SkillCatalogItem[];
 } {
+  // #407: the no-filter response is immutable per deploy; return a frozen
+  // pre-computed instance instead of scanning on every request.
+  if (!filter?.focus && !filter?.q) {
+    return fullSkillsResponse;
+  }
   let items = skillsCatalog;
   if (filter?.focus) {
     items = items.filter((item) => item.focus === filter.focus);

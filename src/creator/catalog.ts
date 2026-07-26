@@ -559,6 +559,14 @@ export const catalogItems: CatalogItem[] = [
 const itemIndex = new Map(catalogItems.map((item) => [item.id, item]));
 const categoryIndex = new Map(catalogCategories.map((category) => [category.id, category]));
 
+// #407: pre-computed, frozen response for the no-filter hot path.
+const fullCatalogResponse = Object.freeze({
+  version: CATALOG_VERSION,
+  categories: catalogCategories,
+  items: catalogItems,
+  customFormat: 'custom:<slug>',
+});
+
 export function getCatalogItem(id: string): CatalogItem | undefined {
   return itemIndex.get(id);
 }
@@ -570,6 +578,12 @@ export function isCatalogItemFor(id: string, categories: string[]): boolean {
 }
 
 export function getCreatorCatalog(filters?: { category?: string; environment?: string; q?: string }) {
+  // #407: the no-filter response is the hot path (full catalog load on
+  // Creator open) and the data is immutable per deploy, so we pre-compute
+  // and freeze it once. Filtered requests still pay the O(n) scan.
+  if (!filters?.category && !filters?.environment && !filters?.q) {
+    return fullCatalogResponse;
+  }
   let items = catalogItems;
   if (filters?.category) {
     if (categoryIndex.has(filters.category)) {

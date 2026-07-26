@@ -337,6 +337,12 @@ export const mcpCatalog: McpCatalogItem[] = [
 
 const mcpIndex = new Map(mcpCatalog.map((item) => [item.id, item]));
 
+// #407: pre-computed, frozen response for the no-filter hot path.
+const fullMcpResponse = Object.freeze({
+  version: MCP_CATALOG_VERSION,
+  items: mcpCatalog,
+});
+
 /** Look up a single MCP server by its catalog id. */
 export function getMcpById(id: string): McpCatalogItem | undefined {
   return mcpIndex.get(id);
@@ -346,6 +352,11 @@ export function getMcpCatalog(filter?: { category?: string; q?: string }): {
   version: string;
   items: McpCatalogItem[];
 } {
+  // #407: the no-filter response is immutable per deploy; return a frozen
+  // pre-computed instance instead of scanning on every request.
+  if (!filter?.category && !filter?.q) {
+    return fullMcpResponse;
+  }
   let items = mcpCatalog;
   if (filter?.category) {
     items = items.filter((item) => item.category === filter.category);

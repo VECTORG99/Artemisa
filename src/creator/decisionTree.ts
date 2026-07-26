@@ -1159,16 +1159,20 @@ export function evaluateDecisionTree(input: unknown): DecisionEvaluation {
   };
 }
 
+// #407: the workflow definition is immutable per deploy, so pre-compute it once
+// instead of rebuilding the object on every /workflow request.
+const workflowDefinition = Object.freeze({
+  id: 'agent-builder',
+  version: WORKFLOW_VERSION,
+  catalogVersion: CATALOG_VERSION,
+  mode: 'stateless',
+  description: 'Árbol de decisiones guiado para generar configuraciones de agentes de desarrollo y producción.',
+  answersContract: 'El cliente reenvía todas las respuestas acumuladas en cada evaluación.',
+  questions: creatorQuestions,
+});
+
 export function getWorkflowDefinition() {
-  return {
-    id: 'agent-builder',
-    version: WORKFLOW_VERSION,
-    catalogVersion: CATALOG_VERSION,
-    mode: 'stateless',
-    description: 'Árbol de decisiones guiado para generar configuraciones de agentes de desarrollo y producción.',
-    answersContract: 'El cliente reenvía todas las respuestas acumuladas en cada evaluación.',
-    questions: creatorQuestions,
-  };
+  return workflowDefinition;
 }
 
 export function describeCatalogSelection(id: string): string {
