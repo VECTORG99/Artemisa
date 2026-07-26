@@ -33,7 +33,7 @@ export function AgentForm({ role, roles, task, loading, onRoleChange, onTaskChan
           name="role"
           value={role}
           onChange={(e) => onRoleChange(e.target.value)}
-          className="bg-zinc-950 border border-zinc-700 rounded-md p-2 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="bg-zinc-950 border border-zinc-700 rounded-md p-2 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500"
         >
           {roles.map((agentRole) => (
             <option key={agentRole.id} value={agentRole.id}>
@@ -54,7 +54,7 @@ export function AgentForm({ role, roles, task, loading, onRoleChange, onTaskChan
           onChange={(e) => onTaskChange(e.target.value)}
           placeholder="Describe la tarea que el agente debe realizar..."
           aria-describedby="task-help"
-          className="bg-zinc-950 border border-zinc-700 rounded-md p-3 text-zinc-100 h-48 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="bg-zinc-950 border border-zinc-700 rounded-md p-3 text-zinc-100 h-48 resize-none focus:outline-none focus:ring-2 focus:ring-red-500"
         />
         <p id="task-help" className="sr-only">
           Describe la tarea antes de desplegar el agente.
@@ -65,7 +65,7 @@ export function AgentForm({ role, roles, task, loading, onRoleChange, onTaskChan
         type="submit"
         disabled={loading || !task.trim()}
         aria-busy={loading}
-        className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-md transition-colors mt-auto focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-zinc-900"
+        className="bg-red-600 hover:bg-red-500 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-md transition-colors mt-auto focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-zinc-900"
       >
         {loading ? 'Ejecutando...' : 'Desplegar y Ejecutar'}
       </button>

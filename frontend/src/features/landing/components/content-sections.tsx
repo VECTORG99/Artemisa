@@ -200,7 +200,7 @@ function TechStackSection() {
   return (
     <section id="tecnologia" className="flex h-screen snap-start items-center justify-center px-6">
       <div className="relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10" style={glassStyle}>
-        <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400/80">
+        <span className="text-xs font-semibold uppercase tracking-wider text-red-400/80">
           Stack real del proyecto
         </span>
         <h2 className="mt-2 text-3xl font-bold text-white">Tecnología que usamos</h2>
@@ -303,7 +303,7 @@ const useCases: UseCase[] = [
 function UseCasesModalContent() {
   return (
     <>
-      <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400/80">
+      <span className="text-xs font-semibold uppercase tracking-wider text-red-400/80">
         Productividad del desarrollador
       </span>
       <h2 className="mt-2 text-3xl font-bold text-white">Casos de uso</h2>
