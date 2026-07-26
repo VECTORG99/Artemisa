@@ -8,7 +8,8 @@ Updated: 2026-07-23
 - Backend entrypoint: `src/server.ts` -> `src/app.ts`. Express app mounts public creator catalog/workflow/tutorial before auth, then `/api` health/openapi/metrics, then protected API routes.
 - Persistent state uses SQLite through `better-sqlite3` in `src/engine/Store.ts`; database path defaults to `./data/huascar.db` via `HUASCAR_DB_PATH`.
 - SQLite retention cleanup is bounded by `RETENTION_EXECUTION_MAX_AGE_DAYS`, `RETENTION_EXECUTION_MAX_COUNT`, and `RETENTION_RAG_CHUNKS_MAX_PER_SOURCE`; `RETENTION_CLEANUP_ON_START=false` by default.
-- Migrations are code-based and run at `Store` construction: `001_create_executions`, `002_create_rag_documents`, `003_add_rag_hashes`, `004_create_sessions`, `005_create_agents`.
+- Registered agents are ephemeral by design (#492): `AGENT_TTL_MS` (default 30 min) bounds row lifetime, `AGENT_MAX_PER_IP` (default 5) plus `AGENT_COOLDOWN_MS` (default 1 h) cap per-IP registrations, and `Store.cleanupExpiredAgents()` runs on start and on a periodic interval in `src/server.ts`. Expired agents return 404 on read/execute.
+- Migrations are code-based and run at `Store` construction: `001_create_executions`, `002_create_rag_documents`, `003_add_rag_hashes`, `004_create_sessions`, `005_create_agents`, `006_create_agent_configs`, `007_create_memory_store`, `008_execution_context_and_soft_delete`, `009_add_agent_ephemeral_fields`.
 - Agent execution is centralized in `src/engine/HuascarEngine.ts`: steering role resolution, MCP tool wrapping, RAG loading/context, AI SDK provider fallback, and execution history persistence. Mock mode supports scenario-based mock executions (`happy_path`, `multi_step`, `blocked`, `timeout`, `error`) configurable via request body, env variables, or custom JSON.
 - Current default steering roles are `PR_REVIEWER`, `SCAFFOLDER`, `TESTER`, `DOCUMENTER`, `REFACTORER`, `DEBUGGER`, and `DEVOPS` in `src/kiro/steering.json`; `STEERING_CONFIG_PATH` can point at an external JSON file.
 - Auth is environment-driven in `src/middleware/auth.ts`: `AUTH_REQUIRED=false` by default; `AUTH_REQUIRED=true` requires `HUASCAR_API_KEYS` through `Authorization: Bearer` or `X-API-Key`.
@@ -22,7 +23,7 @@ Updated: 2026-07-23
   - `GET /api/history` returns execution history from SQLite.
   - `GET /api/roles` reads roles from steering config and returns safe metadata (`description`, `recommended_tools`, `examples`) without `system_prompt`.
   - `GET /api/rag/sources` and `DELETE /api/rag/sources/:source` inspect/remove indexed RAG chunks.
-  - `/api/agents` CRUD stores generated agent configs; `/api/agents/:id/execute` runs a registered agent.
+  - `/api/agents` CRUD stores generated agent configs (ephemeral, TTL-bounded — see #492); `/api/agents/:id/execute` runs a registered agent and returns 404 once it has expired.
   - `/api/v1/creator/catalog|workflow|tutorial` are public; `/evaluate|preview|generate` are protected by API auth when enabled.
   - The catalog's `skill` and `mcp` categories are derived from `src/creator/skillsCatalog.ts` and `src/creator/mcpCatalog.ts` rather than declared separately, because the decision tree validates `skills_selection`/`mcps_selection` against those categories. When they were separate lists the ids did not intersect, so both questions were unanswerable from any UI.
   - `RATE_LIMIT_CREATOR` defaults to 120/min: the Creator re-evaluates the whole tree per step, so one completed Auto-largo run costs ~35 requests.

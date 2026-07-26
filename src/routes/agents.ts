@@ -3,10 +3,20 @@ import { HuascarEngine, type AgentConfig } from '../engine/HuascarEngine.js';
 import type { AgentRecord, Store } from '../engine/Store.js';
 import { SessionManager } from '../engine/SessionManager.js';
 import { ApiError, ErrorCodes } from '../errors.js';
+import { config } from '../config.js';
 
 type EngineClass = new (role: string, store: Store) => Pick<HuascarEngine, 'executeTask'>;
 
 const bad = (message: string) => new ApiError(ErrorCodes.API_VALIDATION_ERROR, message, 400);
+
+function callerIp(req: { ip?: string; socket?: { remoteAddress?: string } }): string {
+  return req.ip || req.socket?.remoteAddress || 'unknown';
+}
+
+/** True when the agent's TTL has elapsed (pre-#492 rows backfilled to 0). */
+function isExpired(agent: AgentRecord, now = Date.now()): boolean {
+  return agent.expires_at !== null && agent.expires_at < now;
+}
 
 function asObject(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw bad('config debe ser un objeto');
@@ -51,6 +61,7 @@ function publicAgent(agent: AgentRecord, full = false) {
     updated_at: agent.updated_at,
     last_executed_at: agent.last_executed_at,
     execution_count: agent.execution_count,
+    expires_at: agent.expires_at,
   };
   return full ? { ...base, config: JSON.parse(agent.config) } : base;
 }
@@ -112,7 +123,28 @@ export function agentsRouter(store: Store, Engine: EngineClass = HuascarEngine):
   const router = Router();
 
   router.post('/agents', (req, res) => {
-    const agent = store.createAgent(validateName(req.body?.name), validateConfig(req.body?.config));
+    const ip = callerIp(req);
+    const now = Date.now();
+    // Cooldown: count registrations from this IP inside the cooldown window.
+    // Once an IP hit maxPerIp within the window, it must wait until the oldest
+    // registration in the window ages out — even if those agents already
+    // expired by TTL (#492).
+    const since = now - config.agents.cooldownMs;
+    const recent = store.countAgentsByIp(ip, since);
+    if (recent >= config.agents.maxPerIp) {
+      throw new ApiError(
+        ErrorCodes.API_VALIDATION_ERROR,
+        'Has alcanzado el límite de agentes efímeros para tu IP. Vuelve a intentarlo más tarde.',
+        429,
+      );
+    }
+    const agent = store.createAgent(
+      validateName(req.body?.name),
+      validateConfig(req.body?.config),
+      ip,
+      config.agents.ttlMs,
+      now,
+    );
     res.status(201).json(publicAgent(agent, true));
   });
 
@@ -120,7 +152,7 @@ export function agentsRouter(store: Store, Engine: EngineClass = HuascarEngine):
 
   router.get('/agents/:id', (req, res) => {
     const agent = store.getAgent(req.params.id);
-    if (!agent) throw new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'agent no encontrado', 404);
+    if (!agent || isExpired(agent)) throw new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'agent no encontrado', 404);
     res.json(publicAgent(agent, true));
   });
 
@@ -135,7 +167,7 @@ export function agentsRouter(store: Store, Engine: EngineClass = HuascarEngine):
   router.post('/agents/:id/execute', async (req, res, next) => {
     try {
       const agent = store.getAgent(req.params.id);
-      if (!agent) throw new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'agent no encontrado', 404);
+      if (!agent || isExpired(agent)) throw new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'agent no encontrado', 404);
       const { task, role, system_prompt, config, session_id, mock_scenario } = executeBody(req.body, agent);
       const sessions = new SessionManager(store);
       const session = sessions.getOrCreate(session_id, `${agent.id}:${role}`);

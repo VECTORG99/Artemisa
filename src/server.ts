@@ -14,6 +14,25 @@ if (config.retention.cleanupOnStart) {
   }
 }
 
+// Ephemeral agent cleanup (#492): reclaim expired registrations on start and
+// on a periodic sweep. Agents are TTL-bounded by design (Huascar is a
+// generator, not a host), so stale rows must not accumulate.
+try {
+  const removed = store.cleanupExpiredAgents();
+  if (removed > 0) logger.info({ removed }, 'expired agents cleaned up on start');
+} catch (err) {
+  logger.error({ err }, 'agent cleanup on start failed');
+}
+const agentCleanupInterval = setInterval(() => {
+  try {
+    const removed = store.cleanupExpiredAgents();
+    if (removed > 0) logger.info({ removed }, 'expired agents cleaned up');
+  } catch (err) {
+    logger.error({ err }, 'agent cleanup sweep failed');
+  }
+}, config.agents.ttlMs);
+agentCleanupInterval.unref();
+
 // Production startup security warnings
 if (process.env.NODE_ENV === 'production' && !process.env.BYPASS_SECRET) {
   logger.warn('[SECURITY] BYPASS_SECRET not configured in production — admin bypass disabled');
@@ -46,6 +65,7 @@ async function gracefulShutdown(signal: string, exitCode: number): Promise<void>
   await waitForInFlight(30_000);
 
   clearApprovalTimers();
+  clearInterval(agentCleanupInterval);
   await mcpConnectionPool.closeAll();
   if (store.isOpen()) store.close();
   clearTimeout(timeout);

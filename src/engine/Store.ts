@@ -66,6 +66,10 @@ export interface AgentRecord {
   updated_at: number;
   last_executed_at: number | null;
   execution_count: number;
+  /** Caller IP used for per-IP rate limiting / cooldown (#492). */
+  ip: string | null;
+  /** Wall-clock ms when this agent expires; null only for pre-#492 rows. */
+  expires_at: number | null;
 }
 
 /**
@@ -192,7 +196,7 @@ export class Store {
 
   // --- Registered agents ---
 
-  createAgent(name: string, agentConfig: unknown, now = Date.now()): AgentRecord {
+  createAgent(name: string, agentConfig: unknown, ip: string, ttlMs: number, now = Date.now()): AgentRecord {
     this.assertOpen();
     const agent = {
       id: randomUUID(),
@@ -202,12 +206,14 @@ export class Store {
       updated_at: now,
       last_executed_at: null,
       execution_count: 0,
+      ip,
+      expires_at: now + ttlMs,
     };
     this.db
       .prepare(
         `
-      INSERT INTO agents (id, name, config, created_at, updated_at, last_executed_at, execution_count)
-      VALUES (@id, @name, @config, @created_at, @updated_at, @last_executed_at, @execution_count)
+      INSERT INTO agents (id, name, config, created_at, updated_at, last_executed_at, execution_count, ip, expires_at)
+      VALUES (@id, @name, @config, @created_at, @updated_at, @last_executed_at, @execution_count, @ip, @expires_at)
     `,
       )
       .run(agent);
@@ -222,6 +228,30 @@ export class Store {
   getAgent(id: string): AgentRecord | null {
     this.assertOpen();
     return (this.db.prepare('SELECT * FROM agents WHERE id = ?').get(id) as AgentRecord | undefined) ?? null;
+  }
+
+  /**
+   * Count agents created by `ip` since `since` (wall-clock ms). Used by the
+   * cooldown gate in POST /api/agents: once an IP registered `maxPerIp`
+   * agents inside the cooldown window, further registrations are rejected
+   * with 429 even if the previous ones already expired by TTL (#492).
+   */
+  countAgentsByIp(ip: string, since: number): number {
+    this.assertOpen();
+    const row = this.db
+      .prepare('SELECT COUNT(*) AS count FROM agents WHERE ip = ? AND created_at >= ?')
+      .get(ip, since) as { count: number };
+    return row.count;
+  }
+
+  /**
+   * Delete agents whose TTL has elapsed. Pre-#492 rows were backfilled with
+   * `expires_at = 0` by migration 009, so they are reclaimed on the first
+   * sweep. Returns the number of rows removed.
+   */
+  cleanupExpiredAgents(now = Date.now()): number {
+    this.assertOpen();
+    return this.db.prepare('DELETE FROM agents WHERE expires_at IS NOT NULL AND expires_at < ?').run(now).changes;
   }
 
   updateAgent(id: string, name: string, agentConfig: unknown, now = Date.now()): AgentRecord | null {

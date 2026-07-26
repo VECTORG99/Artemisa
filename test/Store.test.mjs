@@ -76,9 +76,11 @@ describe('Store', () => {
     const localStore = new Store(dbPath);
     const config = { steering: { roles: [{ id: 'dev', prompt: 'You code.' }] }, tools: ['shell'] };
 
-    const created = localStore.createAgent('Coder', config, 1000);
+    const created = localStore.createAgent('Coder', config, '127.0.0.1', 30 * 60 * 1000, 1000);
     assert.strictEqual(created.name, 'Coder');
     assert.deepStrictEqual(JSON.parse(created.config), config);
+    assert.strictEqual(created.ip, '127.0.0.1');
+    assert.strictEqual(created.expires_at, 1000 + 30 * 60 * 1000);
     assert.strictEqual(localStore.listAgents().length, 1);
 
     const updated = localStore.updateAgent(created.id, 'Coder 2', { tools: [] }, 2000);
@@ -95,6 +97,36 @@ describe('Store', () => {
     assert.strictEqual(reopened.deleteAgent(created.id), true);
     assert.strictEqual(reopened.getAgent(created.id), null);
     reopened.close();
+    if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
+  });
+
+  it('counts agents by IP for the cooldown gate (#492)', () => {
+    const dbPath = '/tmp/huascar_test_agents_cooldown.db';
+    if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
+    const s = new Store(dbPath);
+    const ttl = 30 * 60 * 1000;
+    s.createAgent('A', { tools: [] }, '1.1.1.1', ttl, 1000);
+    s.createAgent('B', { tools: [] }, '1.1.1.1', ttl, 2000);
+    s.createAgent('C', { tools: [] }, '2.2.2.2', ttl, 3000);
+    assert.strictEqual(s.countAgentsByIp('1.1.1.1', 0), 2);
+    assert.strictEqual(s.countAgentsByIp('1.1.1.1', 1500), 1);
+    assert.strictEqual(s.countAgentsByIp('2.2.2.2', 0), 1);
+    assert.strictEqual(s.countAgentsByIp('9.9.9.9', 0), 0);
+    s.close();
+    if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
+  });
+
+  it('cleans up expired agents and keeps live ones (#492)', () => {
+    const dbPath = '/tmp/huascar_test_agents_ttl.db';
+    if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
+    const s = new Store(dbPath);
+    const ttl = 1000;
+    const expired = s.createAgent('Old', { tools: [] }, '1.1.1.1', ttl, 1000); // expires at 2000
+    const live = s.createAgent('New', { tools: [] }, '1.1.1.1', ttl, 5000); // expires at 6000
+    assert.strictEqual(s.cleanupExpiredAgents(2500), 1);
+    assert.strictEqual(s.getAgent(expired.id), null);
+    assert.ok(s.getAgent(live.id));
+    s.close();
     if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
   });
 
