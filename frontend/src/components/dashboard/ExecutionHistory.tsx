@@ -43,7 +43,7 @@ export function ExecutionHistory({
           disabled={loading}
           aria-label="Refrescar historial de ejecuciones"
           aria-busy={loading}
-          className="text-xs text-emerald-500 hover:text-emerald-400 disabled:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-zinc-900 rounded"
+          className="text-xs text-red-500 hover:text-red-400 disabled:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-zinc-900 rounded"
         >
           {loading ? 'Cargando...' : 'Refrescar'}
         </button>
@@ -70,10 +70,10 @@ export function ExecutionHistory({
                 onClick={() => onToggle(isOpen ? null : record.id)}
                 aria-expanded={isOpen}
                 aria-controls={panelId}
-                className="w-full flex items-center justify-between p-3 text-left hover:bg-zinc-800/50 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-inset"
+                className="w-full flex items-center justify-between p-3 text-left hover:bg-zinc-800/50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-inset"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-2 h-2 rounded-full shrink-0 bg-emerald-500" aria-hidden="true" />
+                  <span className="w-2 h-2 rounded-full shrink-0 bg-red-500" aria-hidden="true" />
                   <span className="text-sm font-medium text-zinc-200 truncate">{record.role}</span>
                 </div>
                 <span className="text-xs text-zinc-500 shrink-0 ml-3">{formatDate(record.created_at)}</span>
@@ -87,7 +87,7 @@ export function ExecutionHistory({
                   </div>
                   <div>
                     <span className="text-xs text-zinc-500 block mb-1">Respuesta</span>
-                    <pre className="text-xs text-emerald-300 font-mono bg-black p-2 rounded max-h-32 overflow-y-auto whitespace-pre-wrap">
+                    <pre className="text-xs text-red-400 font-mono bg-black p-2 rounded max-h-32 overflow-y-auto whitespace-pre-wrap">
                       {record.response}
                     </pre>
                   </div>
@@ -95,7 +95,7 @@ export function ExecutionHistory({
                     type="button"
                     onClick={() => onReexecute(record)}
                     aria-label={`Re-ejecutar tarea de ${record.role}`}
-                    className="text-xs text-emerald-500 hover:text-emerald-400 flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-zinc-900 rounded"
+                    className="text-xs text-red-500 hover:text-red-400 flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-zinc-900 rounded"
                   >
                     <svg
                       className="w-3 h-3"

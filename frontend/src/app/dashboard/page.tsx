@@ -154,7 +154,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={handlePrefillAccept}
-                className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 Accept
               </button>
@@ -165,7 +165,7 @@ export default function DashboardPage() {
 
       <header className="relative z-10 mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-emerald-400 tracking-tight">{t.heading}</h1>
+          <h1 className="text-3xl font-bold text-red-400 tracking-tight">{t.heading}</h1>
           <p className="text-zinc-400">{t.subheading}</p>
         </div>
         <div className="flex items-center gap-3">
@@ -179,7 +179,7 @@ export default function DashboardPage() {
           <Link
             href="/agents/new"
             aria-label="Crear un agente nuevo"
-            className="w-fit rounded-md border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-zinc-950"
+            className="w-fit rounded-md border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/20 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-zinc-950"
           >
             Crear agente
           </Link>

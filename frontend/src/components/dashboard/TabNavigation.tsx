@@ -17,9 +17,9 @@ export function TabNavigation({ activeTab, historyCount, onTabChange }: TabNavig
     queueMicrotask(() => document.getElementById(`tab-${nextTab}`)?.focus());
   };
   const tabClass = (tab: Tab) =>
-    `px-4 py-2 text-sm font-medium rounded-t-lg transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-zinc-950 ${
+    `px-4 py-2 text-sm font-medium rounded-t-lg transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-zinc-950 ${
       activeTab === tab
-        ? 'bg-black text-emerald-400 border-b-2 border-emerald-500'
+        ? 'bg-black text-red-400 border-b-2 border-red-500'
         : 'text-zinc-500 hover:text-zinc-300'
     }`;
 

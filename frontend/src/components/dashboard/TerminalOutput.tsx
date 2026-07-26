@@ -63,7 +63,7 @@ export function TerminalOutput({ logs, jsonResponse, loading }: TerminalOutputPr
           <h3 id="json-response-title" className="text-sm font-medium text-zinc-400 mb-2">
             Respuesta JSON
           </h3>
-          <pre className="bg-black p-3 rounded-md overflow-x-auto text-xs text-emerald-300 font-mono">
+          <pre className="bg-black p-3 rounded-md overflow-x-auto text-xs text-red-400 font-mono">
             {JSON.stringify(jsonResponse, null, 2)}
           </pre>
         </section>
