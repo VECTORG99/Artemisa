@@ -27,6 +27,16 @@
     "execute": "Desplegar y Ejecutar",
     "executing": "Ejecutando...",
     "history": "Historial",
-    "noHistory": "No hay ejecuciones registradas"
+    "noHistory": "No hay ejecuciones registradas",
+    "heading": "Huascar Builder",
+    "subheading": "Panel de despliegue de agentes"
+  },
+  "landing": {
+    "heroTitle": "Huascar",
+    "heroCta": "Generar agente",
+    "heroDescription": "Diseña agentes de desarrollo y operación con un árbol de decisiones determinista. Sin caja negra: entiendes exactamente por qué se generó cada configuración.",
+    "ctaTitle": "¿Listo para construir tu agente?",
+    "ctaDescription": "El creador te guía paso a paso. Sin sorpresas, sin caja negra.",
+    "ctaButton": "Iniciar creador →"
   }
 }

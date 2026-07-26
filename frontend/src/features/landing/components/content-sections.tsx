@@ -22,6 +22,7 @@ import {
   SiVitest,
 } from 'react-icons/si';
 import { glassStyle, Modal, useLandingModal } from './landing-modal';
+import { useTranslations } from '@/i18n';
 
 // ─── Hero ───────────────────────────────────────────────────────────────────
 // Minimal by design: one headline, one subheadline, one call to action.
@@ -30,12 +31,14 @@ import { glassStyle, Modal, useLandingModal } from './landing-modal';
 // instead of scrolling through secondary information.
 
 export function HeroSection() {
+  const t = useTranslations('landing');
+
   return (
     <section className="flex h-screen snap-start flex-col items-center justify-center px-6">
       <div className="relative z-10 max-w-3xl text-center">
         <h1 className="text-6xl font-bold tracking-tight text-white sm:text-7xl lg:text-8xl">
           <span className="bg-gradient-to-r from-white via-zinc-300 to-zinc-500 bg-clip-text text-transparent">
-            Huascar
+            {t.heroTitle}
           </span>
         </h1>
 
@@ -44,7 +47,7 @@ export function HeroSection() {
           className="group relative mt-6 inline-flex items-center gap-3 overflow-hidden rounded-full px-8 py-4 text-lg font-medium text-white/85 transition-colors hover:text-white"
           style={glassStyle}
         >
-          <span>Generar agente</span>
+          <span>{t.heroCta}</span>
           <svg
             className="h-4 w-4 transition-transform group-hover:translate-x-1"
             fill="none"
@@ -56,10 +59,7 @@ export function HeroSection() {
           </svg>
         </Link>
 
-        <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">
-          Diseña agentes de desarrollo y operación con un árbol de decisiones determinista. Sin caja negra: entiendes
-          exactamente por qué se generó cada configuración.
-        </p>
+        <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">{t.heroDescription}</p>
       </div>
 
       {/* Scroll hint */}
@@ -239,19 +239,19 @@ function TechStackSection() {
 // ─── Final CTA ──────────────────────────────────────────────────────────────
 
 function FinalCtaSection() {
+  const t = useTranslations('landing');
+
   return (
     <section className="flex h-screen snap-start items-center justify-center px-6">
       <div className="relative z-10 w-full max-w-2xl rounded-3xl p-10 text-center" style={glassStyle}>
-        <h2 className="text-3xl font-bold text-white">¿Listo para construir tu agente?</h2>
-        <p className="mt-3 max-w-md mx-auto text-zinc-400">
-          El creador te guía paso a paso. Sin sorpresas, sin caja negra.
-        </p>
+        <h2 className="text-3xl font-bold text-white">{t.ctaTitle}</h2>
+        <p className="mt-3 max-w-md mx-auto text-zinc-400">{t.ctaDescription}</p>
         <Link
           href="/agents/new"
           className="mt-8 inline-flex items-center gap-2 rounded-full px-7 py-3 font-medium text-white/85 transition-colors hover:text-white"
           style={glassStyle}
         >
-          Iniciar creador →
+          {t.ctaButton}
         </Link>
       </div>
     </section>
