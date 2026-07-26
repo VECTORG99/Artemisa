@@ -141,6 +141,13 @@ export const skillsCatalog: SkillCatalogItem[] = [
   },
 ];
 
+const skillIndex = new Map(skillsCatalog.map((item) => [item.id, item]));
+
+/** Look up a single skill by its catalog id. */
+export function getSkillById(id: string): SkillCatalogItem | undefined {
+  return skillIndex.get(id);
+}
+
 export function getSkillsCatalog(filter?: { focus?: string; q?: string }): {
   version: string;
   items: SkillCatalogItem[];

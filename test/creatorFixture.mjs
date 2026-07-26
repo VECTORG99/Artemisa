@@ -20,7 +20,10 @@ export const developmentAnswers = {
   agent_targets: ['agents-md', 'cursor', 'devin-desktop', 'coderabbit', 'kilo-code', 'kiro', 'portable'],
   hooks_enabled: true,
   skills_enabled: true,
-  skills_focus: 'development',
+  skills_focus: 'custom',
+  // Ids for `skills_selection` come from the curated skills catalog, which is
+  // the source of the catalog's `skill` category (see src/creator/catalog.ts).
+  skills_selection: ['debug-diagnose', 'security-code-review'],
   mcps_enabled: true,
   // Ids for `mcps_selection` come from the curated MCP catalog, which is the
   // source of the catalog's `mcp` category (see src/creator/catalog.ts).

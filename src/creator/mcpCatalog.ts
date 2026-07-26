@@ -335,6 +335,13 @@ export const mcpCatalog: McpCatalogItem[] = [
   },
 ];
 
+const mcpIndex = new Map(mcpCatalog.map((item) => [item.id, item]));
+
+/** Look up a single MCP server by its catalog id. */
+export function getMcpById(id: string): McpCatalogItem | undefined {
+  return mcpIndex.get(id);
+}
+
 export function getMcpCatalog(filter?: { category?: string; q?: string }): {
   version: string;
   items: McpCatalogItem[];
