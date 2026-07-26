@@ -123,8 +123,7 @@ function markdownArtifact(
   return makeArtifact(path, kind, 'text/markdown', description, normalized);
 }
 
-function buildBlueprint(answers: CreatorAnswers): AgentBlueprint {
-  const evaluation = evaluateDecisionTree(answers);
+function buildBlueprint(answers: CreatorAnswers, evaluation: ReturnType<typeof evaluateDecisionTree>): AgentBlueprint {
   if (!evaluation.progress.complete || evaluation.issues.length > 0) {
     const issues =
       evaluation.issues.length > 0
@@ -799,7 +798,7 @@ function buildApplicationGuide(blueprint: AgentBlueprint): GeneratedAgentBundle[
 
 export function generateAgentBundle(input: unknown): GeneratedAgentBundle {
   const evaluation = evaluateDecisionTree(input);
-  const blueprint = buildBlueprint(evaluation.answers);
+  const blueprint = buildBlueprint(evaluation.answers, evaluation);
   const artifacts: GeneratedArtifact[] = [];
   const paths = new Set<string>();
   const add = (artifact: GeneratedArtifact) => {
