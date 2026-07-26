@@ -6,6 +6,7 @@ import { config } from '../config.js';
 import { ErrorCodes, StoreError } from '../errors.js';
 import { MigrationRunner } from './Migrations.js';
 import { initialMigrations } from './migrations/index.js';
+import { logger } from '../logger.js';
 
 /** Maximum size for session message content (100KB) */
 const MAX_MESSAGE_SIZE = 102_400;
@@ -80,6 +81,16 @@ export class Store {
   private dbPath: string;
   private closed = false;
 
+  // Pre-prepared statements for frequent queries
+  private stmtInsertExecution!: Database.Statement;
+  private stmtInsertExecutionWithDate!: Database.Statement;
+  private stmtGetHistory!: Database.Statement;
+  private stmtGetHistoryCount!: Database.Statement;
+  private stmtGetSession!: Database.Statement;
+  private stmtTouchSession!: Database.Statement;
+  private stmtInsertSessionMessage!: Database.Statement;
+  private stmtGetChunksCount!: Database.Statement;
+
   constructor(dbPath?: string) {
     this.dbPath = dbPath || config.paths.db;
     const dir = path.dirname(this.dbPath);
@@ -88,11 +99,58 @@ export class Store {
     }
     try {
       this.db = new Database(this.dbPath);
-      this.db.pragma('journal_mode = WAL');
+      this.configurePragmas();
       new MigrationRunner(this.db, initialMigrations).run();
+      this.prepareStatements();
     } catch (err) {
       throw new StoreError(ErrorCodes.STORE_QUERY_FAILED, 'Failed to initialize SQLite store', 500, { cause: err });
     }
+  }
+
+  /**
+   * Configure WAL mode and performance pragmas for optimal throughput.
+   */
+  private configurePragmas(): void {
+    this.db.pragma('journal_mode = WAL');
+    this.db.pragma('synchronous = NORMAL');
+    this.db.pragma('cache_size = -64000');
+    this.db.pragma('mmap_size = 268435456');
+    this.db.pragma('temp_store = MEMORY');
+    this.db.pragma('busy_timeout = 5000');
+    logger.debug('SQLite pragmas configured: WAL, synchronous=NORMAL, cache=64MB, mmap=256MB');
+  }
+
+  /**
+   * Pre-prepare frequently used statements to avoid repeated parsing.
+   */
+  private prepareStatements(): void {
+    this.stmtInsertExecution = this.db.prepare('INSERT INTO executions (role, task, response) VALUES (?, ?, ?)');
+    this.stmtInsertExecutionWithDate = this.db.prepare(
+      'INSERT INTO executions (role, task, response, created_at) VALUES (?, ?, ?, ?)',
+    );
+    this.stmtGetHistory = this.db.prepare('SELECT * FROM executions ORDER BY created_at DESC LIMIT ? OFFSET ?');
+    this.stmtGetHistoryCount = this.db.prepare('SELECT COUNT(*) as count FROM executions');
+    this.stmtGetSession = this.db.prepare('SELECT * FROM sessions WHERE id = ?');
+    this.stmtTouchSession = this.db.prepare('UPDATE sessions SET last_active_at = ? WHERE id = ?');
+    this.stmtInsertSessionMessage = this.db.prepare(
+      'INSERT INTO session_messages (session_id, role, content, created_at) VALUES (?, ?, ?, ?)',
+    );
+    this.stmtGetChunksCount = this.db.prepare('SELECT COUNT(*) as count FROM rag_documents WHERE deleted_at IS NULL');
+  }
+
+  /**
+   * Execute multiple insert operations within a single transaction.
+   * Returns the number of rows inserted. Useful for bulk RAG chunk ingestion.
+   */
+  batch<T>(items: T[], insertFn: (item: T) => void): number {
+    this.assertOpen();
+    const transaction = this.db.transaction((rows: T[]) => {
+      for (const row of rows) {
+        insertFn(row);
+      }
+      return rows.length;
+    });
+    return transaction(items);
   }
 
   get isClosed(): boolean {
@@ -113,24 +171,23 @@ export class Store {
 
   saveExecution(role: string, task: string, response: string, createdAt?: string): void {
     this.assertOpen();
-    const stmt = createdAt
-      ? this.db.prepare('INSERT INTO executions (role, task, response, created_at) VALUES (?, ?, ?, ?)')
-      : this.db.prepare('INSERT INTO executions (role, task, response) VALUES (?, ?, ?)');
-    createdAt ? stmt.run(role, task, response, createdAt) : stmt.run(role, task, response);
+    if (createdAt) {
+      this.stmtInsertExecutionWithDate.run(role, task, response, createdAt);
+    } else {
+      this.stmtInsertExecution.run(role, task, response);
+    }
   }
 
   getHistory(limit: number = config.store.historyLimit, offset: number = 0): ExecutionRecord[] {
     this.assertOpen();
     const boundedLimit = Math.min(Math.max(0, limit), 100); // Cap at 100, allow 0 for "no results"
     const boundedOffset = Math.max(0, offset);
-    const stmt = this.db.prepare('SELECT * FROM executions ORDER BY created_at DESC LIMIT ? OFFSET ?');
-    return stmt.all(boundedLimit, boundedOffset) as ExecutionRecord[];
+    return this.stmtGetHistory.all(boundedLimit, boundedOffset) as ExecutionRecord[];
   }
 
   getHistoryCount(): number {
     this.assertOpen();
-    const stmt = this.db.prepare('SELECT COUNT(*) as count FROM executions');
-    return (stmt.get() as { count: number }).count;
+    return (this.stmtGetHistoryCount.get() as { count: number }).count;
   }
 
   // --- Registered agents ---
@@ -204,12 +261,12 @@ export class Store {
 
   getSession(id: string): SessionRecord | null {
     this.assertOpen();
-    return (this.db.prepare('SELECT * FROM sessions WHERE id = ?').get(id) as SessionRecord | undefined) ?? null;
+    return (this.stmtGetSession.get(id) as SessionRecord | undefined) ?? null;
   }
 
   touchSession(id: string, now = Date.now()): void {
     this.assertOpen();
-    this.db.prepare('UPDATE sessions SET last_active_at = ? WHERE id = ?').run(now, id);
+    this.stmtTouchSession.run(now, id);
   }
 
   /**
@@ -219,9 +276,7 @@ export class Store {
     this.assertOpen();
     const truncated =
       content.length > MAX_MESSAGE_SIZE ? content.slice(0, MAX_MESSAGE_SIZE) + '\n... [truncated]' : content;
-    this.db
-      .prepare('INSERT INTO session_messages (session_id, role, content, created_at) VALUES (?, ?, ?, ?)')
-      .run(sessionId, role, truncated, now);
+    this.stmtInsertSessionMessage.run(sessionId, role, truncated, now);
   }
 
   listSessionMessages(sessionId: string, limit = config.sessions.maxMessages): SessionMessageRecord[] {
@@ -421,10 +476,7 @@ export class Store {
 
   getChunksCount(): number {
     this.assertOpen();
-    const row = this.db.prepare('SELECT COUNT(*) as count FROM rag_documents WHERE deleted_at IS NULL').get() as {
-      count: number;
-    };
-    return row.count;
+    return (this.stmtGetChunksCount.get() as { count: number }).count;
   }
 
   // --- ExecutionContext persistence (#245) ---
