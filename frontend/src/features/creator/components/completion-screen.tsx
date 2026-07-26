@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { glassButton, glassCard, glassCardInteractive } from '@/lib/glass';
+import { detectArtifactLanguage, highlightArtifact } from '@/features/creator/lib/artifact-highlight';
 import type { GeneratedAgentBundle } from '@huascar/types';
 
 interface CompletionScreenProps {
@@ -77,7 +78,7 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
               </button>
             </div>
             <pre className="max-h-96 overflow-auto rounded-2xl border border-white/[0.06] bg-black/30 p-3 text-xs text-zinc-300">
-              {activeArtifact.content}
+              {highlightArtifact(activeArtifact.content, detectArtifactLanguage(activeArtifact.path))}
             </pre>
           </div>
         )}
