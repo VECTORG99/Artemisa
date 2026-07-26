@@ -36,10 +36,14 @@
     overflow: hidden;
   }
 
-  /* Allow scrolling on pages that need it (e.g. Creator wizard) */
+  /* Allow scrolling on pages that need it (e.g. Dashboard, Creator wizard).
+     The layout sets h-screen + overflow-hidden for full-viewport pages like
+     the landing; pages that need natural scroll opt in with .allow-scroll. */
   html:has(.allow-scroll),
   html:has(.allow-scroll) body {
     overflow: auto;
+    height: auto;
+    min-height: 100vh;
   }
 
   /* Consistent keyboard affordance across the app. Uses the brand accent so
