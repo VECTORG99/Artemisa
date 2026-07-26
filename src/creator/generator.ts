@@ -7,6 +7,8 @@ import {
   GeneratedArtifact,
 } from './domain.js';
 import { describeCatalogSelection, evaluateDecisionTree } from './decisionTree.js';
+import { getSkillById } from './skillsCatalog.js';
+import { getMcpById } from './mcpCatalog.js';
 
 export const GENERATOR_VERSION = '1.0.0';
 
@@ -147,6 +149,39 @@ function buildBlueprint(answers: CreatorAnswers, evaluation: ReturnType<typeof e
   const production = target === 'production' || target === 'both';
   const development = target === 'development' || target === 'both';
 
+  const skillsEnabled = boolAnswer(answers, 'skills_enabled');
+  const skillsFocus = stringAnswer(answers, 'skills_focus');
+  const mcpsEnabled = boolAnswer(answers, 'mcps_enabled');
+
+  // Resolve the effective skill selection. Only the 'custom' focus exposes
+  // `skills_selection` in the tree; the curated profiles preselect skills in
+  // the UI but do not persist a per-skill list, so we only consume the
+  // explicit selection here.
+  const skillItems =
+    skillsEnabled && skillsFocus === 'custom'
+      ? listAnswer(answers, 'skills_selection')
+          .map((id) => getSkillById(id))
+          .filter((item): item is NonNullable<typeof item> => Boolean(item))
+          .map((item) => ({
+            id: item.id,
+            name: item.name,
+            focus: item.focus,
+            sourceUrl: item.sourceUrl,
+          }))
+      : [];
+
+  const mcpItems = mcpsEnabled
+    ? listAnswer(answers, 'mcps_selection')
+        .map((id) => getMcpById(id))
+        .filter((item): item is NonNullable<typeof item> => Boolean(item))
+        .map((item) => ({
+          id: item.id,
+          name: item.name,
+          category: item.category,
+          sourceUrl: item.sourceUrl,
+        }))
+    : [];
+
   return {
     schemaVersion: '1.0.0',
     identity: {
@@ -202,6 +237,14 @@ function buildBlueprint(answers: CreatorAnswers, evaluation: ReturnType<typeof e
       steering: true,
       agentsMd: targets.includes('agents-md'),
       kiro: targets.includes('kiro'),
+    },
+    skills: {
+      enabled: skillsEnabled,
+      focus: skillsFocus,
+      items: skillItems,
+    },
+    integrations: {
+      mcps: mcpItems,
     },
     recommendations: evaluation.recommendations,
   };
@@ -515,6 +558,10 @@ function buildAgentsMd(blueprint: AgentBlueprint): string {
         .map((s) => `- ${s}`)
         .join('\n')
     : '- No se configuraron fuentes de conocimiento adicionales.';
+  const mcpSection =
+    blueprint.integrations.mcps.length > 0
+      ? blueprint.integrations.mcps.map((mcp) => `- **${mcp.name}** (${mcp.category}): ${mcp.sourceUrl}`).join('\n')
+      : '- No se habilitaron integraciones MCP.';
   const conventions = [
     `Arquitectura: ${architecture}. Respeta sus límites y convenciones de capas.`,
     `Cambios pequeños, reversibles y acompañados de pruebas cuando sea posible.`,
@@ -574,6 +621,10 @@ ${prReview}
 ## Knowledge Sources
 
 ${knowledgeSources}
+
+## MCP Integrations
+
+${mcpSection}
 `;
 }
 
@@ -916,6 +967,74 @@ ${buildSystemPrompt(blueprint)}
   ];
 }
 
+/**
+ * Generate one `skills/<skill-id>/SKILL.md` per skill explicitly selected via
+ * `skills_selection` (custom focus). The curated profile focuses only steer
+ * the UI picker and do not persist a per-skill list, so they produce no
+ * artifacts here. Catalog skills are portable and target-agnostic.
+ */
+function buildCatalogSkillFiles(blueprint: AgentBlueprint): GeneratedArtifact[] {
+  return blueprint.skills.items
+    .filter((skill) => skill.id !== blueprint.identity.slug)
+    .map((skill) =>
+      markdownArtifact(
+        `skills/${skill.id}/SKILL.md`,
+        'instruction',
+        `Skill "${skill.name}" seleccionada desde el catálogo.`,
+        `---
+name: ${skill.id}
+description: ${JSON.stringify(skill.name + ' — ' + 'skill del catálogo Huascar.')}
+focus: ${skill.focus}
+source: ${skill.sourceUrl}
+---
+
+# ${skill.name}
+
+## Cuándo usar esta skill
+
+${skill.name}: úsala cuando el objetivo del agente se alinee con su enfoque (${skill.focus}).
+
+## Procedimiento
+
+1. Confirma que el problema encaja con el enfoque de esta skill.
+2. Reúne contexto solo desde fuentes aprobadas por el steering del agente.
+3. Aplica el procedimiento propio de la skill respetando el criterio de éxito.
+4. Documenta evidencia, supuestos y pasos para reproducir el resultado.
+5. Solicita aprobación antes de cualquier acción con efectos.
+
+## Origen
+
+Catálogo curado de Huascar (versión estática). Fuente: ${skill.sourceUrl}
+`,
+      ),
+    );
+}
+
+/**
+ * Portable MCP integration manifest listing the servers selected via
+ * `mcps_selection`. Replaces the legacy `huascar/mcps.json` target artifact
+ * (removed in #488) with a target-agnostic file consumable by any platform
+ * that reads MCP config.
+ */
+function buildMcpConfig(blueprint: AgentBlueprint): GeneratedArtifact | null {
+  if (blueprint.integrations.mcps.length === 0) return null;
+  return jsonArtifact(
+    'mcp.json',
+    'configuration',
+    'Manifiesto portable de integraciones MCP seleccionadas para el agente.',
+    {
+      version: '1.0.0',
+      agent: blueprint.identity.slug,
+      servers: blueprint.integrations.mcps.map((mcp) => ({
+        id: mcp.id,
+        name: mcp.name,
+        category: mcp.category,
+        sourceUrl: mcp.sourceUrl,
+      })),
+    },
+  );
+}
+
 function buildTargetArtifacts(target: string, blueprint: AgentBlueprint): GeneratedArtifact[] {
   switch (target) {
     case 'agents-md':
@@ -1044,6 +1163,15 @@ export function generateAgentBundle(input: unknown): GeneratedAgentBundle {
       add(artifact);
     }
   }
+
+  // Catalog skills (portable, target-agnostic) selected via `skills_selection`.
+  for (const artifact of buildCatalogSkillFiles(blueprint)) {
+    add(artifact);
+  }
+
+  // Portable MCP manifest selected via `mcps_selection`.
+  const mcpConfig = buildMcpConfig(blueprint);
+  if (mcpConfig) add(mcpConfig);
 
   // Target-specific generation is centralized in buildTargetArtifacts.
 

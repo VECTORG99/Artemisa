@@ -137,6 +137,16 @@ export interface AgentBlueprint {
     agentsMd: boolean;
     kiro: boolean;
   };
+  skills: {
+    enabled: boolean;
+    focus: string;
+    /** Resolved skills (from `skills_selection` when focus is 'custom'); empty otherwise. */
+    items: Array<{ id: string; name: string; focus: string; sourceUrl: string }>;
+  };
+  integrations: {
+    /** MCP servers selected via `mcps_selection` when `mcps_enabled` is true. */
+    mcps: Array<{ id: string; name: string; category: string; sourceUrl: string }>;
+  };
   recommendations: CreatorRecommendation[];
 }
 
