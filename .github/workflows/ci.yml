@@ -45,6 +45,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      # npm's legacy quick-audit endpoint (/-/npm/v1/security/audits/quick)
+      # has been retired server-side; older npm CLI versions still call it
+      # and get errors unrelated to this repo's dependencies. Newer npm only
+      # uses the bulk advisory endpoint. Upgrade npm itself, not the audit
+      # command or its blocking behavior.
+      - name: Update npm
+        run: npm install -g npm@latest
       - run: npm install
       - name: Audit dependencies
         run: npm audit --audit-level=critical
