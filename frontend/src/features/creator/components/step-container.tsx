@@ -42,7 +42,7 @@ export function StepContainer({ children, progress, progressLabel }: StepContain
             {progressLabel && <span className="text-xs text-zinc-500">{progressLabel}</span>}
             <div className="h-1 overflow-hidden rounded-full bg-white/[0.05]">
               <div
-                className="h-full rounded-full bg-white/40 transition-all duration-500"
+                className="h-full rounded-full bg-white/80 shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all duration-500"
                 style={{ width: `${progress}%` }}
               />
             </div>
