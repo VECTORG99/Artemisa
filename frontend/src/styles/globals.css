@@ -61,35 +61,58 @@
      keeps the affordance but at 6px in white/8%, so a long option list still
      signals "there is more" without a hard grey bar across the panel. */
 
-  /* Global — red accent scrollbar matching the galactic theme */
+  /* Global — red accent scrollbar with liquid glass effect */
   * {
     scrollbar-width: thin;
     scrollbar-color: rgba(245, 11, 11, 0.4) rgba(255, 255, 255, 0.03);
   }
 
   *::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
   }
 
   *::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.02);
     border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
   }
 
   *::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, rgba(245, 11, 11, 0.5), rgba(138, 8, 8, 0.6));
+    background:
+      linear-gradient(
+        160deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(245, 11, 11, 0.45) 30%,
+        rgba(138, 8, 8, 0.5) 70%,
+        rgba(95, 4, 4, 0.6) 100%
+      );
     border-radius: 9999px;
-    border: 1px solid rgba(245, 11, 11, 0.2);
-    box-shadow: 0 0 6px rgba(245, 11, 11, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.25),
+      0 0 8px rgba(245, 11, 11, 0.3),
+      0 2px 4px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, rgba(245, 11, 11, 0.7), rgba(172, 5, 5, 0.8));
-    box-shadow: 0 0 10px rgba(245, 11, 11, 0.5);
+    background:
+      linear-gradient(
+        160deg,
+        rgba(255, 255, 255, 0.3) 0%,
+        rgba(245, 11, 11, 0.6) 30%,
+        rgba(172, 5, 5, 0.7) 70%,
+        rgba(138, 8, 8, 0.8) 100%
+      );
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow:
+      inset 0 1px 2px rgba(255, 255, 255, 0.35),
+      0 0 12px rgba(245, 11, 11, 0.5),
+      0 2px 6px rgba(0, 0, 0, 0.5);
   }
 
-  /* Narrower variant for internal panels (Creator options, etc.) */
+  /* Narrower glass variant for internal panels (Creator options, etc.) */
   .creator-scroll {
     scrollbar-width: thin;
     scrollbar-color: rgba(245, 11, 11, 0.3) transparent;
@@ -105,13 +128,29 @@
   }
 
   .creator-scroll::-webkit-scrollbar-thumb {
-    background: rgba(245, 11, 11, 0.35);
+    background:
+      linear-gradient(
+        160deg,
+        rgba(255, 255, 255, 0.15),
+        rgba(245, 11, 11, 0.35),
+        rgba(95, 4, 4, 0.45)
+      );
     border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2);
   }
 
   .creator-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(245, 11, 11, 0.55);
-    box-shadow: 0 0 6px rgba(245, 11, 11, 0.3);
+    background:
+      linear-gradient(
+        160deg,
+        rgba(255, 255, 255, 0.25),
+        rgba(245, 11, 11, 0.5),
+        rgba(138, 8, 8, 0.6)
+      );
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.3),
+      0 0 6px rgba(245, 11, 11, 0.3);
   }
 
   /* Fades the last rows of a scrollable list into the panel so overflow is
