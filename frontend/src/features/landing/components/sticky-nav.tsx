@@ -51,45 +51,42 @@ export function StickyHeader() {
         onMouseEnter={() => setEmphasized(true)}
         onMouseLeave={() => setEmphasized(false)}
       >
-          <Link href="/agents/new" className="transition-colors hover:text-white">
-            Creador
-          </Link>
-          <Link href="/dashboard" className="transition-colors hover:text-white">
-            Dashboard
-          </Link>
-          <a href="#tecnologia" className="hidden transition-colors hover:text-white sm:inline">
-            Tecnología
-          </a>
-          <a
-            href="#casos-de-uso"
-            onClick={(event) => {
-              event.preventDefault();
-              open('casos-de-uso');
-            }}
-            className="hidden transition-colors hover:text-white sm:inline"
-          >
-            Casos de uso
-          </a>
-          <a
-            href="#legal"
-            onClick={(event) => {
-              event.preventDefault();
-              open('legal');
-            }}
-            className="hidden transition-colors hover:text-white sm:inline"
-          >
-            Legal
-          </a>
-          <a
-            href="https://github.com/VECTORG99/Huascar"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-full px-3 py-1 text-zinc-300 transition-colors hover:text-white"
-            style={glassStyle}
-          >
-            GitHub
-          </a>
-        </nav>
+        <Link href="/agents/new" className="transition-colors hover:text-white">
+          Creador
+        </Link>
+        <a href="#tecnologia" className="hidden transition-colors hover:text-white sm:inline">
+          Tecnología
+        </a>
+        <a
+          href="#casos-de-uso"
+          onClick={(event) => {
+            event.preventDefault();
+            open('casos-de-uso');
+          }}
+          className="hidden transition-colors hover:text-white sm:inline"
+        >
+          Casos de uso
+        </a>
+        <a
+          href="#legal"
+          onClick={(event) => {
+            event.preventDefault();
+            open('legal');
+          }}
+          className="hidden transition-colors hover:text-white sm:inline"
+        >
+          Legal
+        </a>
+        <a
+          href="https://github.com/VECTORG99/Huascar"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 rounded-full px-3 py-1 text-zinc-300 transition-colors hover:text-white"
+          style={glassStyle}
+        >
+          GitHub
+        </a>
+      </nav>
     </header>
   );
 }
@@ -103,7 +100,6 @@ interface FooterLink {
 
 const footerLinks: FooterLink[] = [
   { label: 'Creador', href: '/agents/new' },
-  { label: 'Dashboard', href: '/dashboard' },
   { label: 'Tecnología', href: '#tecnologia' },
   { label: 'Casos de uso', modal: 'casos-de-uso' },
   { label: 'Legal', modal: 'legal' },
@@ -157,41 +153,37 @@ export function StickyFooter() {
         onMouseEnter={() => setEmphasized(true)}
         onMouseLeave={() => setEmphasized(false)}
       >
-          <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-zinc-400">
-            {footerLinks.map((link) => (
-              <li key={link.label}>
-                {link.modal ? (
-                  <button
-                    type="button"
-                    onClick={() => open(link.modal!)}
-                    className="transition-colors hover:text-white"
-                  >
-                    {link.label}
-                  </button>
-                ) : link.external ? (
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="transition-colors hover:text-white"
-                  >
-                    {link.label}
-                  </a>
-                ) : link.href!.startsWith('#') ? (
-                  <a href={link.href} className="transition-colors hover:text-white">
-                    {link.label}
-                  </a>
-                ) : (
-                  <Link href={link.href!} className="transition-colors hover:text-white">
-                    {link.label}
-                  </Link>
-                )}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 border-t border-white/[0.06] pt-3 text-[11px] text-zinc-600">
-            © {new Date().getFullYear()} Huascar y sus contribuidores · MPL-2.0
-          </p>
+        <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-zinc-400">
+          {footerLinks.map((link) => (
+            <li key={link.label}>
+              {link.modal ? (
+                <button type="button" onClick={() => open(link.modal!)} className="transition-colors hover:text-white">
+                  {link.label}
+                </button>
+              ) : link.external ? (
+                <a
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-white"
+                >
+                  {link.label}
+                </a>
+              ) : link.href!.startsWith('#') ? (
+                <a href={link.href} className="transition-colors hover:text-white">
+                  {link.label}
+                </a>
+              ) : (
+                <Link href={link.href!} className="transition-colors hover:text-white">
+                  {link.label}
+                </Link>
+              )}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 border-t border-white/[0.06] pt-3 text-[11px] text-zinc-600">
+          © {new Date().getFullYear()} Huascar y sus contribuidores · MPL-2.0
+        </p>
       </div>
     </footer>
   );

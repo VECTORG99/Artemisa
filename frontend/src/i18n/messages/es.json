@@ -22,15 +22,6 @@
     "generate": "Generar configuración",
     "skip": "Saltar tutorial"
   },
-  "dashboard": {
-    "title": "Dashboard",
-    "execute": "Desplegar y Ejecutar",
-    "executing": "Ejecutando...",
-    "history": "Historial",
-    "noHistory": "No hay ejecuciones registradas",
-    "heading": "Huascar Builder",
-    "subheading": "Panel de despliegue de agentes"
-  },
   "landing": {
     "heroTitle": "Huascar",
     "heroCta": "Generar agente",

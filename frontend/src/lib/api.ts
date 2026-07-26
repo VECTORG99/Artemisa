@@ -4,17 +4,14 @@ import type {
   CreatorAnswers,
   DecisionEvaluation,
   EvaluateRequest,
-  ExecuteRequest,
-  ExecuteResponse,
   GeneratedAgentBundle,
-  HealthResponse,
   McpCatalogResponse,
   PreviewRequest,
   SkillsCatalogResponse,
   Tutorial,
   Workflow,
 } from '@huascar/types';
-import type { AgentConfig, AgentRole, HistoryRecord } from '@/types/agent';
+import type { AgentConfig } from '@/types/agent';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -132,32 +129,7 @@ export const creator = {
     }),
 };
 
-// ─── Runtime / Dashboard API ──────────────────────────────────────────────────
-
-export const runtime = {
-  health: () => request<HealthResponse>(`${RUNTIME_BASE}/health`),
-
-  execute: (payload: ExecuteRequest) =>
-    request<ExecuteResponse>(`${RUNTIME_BASE}/agent/execute`, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
-
-  history: () => request<{ history: HistoryRecord[] }>(`${RUNTIME_BASE}/history`).then((r) => r.history),
-};
-
-export async function getRoles(): Promise<AgentRole[] | null> {
-  const res = await fetch(`${RUNTIME_BASE}/roles`, { headers: authHeaders() });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return Array.isArray(data?.roles) ? data.roles : null;
-}
-
-export async function getHistory(): Promise<HistoryRecord[]> {
-  const res = await fetch(`${RUNTIME_BASE}/history`, { headers: authHeaders() });
-  const data = await res.json();
-  return data.history || [];
-}
+// ─── Runtime API (agent registration, used by the Creator) ────────────────────
 
 export function registerAgent(name: string, config: AgentConfig) {
   return request<{ id: string; name: string; config?: unknown }>(`${RUNTIME_BASE}/agents`, {
