@@ -8,51 +8,26 @@ const REVEAL_ZONE_PX = 56;
 const HIDE_DELAY_MS = 1400;
 
 /**
- * Chevron hint shown when the floating header/footer is hidden, nudging the
- * user to move the cursor to the edge of the viewport to reveal it.
- */
-function EdgeHint({ direction }: { direction: 'up' | 'down' }) {
-  return (
-    <div
-      className="pointer-events-none fixed inset-x-0 z-40 flex justify-center transition-opacity duration-500"
-      style={direction === 'up' ? { top: 6 } : { bottom: 6 }}
-      aria-hidden="true"
-    >
-      <svg
-        className="h-3.5 w-3.5"
-        style={{ animation: 'rgb-cycle 4s linear infinite, bounce-hint 2.2s infinite' }}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={2.5}
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d={direction === 'up' ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'} />
-      </svg>
-    </div>
-  );
-}
-
-/**
- * Floating, pill-shaped header — hidden by default, revealed when the cursor
- * approaches the top edge of the viewport. A subtle chevron hint (⌃) stays
- * visible at the very top so users know to hover there.
+ * Floating, pill-shaped header — visible by default at reduced opacity so
+ * navigation is always discoverable, and reaches full opacity when the
+ * cursor approaches the top edge of the viewport or hovers the nav itself.
  */
 export function StickyHeader() {
-  const [visible, setVisible] = useState(false);
+  const [emphasized, setEmphasized] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { open } = useLandingModal();
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (e.clientY < REVEAL_ZONE_PX) {
-        setVisible(true);
+        setEmphasized(true);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      } else if (visible) {
+      } else if (emphasized) {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(() => setVisible(false), HIDE_DELAY_MS);
+        timeoutRef.current = setTimeout(() => setEmphasized(false), HIDE_DELAY_MS);
       }
     },
-    [visible],
+    [emphasized],
   );
 
   useEffect(() => {
@@ -64,25 +39,18 @@ export function StickyHeader() {
   }, [handleMouseMove]);
 
   return (
-    <>
-      <div
-        className={`pointer-events-none fixed inset-x-0 top-0 z-40 transition-opacity duration-300 ${
-          visible ? 'opacity-0' : 'opacity-100'
-        }`}
+    <header
+      className={`fixed inset-x-0 top-3 z-50 flex justify-center px-4 transition-opacity duration-500 ${
+        emphasized ? 'opacity-100' : 'opacity-60 hover:opacity-100 focus-within:opacity-100'
+      }`}
+    >
+      <nav
+        className="pointer-events-auto flex w-full max-w-3xl flex-wrap items-center justify-center gap-5 rounded-full px-6 py-3 text-center text-xs font-medium text-zinc-400 shadow-[0_8px_32px_rgba(0,0,0,0.35)] sm:py-2.5"
+        style={glassStyle}
+        aria-label="Navegación principal"
+        onMouseEnter={() => setEmphasized(true)}
+        onMouseLeave={() => setEmphasized(false)}
       >
-        <EdgeHint direction="up" />
-      </div>
-
-      <header
-        className={`fixed inset-x-0 top-3 z-50 flex justify-center px-4 transition-all duration-500 ${
-          visible ? 'translate-y-0 opacity-100' : '-translate-y-6 opacity-0'
-        }`}
-      >
-        <nav
-          className="pointer-events-auto flex w-full max-w-3xl flex-wrap items-center justify-center gap-5 rounded-full px-6 py-3 text-center text-xs font-medium text-zinc-400 shadow-[0_8px_32px_rgba(0,0,0,0.35)] sm:py-2.5"
-          style={glassStyle}
-          aria-label="Navegación principal"
-        >
           <Link href="/agents/new" className="transition-colors hover:text-white">
             Creador
           </Link>
@@ -122,8 +90,7 @@ export function StickyHeader() {
             GitHub
           </a>
         </nav>
-      </header>
-    </>
+    </header>
   );
 }
 
@@ -144,28 +111,29 @@ const footerLinks: FooterLink[] = [
 ];
 
 /**
- * Floating, pill-shaped footer — hidden by default, revealed when the cursor
- * approaches the bottom edge of the viewport. Kept to a single row of
- * essential links plus a copyright line; secondary information (tech
- * stack, use cases, legal) opens in a modal instead of expanding the
- * footer itself.
+ * Floating, pill-shaped footer — visible by default at reduced opacity so
+ * it stays discoverable, and reaches full opacity when the cursor
+ * approaches the bottom edge of the viewport or hovers the footer itself.
+ * Kept to a single row of essential links plus a copyright line; secondary
+ * information (tech stack, use cases, legal) opens in a modal instead of
+ * expanding the footer itself.
  */
 export function StickyFooter() {
-  const [visible, setVisible] = useState(false);
+  const [emphasized, setEmphasized] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { open } = useLandingModal();
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (e.clientY > window.innerHeight - REVEAL_ZONE_PX) {
-        setVisible(true);
+        setEmphasized(true);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      } else if (visible) {
+      } else if (emphasized) {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(() => setVisible(false), HIDE_DELAY_MS);
+        timeoutRef.current = setTimeout(() => setEmphasized(false), HIDE_DELAY_MS);
       }
     },
-    [visible],
+    [emphasized],
   );
 
   useEffect(() => {
@@ -177,25 +145,18 @@ export function StickyFooter() {
   }, [handleMouseMove]);
 
   return (
-    <>
+    <footer
+      className={`fixed inset-x-0 bottom-3 z-50 flex justify-center px-4 transition-opacity duration-500 ${
+        emphasized ? 'opacity-100' : 'opacity-60 hover:opacity-100 focus-within:opacity-100'
+      }`}
+    >
       <div
-        className={`pointer-events-none fixed inset-x-0 bottom-0 z-40 transition-opacity duration-300 ${
-          visible ? 'opacity-0' : 'opacity-100'
-        }`}
+        className="pointer-events-auto w-full max-w-3xl rounded-3xl px-6 py-4 text-center shadow-[0_8px_32px_rgba(0,0,0,0.35)] sm:px-8"
+        style={glassStyle}
+        aria-label="Pie de página"
+        onMouseEnter={() => setEmphasized(true)}
+        onMouseLeave={() => setEmphasized(false)}
       >
-        <EdgeHint direction="down" />
-      </div>
-
-      <footer
-        className={`fixed inset-x-0 bottom-3 z-50 flex justify-center px-4 transition-all duration-500 ${
-          visible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-        }`}
-      >
-        <div
-          className="pointer-events-auto w-full max-w-3xl rounded-3xl px-6 py-4 text-center shadow-[0_8px_32px_rgba(0,0,0,0.35)] sm:px-8"
-          style={glassStyle}
-          aria-label="Pie de página"
-        >
           <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-zinc-400">
             {footerLinks.map((link) => (
               <li key={link.label}>
@@ -231,8 +192,7 @@ export function StickyFooter() {
           <p className="mt-3 border-t border-white/[0.06] pt-3 text-[11px] text-zinc-600">
             © {new Date().getFullYear()} Huascar y sus contribuidores · MPL-2.0
           </p>
-        </div>
-      </footer>
-    </>
+      </div>
+    </footer>
   );
 }
