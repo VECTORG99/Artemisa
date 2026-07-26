@@ -98,15 +98,43 @@ export const creator = {
     return request<McpCatalogResponse>(`${CREATOR_BASE}/mcps${qs ? `?${qs}` : ''}`);
   },
 
-  evaluate: (answers: CreatorAnswers, versions: { workflowVersion: string; catalogVersion: string }) =>
-    request<DecisionEvaluation>(`${CREATOR_BASE}/evaluate`, {
-      method: 'POST',
-      body: JSON.stringify({
-        answers,
-        workflowVersion: versions.workflowVersion,
-        catalogVersion: versions.catalogVersion,
-      } satisfies EvaluateRequest),
-    }),
+  evaluate: (() => {
+    // #409: the Creator re-evaluates the decision tree on every step and on
+    // back/forth navigation, often with the same accumulated answers. Two
+    // optimizations that avoid redundant POSTs:
+    //  - lastResult: if the same answers+versions were just evaluated, return
+    //    the cached promise without a network call (common on back navigation).
+    //  - inFlight: if a request for the same key is already running, reuse its
+    //    promise instead of firing a duplicate (rapid clicks / double submit).
+    let lastKey = '';
+    let lastPromise: Promise<DecisionEvaluation> | null = null;
+    const inFlight = new Map<string, Promise<DecisionEvaluation>>();
+
+    function keyFor(answers: CreatorAnswers, versions: { workflowVersion: string; catalogVersion: string }): string {
+      return `${versions.workflowVersion}|${versions.catalogVersion}|${JSON.stringify(answers)}`;
+    }
+
+    return (answers: CreatorAnswers, versions: { workflowVersion: string; catalogVersion: string }) => {
+      const key = keyFor(answers, versions);
+      if (lastKey === key && lastPromise) return lastPromise;
+      const running = inFlight.get(key);
+      if (running) return running;
+      const p = request<DecisionEvaluation>(`${CREATOR_BASE}/evaluate`, {
+        method: 'POST',
+        body: JSON.stringify({
+          answers,
+          workflowVersion: versions.workflowVersion,
+          catalogVersion: versions.catalogVersion,
+        } satisfies EvaluateRequest),
+      }).finally(() => {
+        inFlight.delete(key);
+      });
+      inFlight.set(key, p);
+      lastKey = key;
+      lastPromise = p;
+      return p;
+    };
+  })(),
 
   preview: (answers: CreatorAnswers, versions: { workflowVersion: string; catalogVersion: string }) =>
     request<GeneratedAgentBundle>(`${CREATOR_BASE}/preview`, {
