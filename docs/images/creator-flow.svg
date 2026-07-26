@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520" font-family="'Segoe UI', system-ui, sans-serif">
+  <!-- Background -->
+  <rect width="900" height="520" fill="#09090b" rx="12"/>
+
+  <!-- Title -->
+  <text x="450" y="38" text-anchor="middle" fill="#f4f4f5" font-size="18" font-weight="700" letter-spacing="0.5">Huascar — Flujo del Creator</text>
+  <text x="450" y="58" text-anchor="middle" fill="#71717a" font-size="12">De problema a bundle de configuración reproducible</text>
+
+  <!-- Step 1: Mode Select -->
+  <rect x="30" y="80" width="160" height="90" rx="10" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+  <text x="110" y="104" text-anchor="middle" fill="#a1a1aa" font-size="10" font-weight="600" letter-spacing="1">MODO</text>
+  <text x="110" y="122" text-anchor="middle" fill="#f4f4f5" font-size="12" font-weight="600">Selección de modo</text>
+  <rect x="42" y="131" width="64" height="18" rx="4" fill="#27272a" stroke="#52525b" stroke-width="1"/>
+  <text x="74" y="144" text-anchor="middle" fill="#d4d4d8" font-size="9">Auto-corto</text>
+  <rect x="112" y="131" width="68" height="18" rx="4" fill="#27272a" stroke="#52525b" stroke-width="1"/>
+  <text x="146" y="144" text-anchor="middle" fill="#d4d4d8" font-size="9">Auto-largo</text>
+
+  <!-- Arrow 1 -->
+  <line x1="190" y1="125" x2="218" y2="125" stroke="#52525b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 2: Decision Tree -->
+  <rect x="220" y="80" width="175" height="90" rx="10" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+  <text x="307" y="104" text-anchor="middle" fill="#a1a1aa" font-size="10" font-weight="600" letter-spacing="1">ÁRBOL</text>
+  <text x="307" y="122" text-anchor="middle" fill="#f4f4f5" font-size="12" font-weight="600">Árbol de decisiones</text>
+  <text x="307" y="140" text-anchor="middle" fill="#71717a" font-size="10">26 preguntas stateless</text>
+  <text x="307" y="156" text-anchor="middle" fill="#71717a" font-size="10">branching dinámico</text>
+
+  <!-- Arrow 2 -->
+  <line x1="395" y1="125" x2="423" y2="125" stroke="#52525b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 3: Evaluate API -->
+  <rect x="425" y="80" width="155" height="90" rx="10" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+  <text x="502" y="104" text-anchor="middle" fill="#a1a1aa" font-size="10" font-weight="600" letter-spacing="1">API</text>
+  <text x="502" y="122" text-anchor="middle" fill="#f4f4f5" font-size="12" font-weight="600">POST /evaluate</text>
+  <text x="502" y="140" text-anchor="middle" fill="#71717a" font-size="10">recalcula progreso</text>
+  <text x="502" y="156" text-anchor="middle" fill="#71717a" font-size="10">y siguiente pregunta</text>
+
+  <!-- Arrow 3 -->
+  <line x1="580" y1="125" x2="608" y2="125" stroke="#52525b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 4: Review -->
+  <rect x="610" y="80" width="155" height="90" rx="10" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+  <text x="687" y="104" text-anchor="middle" fill="#a1a1aa" font-size="10" font-weight="600" letter-spacing="1">REVISIÓN</text>
+  <text x="687" y="122" text-anchor="middle" fill="#f4f4f5" font-size="12" font-weight="600">Recomendaciones</text>
+  <text x="687" y="140" text-anchor="middle" fill="#71717a" font-size="10">explicables con</text>
+  <text x="687" y="156" text-anchor="middle" fill="#71717a" font-size="10">trade-offs y alternativas</text>
+
+  <!-- Step 5: Generate Bundle - below with full width -->
+  <line x1="687" y1="170" x2="687" y2="198" stroke="#52525b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="425" y="200" width="340" height="75" rx="10" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+  <text x="595" y="224" text-anchor="middle" fill="#a1a1aa" font-size="10" font-weight="600" letter-spacing="1">GENERACIÓN</text>
+  <text x="595" y="242" text-anchor="middle" fill="#f4f4f5" font-size="12" font-weight="600">POST /generate → Bundle JSON</text>
+  <text x="595" y="260" text-anchor="middle" fill="#71717a" font-size="10">determinista · sin LLM · sin filesystem · SHA-256 por artefacto</text>
+
+  <!-- Bundle artifacts -->
+  <line x1="595" y1="275" x2="595" y2="300" stroke="#52525b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Artifacts row -->
+  <rect x="30" y="302" width="125" height="60" rx="8" fill="#1c1c1e" stroke="#3f3f46" stroke-width="1"/>
+  <text x="92" y="326" text-anchor="middle" fill="#71717a" font-size="9" font-weight="600">SIEMPRE</text>
+  <text x="92" y="342" text-anchor="middle" fill="#e4e4e7" font-size="10" font-weight="500">blueprint.json</text>
+  <text x="92" y="356" text-anchor="middle" fill="#e4e4e7" font-size="10">manifest · INSTALL · WHY</text>
+
+  <rect x="170" y="302" width="125" height="60" rx="8" fill="#1c1c1e" stroke="#3f3f46" stroke-width="1"/>
+  <text x="232" y="326" text-anchor="middle" fill="#71717a" font-size="9" font-weight="600">HUASCAR</text>
+  <text x="232" y="342" text-anchor="middle" fill="#e4e4e7" font-size="10" font-weight="500">steering.json</text>
+  <text x="232" y="356" text-anchor="middle" fill="#e4e4e7" font-size="10">security-policy · mcps</text>
+
+  <rect x="310" y="302" width="125" height="60" rx="8" fill="#1c1c1e" stroke="#3f3f46" stroke-width="1"/>
+  <text x="372" y="326" text-anchor="middle" fill="#71717a" font-size="9" font-weight="600">KIRO</text>
+  <text x="372" y="342" text-anchor="middle" fill="#e4e4e7" font-size="10" font-weight="500">.kiro/steering</text>
+  <text x="372" y="356" text-anchor="middle" fill="#e4e4e7" font-size="10">hooks · skills</text>
+
+  <rect x="450" y="302" width="125" height="60" rx="8" fill="#1c1c1e" stroke="#3f3f46" stroke-width="1"/>
+  <text x="512" y="326" text-anchor="middle" fill="#71717a" font-size="9" font-weight="600">PORTABLE</text>
+  <text x="512" y="342" text-anchor="middle" fill="#e4e4e7" font-size="10" font-weight="500">AGENTS.md</text>
+  <text x="512" y="356" text-anchor="middle" fill="#e4e4e7" font-size="10">skills/*/SKILL.md</text>
+
+  <rect x="590" y="302" width="125" height="60" rx="8" fill="#1c1c1e" stroke="#3f3f46" stroke-width="1"/>
+  <text x="652" y="326" text-anchor="middle" fill="#71717a" font-size="9" font-weight="600">CONDICIONAL</text>
+  <text x="652" y="342" text-anchor="middle" fill="#e4e4e7" font-size="10" font-weight="500">rag.json</text>
+  <text x="652" y="356" text-anchor="middle" fill="#e4e4e7" font-size="10">pr-review · governance</text>
+
+  <!-- Separator -->
+  <line x1="30" y1="385" x2="870" y2="385" stroke="#27272a" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- Architecture section -->
+  <text x="450" y="408" text-anchor="middle" fill="#71717a" font-size="11" font-weight="600" letter-spacing="0.5">ARQUITECTURA</text>
+
+  <!-- Frontend box -->
+  <rect x="50" y="420" width="220" height="55" rx="8" fill="#1c1c1e" stroke="#3f3f46" stroke-width="1"/>
+  <text x="160" y="441" text-anchor="middle" fill="#e4e4e7" font-size="11" font-weight="600">Frontend Next.js</text>
+  <text x="160" y="458" text-anchor="middle" fill="#71717a" font-size="10">huascar.vercel.app</text>
+  <text x="160" y="470" text-anchor="middle" fill="#71717a" font-size="10">liquid glass · space bg</text>
+
+  <!-- Arrow bidirectional -->
+  <line x1="270" y1="447" x2="340" y2="447" stroke="#52525b" stroke-width="1.5" marker-end="url(#arrow)" marker-start="url(#arrow-start)"/>
+  <text x="305" y="443" text-anchor="middle" fill="#52525b" font-size="9">JSON</text>
+
+  <!-- Backend box -->
+  <rect x="342" y="420" width="220" height="55" rx="8" fill="#1c1c1e" stroke="#3f3f46" stroke-width="1"/>
+  <text x="452" y="441" text-anchor="middle" fill="#e4e4e7" font-size="11" font-weight="600">Creator API v1</text>
+  <text x="452" y="458" text-anchor="middle" fill="#71717a" font-size="10">stateless · Express/TypeScript</text>
+  <text x="452" y="470" text-anchor="middle" fill="#71717a" font-size="10">catálogo · árbol · generador</text>
+
+  <!-- Separator -->
+  <line x1="562" y1="420" x2="562" y2="475" stroke="#27272a" stroke-width="1"/>
+
+  <!-- Runtime box -->
+  <rect x="570" y="420" width="280" height="55" rx="8" fill="#1c1c1e" stroke="#27272a" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="710" y="441" text-anchor="middle" fill="#52525b" font-size="11" font-weight="600">Runtime legacy (separado)</text>
+  <text x="710" y="458" text-anchor="middle" fill="#3f3f46" font-size="10">HuascarEngine · RAG · MCP · ReAct</text>
+  <text x="710" y="470" text-anchor="middle" fill="#3f3f46" font-size="10">/api/agent/execute</text>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#52525b"/>
+    </marker>
+    <marker id="arrow-start" markerWidth="8" markerHeight="8" refX="2" refY="3" orient="auto-start-reverse">
+      <path d="M0,0 L0,6 L8,3 z" fill="#52525b"/>
+    </marker>
+  </defs>
+
+  <!-- Lines connecting artifacts to bundle box -->
+  <line x1="92" y1="302" x2="92" y2="295" stroke="#27272a" stroke-width="1"/>
+  <line x1="232" y1="302" x2="232" y2="295" stroke="#27272a" stroke-width="1"/>
+  <line x1="372" y1="302" x2="372" y2="295" stroke="#27272a" stroke-width="1"/>
+  <line x1="512" y1="302" x2="512" y2="295" stroke="#27272a" stroke-width="1"/>
+  <line x1="652" y1="302" x2="652" y2="295" stroke="#27272a" stroke-width="1"/>
+  <line x1="92" y1="295" x2="652" y2="295" stroke="#27272a" stroke-width="1"/>
+</svg>
