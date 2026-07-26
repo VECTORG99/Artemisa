@@ -169,18 +169,6 @@ function denylistCheck(toolName: string, args: Record<string, unknown>): { block
   return { blocked: false };
 }
 
-// --- Commit Approval ---
-
-const pendingApprovals = new Map<string, { status: string }>();
-
-export function resolveApproval(id: string, approved: boolean): void {
-  pendingApprovals.set(id, { status: approved ? 'approved' : 'rejected' });
-}
-
-export function getApprovalStatus(id: string): string | undefined {
-  return pendingApprovals.get(id)?.status;
-}
-
 // --- Main Hook ---
 
 export const agentHooks = {
@@ -217,21 +205,5 @@ export const agentHooks = {
     }
     logger.info(`[HOOK OK] Action authorized: ${toolName}`);
     return true;
-  },
-
-  on_commit: async (_diffContext: string): Promise<string> => {
-    const id = crypto.randomUUID();
-    pendingApprovals.set(id, { status: 'pending' });
-    logger.info(`[HOOK PAUSE] Awaiting developer approval (id=${id})...`);
-    try {
-      for (let i = 0; i < 30; i++) {
-        const record = pendingApprovals.get(id);
-        if (record && record.status !== 'pending') return record.status === 'approved' ? 'APPROVED' : 'REJECTED';
-        await new Promise((r) => setTimeout(r, 1000));
-      }
-      return 'TIMEOUT';
-    } finally {
-      pendingApprovals.delete(id);
-    }
   },
 };

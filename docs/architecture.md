@@ -158,7 +158,12 @@ La seguridad se implementa en dos capas:
 
 2. **Hook de ejecucion** (`src/kiro/hooks.ts`)
    - `agentHooks.before_action(toolName, args)`: validacion pre-ejecucion, recibe datos estructurados
-   - `agentHooks.on_commit(diffContext)`: HITL para commits (stub, pending)
+
+3. **Aprobación HITL de commits** (`src/routes/hooks.ts` + `src/services/approvals.ts`)
+   - `POST /api/hooks/commit-approval`: crea una solicitud de aprobación, persiste `diffContext` en memoria (`commitApprovals` Map, TTL 60s)
+   - `GET /api/hooks/commit-approval/:id`: expone el registro completo — incluye `diffContext` — para que el aprobador revise el diff real antes de decidir
+   - `POST /api/hooks/commit-approval/:id`: resuelve la solicitud (`approved: true|false`)
+   - Este es el mecanismo HITL real y activo; `agentHooks` no expone un hook de commit — cualquier gate de commit debe implementarse en el caller usando este flujo HTTP.
 
 ### Flujo de validacion
 
