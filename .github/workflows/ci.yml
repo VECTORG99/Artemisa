@@ -7,7 +7,7 @@ on:
     branches: [master, development]
 
 jobs:
-  lint:
+  install:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,6 +16,26 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install
+      - name: Cache node_modules
+        uses: actions/cache/save@v4
+        with:
+          path: node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
+
+  lint:
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
       - name: Type check
         run: npx tsc --noEmit
       - name: Format check
@@ -23,6 +43,7 @@ jobs:
         continue-on-error: true
 
   test:
+    needs: install
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +51,11 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm install
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
       - run: cp .env.example .env
       - name: Unit tests
         run: npm run test:unit
@@ -38,6 +63,7 @@ jobs:
         run: npm test
 
   security:
+    needs: install
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,6 +71,11 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
       # npm's legacy quick-audit endpoint (/-/npm/v1/security/audits/quick)
       # has been retired server-side; older npm CLI versions still call it
       # and get errors unrelated to this repo's dependencies. Newer npm only
@@ -52,7 +83,6 @@ jobs:
       # command or its blocking behavior.
       - name: Update npm
         run: npm install -g npm@latest
-      - run: npm install
       - name: Audit dependencies (with retry)
         run: |
           max_attempts=3

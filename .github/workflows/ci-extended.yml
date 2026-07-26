@@ -32,13 +32,38 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
       - name: Build backend image
-        run: docker build -f Dockerfile.backend -t huascar-backend:test .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.backend
+          tags: huascar-backend:test
+          load: true
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
       - name: Build frontend image
-        run: docker build -f Dockerfile.frontend -t huascar-frontend:test ./frontend
+        uses: docker/build-push-action@v6
+        with:
+          # Build context must be the repo root — Dockerfile.frontend
+          # copies frontend/package.json and packages/types (monorepo
+          # workspaces), not just the frontend/ subdirectory.
+          context: .
+          file: Dockerfile.frontend
+          tags: huascar-frontend:test
+          load: true
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
         continue-on-error: true
       - name: Build agent-creator image
-        run: docker build -f Dockerfile.agent-creator -t huascar-creator:test .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.agent-creator
+          tags: huascar-creator:test
+          load: true
+          cache-from: type=gha,scope=agent-creator
+          cache-to: type=gha,mode=max,scope=agent-creator
         continue-on-error: true
       - name: Verify backend starts
         run: |
