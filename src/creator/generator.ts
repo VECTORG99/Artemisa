@@ -243,6 +243,9 @@ function buildBlueprint(answers: CreatorAnswers, evaluation: ReturnType<typeof e
       focus: skillsFocus,
       items: skillItems,
     },
+    testing: {
+      tools: listAnswer(answers, 'testing_tools'),
+    },
     integrations: {
       mcps: mcpItems,
     },
@@ -291,7 +294,7 @@ function buildSystemPrompt(blueprint: AgentBlueprint): string {
  * stay narrow (read-only or quality-gate commands) so the generated policy is
  * safe to apply before review.
  */
-function buildAllowedCommands(capabilities: string[], languages: string[]): AllowedCommandEntry[] {
+function buildAllowedCommands(capabilities: string[], languages: string[], testingTools: string[]): AllowedCommandEntry[] {
   const entries = new Map<string, Set<string>>();
   const add = (binary: string, args: string[]) => {
     const existing = entries.get(binary) ?? new Set<string>();
@@ -322,6 +325,20 @@ function buildAllowedCommands(capabilities: string[], languages: string[]): Allo
     if (hasGo) add('go', ['test', 'build', 'vet']);
     if (hasRust) add('cargo', ['test', 'build', 'check', 'clippy']);
     if (hasJava) add('mvn', ['test', 'verify']);
+  }
+
+  // Testing tools from the catalog enrich allowed commands with specific runners.
+  if (testingTools.length > 0) {
+    if (testingTools.includes('e2e-tests')) {
+      add('npx', ['playwright test', 'cypress run']);
+    }
+    if (testingTools.includes('sast')) {
+      add('npx', ['eslint .', 'semgrep scan']);
+    }
+    if (testingTools.includes('dependency-scan')) {
+      add('npm', ['audit']);
+      add('npx', ['snyk test']);
+    }
   }
 
   if (capabilities.includes('inspect-infrastructure') || capabilities.includes('operate-production')) {
@@ -606,6 +623,9 @@ ${architecture}
 - Proveedor de repositorio: ${describeCatalogSelection(blueprint.project.repositoryProvider)}.
 ${blueprint.environments.deploymentTarget ? `- Destino de despliegue: ${describeCatalogSelection(blueprint.environments.deploymentTarget)}.` : ''}
 
+## Testing & Quality
+${blueprint.testing.tools.length > 0 ? blueprint.testing.tools.map(describeCatalogSelection).map((t) => `- ${t}`).join('\n') : '- Sin herramientas de testing específicas configuradas. Usar los comandos de test del stack.'}
+
 ## Conventions
 
 ${conventions.map((c) => `- ${c}`).join('\n')}
@@ -723,7 +743,7 @@ function inferStackGlobs(technologies: string[]): string[] {
 }
 
 function buildAllowedCommandLines(blueprint: AgentBlueprint): string[] {
-  const commands = buildAllowedCommands(blueprint.agent.capabilities, blueprint.project.technologies);
+  const commands = buildAllowedCommands(blueprint.agent.capabilities, blueprint.project.technologies, blueprint.testing.tools);
   return commands.map((entry) => `- ${entry.binary}: ${entry.allowed_args.join(', ')}`);
 }
 
@@ -950,7 +970,7 @@ ${buildSystemPrompt(blueprint)}
       description: m.description,
       filePattern: m.filePattern,
       instructions: buildSystemPrompt(blueprint),
-      allowedCommands: buildAllowedCommands(blueprint.agent.capabilities, blueprint.project.technologies).map(
+      allowedCommands: buildAllowedCommands(blueprint.agent.capabilities, blueprint.project.technologies, blueprint.testing.tools).map(
         (c) => c.binary,
       ),
     })),

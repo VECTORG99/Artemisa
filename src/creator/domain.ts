@@ -143,6 +143,10 @@ export interface AgentBlueprint {
     /** Resolved skills (from `skills_selection` when focus is 'custom'); empty otherwise. */
     items: Array<{ id: string; name: string; focus: string; sourceUrl: string }>;
   };
+  testing: {
+    /** Testing tools selected via `testing_tools` question. */
+    tools: string[];
+  };
   integrations: {
     /** MCP servers selected via `mcps_selection` when `mcps_enabled` is true. */
     mcps: Array<{ id: string; name: string; category: string; sourceUrl: string }>;
