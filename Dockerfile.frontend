@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Build context must be the repo root (monorepo workspaces).
 # Stage 1: Install all workspace dependencies
 FROM node:22-alpine AS deps
@@ -11,13 +12,15 @@ RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
 COPY frontend/package.json ./frontend/package.json
 COPY packages/types/package.json ./packages/types/package.json
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 # Workaround for a known npm bug where platform-specific optional
 # dependencies (lightningcss/@tailwindcss oxide native bindings) are
 # sometimes skipped by `npm ci` even when present in the lockfile
 # (https://github.com/npm/cli/issues/4828). Install them explicitly so
 # Tailwind v4's CSS build has its musl-x64 native binding at build time.
-RUN npm install --no-save lightningcss-linux-x64-musl @tailwindcss/oxide-linux-x64-musl
+RUN --mount=type=cache,target=/root/.npm \
+    npm install --no-save lightningcss-linux-x64-musl @tailwindcss/oxide-linux-x64-musl
 
 # Stage 2: Build @huascar/types, then the Next.js app
 FROM node:22-alpine AS builder
