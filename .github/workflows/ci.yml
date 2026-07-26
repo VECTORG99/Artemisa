@@ -47,11 +47,4 @@ jobs:
           cache: npm
       - run: npm install
       - name: Audit dependencies
-        # The legacy `audits/quick` endpoint npm audit relies on is being
-        # retired server-side and can return transient errors unrelated to
-        # this repo's dependency tree (confirmed: same command passes/fails
-        # inconsistently across otherwise-identical lockfiles). Don't block
-        # merges on registry-side instability; same continue-on-error
-        # pattern as the format check above.
         run: npm audit --audit-level=critical
-        continue-on-error: true
