@@ -9,8 +9,5 @@
     "resolveJsonModule": true,
     "moduleResolution": "NodeNext"
   },
-  "exclude": [
-    "node_modules",
-    "frontend"
-  ]
+  "exclude": ["node_modules", "frontend", "packages"]
 }
