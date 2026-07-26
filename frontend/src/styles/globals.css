@@ -61,10 +61,10 @@
      keeps the affordance but at 6px in white/8%, so a long option list still
      signals "there is more" without a hard grey bar across the panel. */
 
-  /* Global — minimalist liquid glass scrollbar */
+  /* Global — minimalist liquid glass scrollbar with red accent */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+    scrollbar-color: rgba(245, 11, 11, 0.2) transparent;
   }
 
   *::-webkit-scrollbar {
@@ -77,15 +77,15 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(245, 11, 11, 0.2);
     border-radius: 9999px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(245, 11, 11, 0.1);
     backdrop-filter: blur(8px);
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.18);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(245, 11, 11, 0.35);
+    border-color: rgba(245, 11, 11, 0.2);
   }
 
   /* Narrower variant for internal panels (Creator options, etc.) */
