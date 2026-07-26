@@ -28,6 +28,7 @@ export const developmentAnswers = {
   // Ids for `mcps_selection` come from the curated MCP catalog, which is the
   // source of the catalog's `mcp` category (see src/creator/catalog.ts).
   mcps_selection: ['github-mcp-server'],
+  testing_tools: ['unit-tests', 'e2e-tests', 'sast'],
 };
 
 export const productionAnswers = {
