@@ -13,6 +13,7 @@ import { runMockScenario } from './MockProvider.js';
 import { ConfigCache } from './ConfigCache.js';
 import { ToolResultCache } from './ToolResultCache.js';
 import { withSpan } from '../telemetry.js';
+import { emitWebhook } from '../webhooks.js';
 
 interface RagConfig {
   knowledge_bases: RagSource[];
@@ -248,6 +249,13 @@ export class HuascarEngine {
       logger.info(`[HuascarEngine] Rol activo: ${this.activeRole.name}`);
       logger.info(`[HuascarEngine] Tarea: ${task}`);
 
+      const startedAt = Date.now();
+      void emitWebhook({
+        type: 'execution.started',
+        timestamp: new Date().toISOString(),
+        data: { role: this.activeRole.name, task },
+      });
+
       try {
         const useMock = config.llm.mockMode || !config.hasLlmProvider;
 
@@ -316,9 +324,21 @@ export class HuascarEngine {
           }
         }
 
+        void emitWebhook({
+          type: 'execution.completed',
+          timestamp: new Date().toISOString(),
+          data: { role: this.activeRole.name, task, duration_ms: Date.now() - startedAt },
+        });
+
         return { status: 'success', agent_role: this.activeRole.name, response: responseText };
       } catch (error: unknown) {
-        return { status: 'blocked', error: error instanceof Error ? error.message : String(error) };
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        void emitWebhook({
+          type: 'execution.failed',
+          timestamp: new Date().toISOString(),
+          data: { role: this.activeRole.name, task, duration_ms: Date.now() - startedAt, error: errorMessage },
+        });
+        return { status: 'blocked', error: errorMessage };
       } finally {
         await this.disconnectMcpServers();
         this.toolCache.clear();
