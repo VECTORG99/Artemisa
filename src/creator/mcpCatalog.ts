@@ -21,13 +21,15 @@ export interface McpCatalogItem {
     | 'file-system'
     | 'version-control'
     | 'communication'
-    | 'cloud-service';
+    | 'cloud-service'
+    | 'observability'
+    | 'storage';
   official: boolean;
   tags: string[];
   sourceUrl: string;
 }
 
-export const MCP_CATALOG_VERSION = '1.0.0';
+export const MCP_CATALOG_VERSION = '1.1.0';
 
 export const mcpCatalog: McpCatalogItem[] = [
   {
@@ -141,6 +143,195 @@ export const mcpCatalog: McpCatalogItem[] = [
     official: true,
     tags: ['meetings', 'notes', 'transcripts'],
     sourceUrl: 'https://mcpservers.org/es/servers/granola-mcp',
+  },
+  {
+    id: 'slack-mcp-server',
+    name: 'Slack MCP',
+    description: 'Servidor oficial de Slack para leer canales, enviar mensajes y gestionar workspaces desde agentes.',
+    category: 'communication',
+    official: true,
+    tags: ['slack', 'chat', 'notifications'],
+    sourceUrl: 'https://mcpservers.org/es/servers/slack-mcp-server',
+  },
+  {
+    id: 'discord-mcp-server',
+    name: 'Discord MCP',
+    description: 'Interacción con servidores de Discord: canales, mensajes y gestión de roles para bots de agentes.',
+    category: 'communication',
+    official: false,
+    tags: ['discord', 'chat', 'bots'],
+    sourceUrl: 'https://mcpservers.org/es/servers/discord-mcp-server',
+  },
+  {
+    id: 'linear-mcp-server',
+    name: 'Linear MCP',
+    description: 'Servidor oficial de Linear para crear, actualizar y consultar issues, proyectos y ciclos.',
+    category: 'productivity',
+    official: true,
+    tags: ['linear', 'issues', 'project-management'],
+    sourceUrl: 'https://mcpservers.org/es/servers/linear-mcp-server',
+  },
+  {
+    id: 'notion-mcp-server',
+    name: 'Notion MCP',
+    description: 'Servidor oficial de Notion: lectura y escritura de páginas, bases de datos y bloques.',
+    category: 'productivity',
+    official: true,
+    tags: ['notion', 'docs', 'databases'],
+    sourceUrl: 'https://mcpservers.org/es/servers/notion-mcp-server',
+  },
+  {
+    id: 'jira-mcp-server',
+    name: 'Jira MCP',
+    description: 'Gestión de tickets, sprints y flujos de trabajo de Jira desde agentes de IA.',
+    category: 'productivity',
+    official: false,
+    tags: ['jira', 'tickets', 'agile'],
+    sourceUrl: 'https://mcpservers.org/es/servers/jira-mcp-server',
+  },
+  {
+    id: 'confluence-mcp-server',
+    name: 'Confluence MCP',
+    description: 'Lectura y creación de páginas de documentación en espacios de Confluence.',
+    category: 'productivity',
+    official: false,
+    tags: ['confluence', 'documentation', 'wiki'],
+    sourceUrl: 'https://mcpservers.org/es/servers/confluence-mcp-server',
+  },
+  {
+    id: 'aws-mcp-server',
+    name: 'AWS MCP',
+    description: 'Consulta y gestiona recursos de AWS (CloudWatch, S3, Lambda, EC2) desde agentes de codificación.',
+    category: 'cloud-service',
+    official: true,
+    tags: ['aws', 's3', 'cloudwatch', 'lambda'],
+    sourceUrl: 'https://mcpservers.org/es/servers/aws-mcp-server',
+  },
+  {
+    id: 'gcp-mcp-server',
+    name: 'Google Cloud MCP',
+    description: 'Gestión de recursos de Google Cloud Platform: Compute Engine, Cloud Storage, BigQuery.',
+    category: 'cloud-service',
+    official: false,
+    tags: ['gcp', 'bigquery', 'compute'],
+    sourceUrl: 'https://mcpservers.org/es/servers/gcp-mcp-server',
+  },
+  {
+    id: 'azure-mcp-server',
+    name: 'Azure MCP',
+    description: 'Servidor oficial de Microsoft para gestionar recursos de Azure desde agentes de IA.',
+    category: 'cloud-service',
+    official: true,
+    tags: ['azure', 'microsoft', 'cloud'],
+    sourceUrl: 'https://mcpservers.org/es/servers/azure-mcp-server',
+  },
+  {
+    id: 'sentry-mcp-server',
+    name: 'Sentry MCP',
+    description: 'Servidor oficial de Sentry para consultar errores, stack traces y performance issues.',
+    category: 'observability',
+    official: true,
+    tags: ['sentry', 'errors', 'monitoring'],
+    sourceUrl: 'https://mcpservers.org/es/servers/sentry-mcp-server',
+  },
+  {
+    id: 'datadog-mcp-server',
+    name: 'Datadog MCP',
+    description: 'Consulta métricas, logs, dashboards y alertas de Datadog desde agentes de observabilidad.',
+    category: 'observability',
+    official: false,
+    tags: ['datadog', 'metrics', 'logs'],
+    sourceUrl: 'https://mcpservers.org/es/servers/datadog-mcp-server',
+  },
+  {
+    id: 'pagerduty-mcp-server',
+    name: 'PagerDuty MCP',
+    description: 'Gestión de incidentes, escalamiento y on-call schedules de PagerDuty desde agentes.',
+    category: 'observability',
+    official: false,
+    tags: ['pagerduty', 'incidents', 'on-call'],
+    sourceUrl: 'https://mcpservers.org/es/servers/pagerduty-mcp-server',
+  },
+  {
+    id: 'grafana-mcp-server',
+    name: 'Grafana MCP',
+    description: 'Servidor oficial de Grafana para consultar dashboards, paneles y datasources.',
+    category: 'observability',
+    official: true,
+    tags: ['grafana', 'dashboards', 'metrics'],
+    sourceUrl: 'https://mcpservers.org/es/servers/grafana-mcp-server',
+  },
+  {
+    id: 'google-drive-mcp-server',
+    name: 'Google Drive MCP',
+    description: 'Búsqueda, lectura y escritura de archivos y documentos en Google Drive y Google Docs.',
+    category: 'storage',
+    official: false,
+    tags: ['google-drive', 'docs', 'files'],
+    sourceUrl: 'https://mcpservers.org/es/servers/google-drive-mcp-server',
+  },
+  {
+    id: 'aws-s3-mcp-server',
+    name: 'AWS S3 MCP',
+    description: 'Operaciones de lectura, escritura y listado de objetos en buckets de Amazon S3.',
+    category: 'storage',
+    official: false,
+    tags: ['s3', 'storage', 'aws'],
+    sourceUrl: 'https://mcpservers.org/es/servers/aws-s3-mcp-server',
+  },
+  {
+    id: 'dropbox-mcp-server',
+    name: 'Dropbox MCP',
+    description: 'Acceso a archivos y carpetas de Dropbox: listar, leer, subir y compartir desde agentes.',
+    category: 'storage',
+    official: false,
+    tags: ['dropbox', 'files', 'storage'],
+    sourceUrl: 'https://mcpservers.org/es/servers/dropbox-mcp-server',
+  },
+  {
+    id: 'postgres-mcp-server',
+    name: 'Postgres MCP',
+    description: 'Consultas de solo lectura y exploración de esquemas sobre bases de datos PostgreSQL.',
+    category: 'database',
+    official: true,
+    tags: ['postgres', 'sql', 'database'],
+    sourceUrl: 'https://mcpservers.org/es/servers/postgres-mcp-server',
+  },
+  {
+    id: 'mongodb-mcp-server',
+    name: 'MongoDB MCP',
+    description: 'Servidor oficial de MongoDB para consultar colecciones, ejecutar agregaciones y explorar esquemas.',
+    category: 'database',
+    official: true,
+    tags: ['mongodb', 'nosql', 'database'],
+    sourceUrl: 'https://mcpservers.org/es/servers/mongodb-mcp-server',
+  },
+  {
+    id: 'stripe-mcp-server',
+    name: 'Stripe MCP',
+    description: 'Servidor oficial de Stripe para gestionar clientes, pagos, suscripciones y facturación.',
+    category: 'development',
+    official: true,
+    tags: ['stripe', 'payments', 'billing'],
+    sourceUrl: 'https://mcpservers.org/es/servers/stripe-mcp-server',
+  },
+  {
+    id: 'figma-mcp-server',
+    name: 'Figma MCP',
+    description: 'Servidor oficial de Figma para extraer diseños, componentes y tokens directamente en el código.',
+    category: 'development',
+    official: true,
+    tags: ['figma', 'design', 'components'],
+    sourceUrl: 'https://mcpservers.org/es/servers/figma-mcp-server',
+  },
+  {
+    id: 'vercel-mcp-server',
+    name: 'Vercel MCP',
+    description: 'Servidor oficial de Vercel para gestionar despliegues, dominios y variables de entorno de proyectos.',
+    category: 'cloud-service',
+    official: true,
+    tags: ['vercel', 'deployment', 'hosting'],
+    sourceUrl: 'https://mcpservers.org/es/servers/vercel-mcp-server',
   },
 ];
 

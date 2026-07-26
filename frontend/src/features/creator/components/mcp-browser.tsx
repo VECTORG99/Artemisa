@@ -15,6 +15,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   'version-control': 'Control de versiones',
   communication: 'Comunicación',
   'cloud-service': 'Servicio en la nube',
+  observability: 'Observabilidad',
+  storage: 'Almacenamiento',
 };
 
 interface McpBrowserProps {
