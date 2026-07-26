@@ -1,7 +1,5 @@
 import { useEffect } from 'react';
 import { useStep } from '../context/stepContextValue';
-import StarfieldBackground from './StarfieldBackground';
-import { glassPanel } from '../utils/glass';
 
 export default function StepContainer({ children }) {
   const { evaluation, currentQuestion, answers, loading, error, canContinue, continueFlow, goBack, goToQuestion } =
@@ -24,9 +22,7 @@ export default function StepContainer({ children }) {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <StarfieldBackground />
-
-      <header className="border-b border-zinc-800/50 bg-zinc-950/60 px-5 py-4 backdrop-blur-md sm:px-8">
+      <header className="border-b border-zinc-800 bg-zinc-950/90 px-5 py-4 backdrop-blur sm:px-8">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-emerald-400">Huascar Creator</h1>
@@ -47,7 +43,7 @@ export default function StepContainer({ children }) {
 
       <div className="mx-auto grid max-w-6xl gap-8 px-5 py-8 sm:px-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
         <aside className="hidden lg:block">
-          <div className={`sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto rounded-2xl p-4 ${glassPanel()}`}>
+          <div className="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto pr-2">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">Decisiones visibles</p>
             <nav className="space-y-1">
               {questions.map((question, index) => {
@@ -62,7 +58,7 @@ export default function StepContainer({ children }) {
                     key={question.id}
                     onClick={() => (answered || index <= currentIndex) && goToQuestion(question.id)}
                     disabled={!answered && index > currentIndex}
-                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition ${active ? 'bg-emerald-950/60 text-emerald-300' : answered ? 'text-zinc-400 hover:bg-zinc-800/40 hover:text-zinc-200' : 'cursor-not-allowed text-zinc-700'}`}
+                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition ${active ? 'bg-emerald-950 text-emerald-300' : answered ? 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200' : 'cursor-not-allowed text-zinc-700'}`}
                   >
                     <span
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] ${answered ? 'border-emerald-800 text-emerald-500' : 'border-zinc-800'}`}
@@ -87,16 +83,16 @@ export default function StepContainer({ children }) {
         </aside>
 
         <main className="min-w-0 pb-28">
-          <div className={`mx-auto max-w-3xl rounded-2xl p-6 sm:p-8 ${glassPanel()}`}>{children}</div>
+          <div className="mx-auto max-w-3xl">{children}</div>
         </main>
       </div>
 
-      <footer className="fixed inset-x-0 bottom-0 z-20 border-t border-zinc-800/50 bg-zinc-950/80 px-5 py-4 backdrop-blur-md sm:px-8">
+      <footer className="fixed inset-x-0 bottom-0 z-20 border-t border-zinc-800 bg-zinc-950/95 px-5 py-4 backdrop-blur sm:px-8">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 lg:ml-[calc((100vw-72rem)/2+17rem)] lg:mr-[calc((100vw-72rem)/2)]">
           <button
             onClick={goBack}
             disabled={currentIndex <= 0 || loading}
-            className="rounded-lg border border-zinc-700/50 bg-zinc-800/50 px-5 py-2.5 text-sm text-zinc-300 backdrop-blur-md transition-all hover:bg-zinc-700/60 disabled:cursor-not-allowed disabled:opacity-30"
+            className="rounded-lg border border-zinc-700 px-5 py-2.5 text-sm text-zinc-300 hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-30"
           >
             ← Anterior
           </button>
@@ -119,7 +115,7 @@ export default function StepContainer({ children }) {
             onClick={continueFlow}
             disabled={!canContinue || loading}
             aria-busy={loading}
-            className="rounded-lg bg-emerald-950/40 border border-emerald-900/50 px-6 py-2.5 text-sm font-semibold text-emerald-50 shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all hover:bg-emerald-900/60 hover:border-emerald-700/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:border-zinc-700 disabled:text-zinc-500 disabled:shadow-none"
+            className="rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
           >
             {loading ? 'Evaluando...' : 'Continuar →'}
           </button>

@@ -5,8 +5,6 @@ import DynamicQuestion from './components/DynamicQuestion';
 import WelcomeStep from './steps/WelcomeStep';
 import ReviewStep from './steps/ReviewStep';
 import CompletionScreen from './steps/CompletionScreen';
-import ModeSelect from './steps/ModeSelect';
-import FineTuningDashboard from './steps/FineTuningDashboard';
 
 function LoadingScreen() {
   return (
@@ -51,12 +49,10 @@ function ErrorScreen() {
 }
 
 function CreatorRenderer() {
-  const { phase, selectMode } = useStep();
+  const { phase } = useStep();
   if (phase === 'loading') return <LoadingScreen />;
   if (phase === 'error') return <ErrorScreen />;
   if (phase === 'tutorial') return <WelcomeStep />;
-  if (phase === 'mode-select') return <ModeSelect onSelect={selectMode} />;
-  if (phase === 'fine-tuning') return <FineTuningDashboard />;
   if (phase === 'review') return <ReviewStep />;
   if (phase === 'complete') return <CompletionScreen />;
   return (

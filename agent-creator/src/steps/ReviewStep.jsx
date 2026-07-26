@@ -1,6 +1,4 @@
 import { useStep } from '../context/stepContextValue';
-import StarfieldBackground from '../components/StarfieldBackground';
-import { glassCard, glassPrimaryButton, glassButton } from '../utils/glass';
 
 const severityStyle = {
   info: 'border-blue-900/60 bg-blue-950/20 text-blue-300',
@@ -24,8 +22,6 @@ export default function ReviewStep() {
 
   return (
     <div className="min-h-screen bg-zinc-950 px-5 py-8 text-zinc-100 sm:px-8">
-      <StarfieldBackground />
-
       <div className="mx-auto max-w-5xl">
         <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -36,15 +32,18 @@ export default function ReviewStep() {
               modifica tu proyecto.
             </p>
           </div>
-          <button onClick={goBack} className={glassButton('text-sm text-zinc-300')}>
+          <button
+            onClick={goBack}
+            className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900"
+          >
             ← Volver al flujo
           </button>
         </header>
 
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <section className={`rounded-2xl p-5 sm:p-7 ${glassCard()}`}>
+          <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-7">
             <h2 className="mb-5 text-lg font-semibold">Decisiones</h2>
-            <div className="divide-y divide-zinc-800/50">
+            <div className="divide-y divide-zinc-800">
               {evaluation.visibleQuestions.map((question) => {
                 const id = question.id;
                 const value = answers[id];
@@ -69,7 +68,7 @@ export default function ReviewStep() {
           </section>
 
           <div className="space-y-6">
-            <section className={`rounded-2xl p-5 sm:p-7 ${glassCard()}`}>
+            <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-7">
               <h2 className="mb-4 text-lg font-semibold">Recomendaciones</h2>
               {evaluation.recommendations.length === 0 ? (
                 <p className="text-sm text-zinc-500">No se activaron recomendaciones adicionales.</p>
@@ -112,7 +111,7 @@ export default function ReviewStep() {
               onClick={generate}
               disabled={loading}
               aria-busy={loading}
-              className={`w-full ${glassPrimaryButton('px-6 py-4 font-semibold text-white shadow-lg')} disabled:bg-zinc-800 disabled:text-zinc-500 disabled:border-zinc-700 disabled:shadow-none`}
+              className="w-full rounded-xl bg-emerald-600 px-6 py-4 font-semibold text-white shadow-lg shadow-emerald-950/30 hover:bg-emerald-500 disabled:bg-zinc-800 disabled:text-zinc-500"
             >
               {loading ? 'Compilando bundle...' : 'Generar configuración →'}
             </button>

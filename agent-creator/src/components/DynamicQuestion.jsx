@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useStep } from '../context/stepContextValue';
-import { glassInput, glassCardInteractive, glassPill, glassPanel } from '../utils/glass';
 
 function slugify(value) {
   return value
@@ -14,7 +13,7 @@ function slugify(value) {
 function Choice({ option, selected, multiple, name, onChange }) {
   return (
     <label
-      className={`block rounded-xl p-4 cursor-pointer transition-all duration-300 ease-in-out ${selected ? 'border-emerald-500 bg-emerald-950/40 border shadow-[0_0_15px_rgba(16,185,129,0.1)]' : glassCardInteractive('rounded-xl p-0')} ${!selected ? 'p-4' : ''}`}
+      className={`block rounded-xl border p-4 cursor-pointer transition ${selected ? 'border-emerald-500 bg-emerald-950/40' : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'}`}
     >
       <input
         className="sr-only"
@@ -98,7 +97,7 @@ export default function DynamicQuestion() {
           onChange={(event) => updateAnswer(question.id, event.target.value)}
           placeholder={question.placeholder}
           rows={question.type === 'textarea' ? 6 : undefined}
-          className={glassInput()}
+          className="w-full rounded-xl border border-zinc-700 bg-zinc-950 p-4 text-zinc-100 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
         />
       );
     }
@@ -148,13 +147,13 @@ export default function DynamicQuestion() {
     return (
       <fieldset className="space-y-5">
         <legend className="sr-only">{question.prompt}</legend>
-        <div className={`sticky top-0 z-10 rounded-xl p-3 ${glassPanel()}`}>
+        <div className="sticky top-0 z-10 rounded-xl border border-zinc-800 bg-zinc-950/95 p-3 backdrop-blur">
           <input
             aria-label={`Buscar opciones para ${question.prompt}`}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder={`Buscar en ${categories.map((category) => category.label).join(', ')}...`}
-            className={glassInput('text-sm px-3 py-2')}
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm outline-none focus:border-emerald-500"
           />
         </div>
         <div className="max-h-[28rem] space-y-6 overflow-y-auto pr-1">
@@ -183,7 +182,7 @@ export default function DynamicQuestion() {
             <p className="py-8 text-center text-sm text-zinc-500">No encontramos opciones con esa búsqueda.</p>
           )}
         </div>
-        <div className="rounded-xl border border-dashed border-zinc-700/50 bg-zinc-900/30 backdrop-blur-sm p-4">
+        <div className="rounded-xl border border-dashed border-zinc-700 bg-zinc-900/50 p-4">
           <label htmlFor={`${question.id}-custom`} className="mb-2 block text-sm font-medium">
             ¿No aparece tu tecnología?
           </label>
@@ -193,13 +192,13 @@ export default function DynamicQuestion() {
               value={custom}
               onChange={(event) => setCustom(event.target.value)}
               placeholder="Nombre personalizado"
-              className={glassInput('text-sm px-3 py-2')}
+              className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-emerald-500"
             />
             <button
               type="button"
               onClick={addCustom}
               disabled={!custom.trim()}
-              className="rounded-lg bg-zinc-800/50 border border-zinc-700/50 px-4 py-2 text-sm font-medium backdrop-blur-md hover:bg-zinc-700/60 disabled:opacity-40 transition-all"
+              className="rounded-lg bg-zinc-700 px-4 py-2 text-sm font-medium hover:bg-zinc-600 disabled:opacity-40"
             >
               Agregar
             </button>
@@ -212,7 +211,7 @@ export default function DynamicQuestion() {
                   aria-label={`Quitar ${item.replace('custom:', '')}`}
                   key={item}
                   onClick={() => (multiple ? toggle(item) : updateAnswer(question.id, ''))}
-                  className={glassPill('text-xs text-amber-300 border-amber-700/50 bg-amber-950/30')}
+                  className="rounded-full border border-amber-700 bg-amber-950/30 px-3 py-1 text-xs text-amber-300"
                 >
                   {item.replace('custom:', '')} ×
                 </button>

@@ -5,7 +5,6 @@ import { StepContext } from './stepContextValue';
 const STORAGE_KEY = 'huascar_creator_answers_v1';
 const CURSOR_STORAGE_KEY = 'huascar_creator_cursor_v1';
 const NAVIGATION_STORAGE_KEY = 'huascar_creator_navigation_v1';
-const MODE_STORAGE_KEY = 'huascar_creator_mode_v1';
 
 /**
  * Patterns that indicate sensitive values that should not be stored in sessionStorage (#254).
@@ -78,7 +77,6 @@ function hasAnswer(question, value) {
 
 export function StepProvider({ children }) {
   const [phase, setPhase] = useState('loading');
-  const [mode, setMode] = useState(() => sessionStorage.getItem(MODE_STORAGE_KEY) || null);
   const [catalog, setCatalog] = useState(null);
   const [workflow, setWorkflow] = useState(null);
   const [tutorial, setTutorial] = useState(null);
@@ -124,7 +122,6 @@ export function StepProvider({ children }) {
       const visibleQuestions = initial?.visibleQuestions || [];
       const savedCursor = sessionStorage.getItem(CURSOR_STORAGE_KEY);
       const savedNavigation = sessionStorage.getItem(NAVIGATION_STORAGE_KEY);
-      const savedMode = sessionStorage.getItem(MODE_STORAGE_KEY);
       const savedQuestion = visibleQuestions.find((question) => question.id === savedCursor);
       const resumeQuestion =
         savedQuestion ||
@@ -134,22 +131,7 @@ export function StepProvider({ children }) {
       setCurrentQuestionId(resumeQuestion?.id || null);
       const tutorialDone = sessionStorage.getItem('huascar_creator_tutorial_done') === 'true';
       const resumeEditing = savedNavigation === 'questions' && Boolean(savedQuestion);
-
-      if (!tutorialDone) {
-        setPhase('tutorial');
-      } else if (savedMode === 'fine-tuning' && savedNavigation === 'fine-tuning') {
-        setMode('fine-tuning');
-        setPhase('fine-tuning');
-      } else if (savedMode) {
-        setMode(savedMode);
-        if (initial?.progress?.complete && !resumeEditing) {
-          setPhase('review');
-        } else {
-          setPhase('questions');
-        }
-      } else {
-        setPhase('mode-select');
-      }
+      setPhase(tutorialDone ? (initial?.progress?.complete && !resumeEditing ? 'review' : 'questions') : 'tutorial');
     } catch (cause) {
       setError(cause.message || 'No se pudo cargar el Creator backend.');
       setPhase('error');
@@ -173,23 +155,8 @@ export function StepProvider({ children }) {
   }, [currentQuestionId]);
 
   useEffect(() => {
-    if (phase === 'questions' || phase === 'review' || phase === 'fine-tuning') {
-      sessionStorage.setItem(NAVIGATION_STORAGE_KEY, phase);
-    }
+    if (phase === 'questions' || phase === 'review') sessionStorage.setItem(NAVIGATION_STORAGE_KEY, phase);
   }, [phase]);
-
-  useEffect(() => {
-    if (mode) sessionStorage.setItem(MODE_STORAGE_KEY, mode);
-  }, [mode]);
-
-  const selectMode = (selectedMode) => {
-    setMode(selectedMode);
-    if (selectedMode === 'automated') {
-      setPhase(evaluation?.progress?.complete ? 'review' : 'questions');
-    } else if (selectedMode === 'fine-tuning') {
-      setPhase('fine-tuning');
-    }
-  };
 
   const currentQuestion = useMemo(() => {
     const questions = evaluation?.visibleQuestions || workflow?.questions || [];
@@ -263,17 +230,7 @@ export function StepProvider({ children }) {
 
   const skipTutorial = () => {
     sessionStorage.setItem('huascar_creator_tutorial_done', 'true');
-    const savedMode = sessionStorage.getItem(MODE_STORAGE_KEY);
-    if (savedMode) {
-      setMode(savedMode);
-      if (savedMode === 'fine-tuning') {
-        setPhase('fine-tuning');
-      } else {
-        setPhase(evaluation?.progress?.complete ? 'review' : 'questions');
-      }
-    } else {
-      setPhase('mode-select');
-    }
+    setPhase(evaluation?.progress?.complete ? 'review' : 'questions');
   };
 
   const continueTutorial = () => {
@@ -308,12 +265,10 @@ export function StepProvider({ children }) {
       sessionStorage.removeItem(STORAGE_KEY);
       sessionStorage.removeItem(CURSOR_STORAGE_KEY);
       sessionStorage.removeItem(NAVIGATION_STORAGE_KEY);
-      sessionStorage.removeItem(MODE_STORAGE_KEY);
       setBundle(null);
-      setMode(null);
       setTutorialIndex(0);
       setCurrentQuestionId(result?.nextQuestion?.id || null);
-      setPhase('mode-select');
+      setPhase('questions');
     } catch (cause) {
       setError(cause.message || 'No se pudo reiniciar el Creator.');
       setPhase('complete');
@@ -324,7 +279,6 @@ export function StepProvider({ children }) {
 
   const value = {
     phase,
-    mode,
     catalog,
     workflow,
     tutorial,
@@ -338,7 +292,6 @@ export function StepProvider({ children }) {
     error,
     canContinue: currentQuestion ? hasAnswer(currentQuestion, answers[currentQuestion.id]) : false,
     initialize,
-    selectMode,
     updateAnswer,
     continueFlow,
     goBack,
