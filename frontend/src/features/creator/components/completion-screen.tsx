@@ -9,6 +9,7 @@ import {
   LuDownload,
   LuFileCode2,
   LuFileText,
+  LuLayers,
   LuListChecks,
   LuRocket,
   LuServerCog,
@@ -26,13 +27,19 @@ interface CompletionScreenProps {
   error?: string;
 }
 
-type Tab = 'files' | 'apply' | 'manifest';
+type Tab = 'files' | 'platforms' | 'apply' | 'manifest';
+type PlatformKey = 'cursor' | 'devin-desktop' | 'coderabbit' | 'kilo-code' | 'kiro' | 'portable';
 
 const KIND_ICONS: Record<ArtifactKind, React.ComponentType<{ className?: string }>> = {
   configuration: LuServerCog,
   documentation: LuFileText,
   instruction: LuFileCode2,
   manifest: LuBraces,
+  'agents-md': LuFileText,
+  'cursor-rules': LuFileCode2,
+  'devin-rules': LuFileCode2,
+  'coderabbit-config': LuServerCog,
+  'kilocode-rules': LuFileCode2,
 };
 
 const KIND_LABELS: Record<ArtifactKind, string> = {
@@ -40,7 +47,32 @@ const KIND_LABELS: Record<ArtifactKind, string> = {
   documentation: 'Documentación',
   instruction: 'Instrucciones',
   manifest: 'Manifest',
+  'agents-md': 'AGENTS.md',
+  'cursor-rules': 'Cursor',
+  'devin-rules': 'Devin Desktop',
+  'coderabbit-config': 'CodeRabbit',
+  'kilocode-rules': 'Kilo Code',
 };
+
+function getArtifactPlatform(path: string): PlatformKey {
+  if (path === '.cursorrules' || path.startsWith('.cursor/')) return 'cursor';
+  if (path === '.windsurfrules' || path.startsWith('.windsurf/')) return 'devin-desktop';
+  if (path === '.coderabbit.yaml') return 'coderabbit';
+  if (path === '.kilocodemodes' || path.startsWith('.kilocode/')) return 'kilo-code';
+  if (path.startsWith('.kiro/')) return 'kiro';
+  return 'portable';
+}
+
+const PLATFORM_LABELS: Record<PlatformKey, string> = {
+  cursor: 'Cursor',
+  'devin-desktop': 'Devin Desktop / Windsurf',
+  coderabbit: 'CodeRabbit',
+  'kilo-code': 'Kilo Code',
+  kiro: 'Kiro',
+  portable: 'Portátil / AGENTS.md',
+};
+
+const PLATFORM_ORDER: PlatformKey[] = ['cursor', 'devin-desktop', 'coderabbit', 'kilo-code', 'kiro', 'portable'];
 
 function downloadArtifact(artifact: GeneratedArtifact) {
   downloadFile(artifact.path.replace(/\//g, '__'), artifact.content, artifact.mediaType);
@@ -76,6 +108,20 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
     return [...map.entries()];
   }, [bundle.artifacts]);
 
+  const platformGroups = useMemo(() => {
+    const map = new Map<PlatformKey, GeneratedArtifact[]>();
+    for (const artifact of bundle.artifacts) {
+      const key = getArtifactPlatform(artifact.path);
+      const list = map.get(key);
+      if (list) list.push(artifact);
+      else map.set(key, [artifact]);
+    }
+    return PLATFORM_ORDER.flatMap((key) => {
+      const artifacts = map.get(key);
+      return artifacts ? [[key, artifacts] as const] : [];
+    });
+  }, [bundle.artifacts]);
+
   useEffect(() => {
     const timer = window.setTimeout(() => setShowSuccessBurst(false), 900);
     return () => window.clearTimeout(timer);
@@ -97,6 +143,85 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
       setCopyError('El navegador bloqueó el portapapeles. Usa «Descargar» para obtener el archivo.');
     }
   }
+
+  const artifactPreview = activeArtifact && (
+    <div className={glassCard('flex min-w-0 flex-col gap-3 rounded-2xl p-4')}>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <span className="block truncate text-sm font-medium text-zinc-200">{activeArtifact.path}</span>
+          <span className="text-xs text-zinc-500">{activeArtifact.description}</span>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => copy(activeArtifact.path, activeArtifact.content)}
+            className={glassButton('px-3 py-1.5 text-xs')}
+          >
+            {copied === activeArtifact.path ? (
+              <>
+                <LuCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                Copiado
+              </>
+            ) : (
+              <>
+                <LuClipboard className="h-3.5 w-3.5" aria-hidden="true" />
+                Copiar
+              </>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => downloadArtifact(activeArtifact)}
+            className={glassButton('px-3 py-1.5 text-xs')}
+          >
+            <LuDownload className="h-3.5 w-3.5" aria-hidden="true" />
+            Descargar
+          </button>
+        </div>
+      </div>
+
+      <pre className="creator-scroll max-h-[42vh] overflow-auto rounded-2xl border border-white/[0.06] bg-black/30 p-3 text-xs leading-relaxed text-zinc-300">
+        {highlightArtifact(activeArtifact.content, detectArtifactLanguage(activeArtifact.path))}
+      </pre>
+
+      <p className="truncate font-mono text-[10px] text-zinc-600" title={activeArtifact.sha256}>
+        sha256 {activeArtifact.sha256}
+      </p>
+    </div>
+  );
+
+  const fileList = (groups: Array<readonly [string, GeneratedArtifact[]]>, groupLabel: string) => (
+    <nav className="creator-scroll flex max-h-[52vh] flex-col gap-3 overflow-y-auto pr-1">
+      {groups.map(([group, artifacts]) => {
+        const Icon = groupLabel === 'platform' ? LuLayers : (KIND_ICONS[group as ArtifactKind] ?? LuFileCode2);
+        return (
+          <div key={group} className="flex flex-col gap-1">
+            <span className="flex items-center gap-1.5 px-1 text-[10px] font-medium uppercase tracking-wide text-zinc-600">
+              <Icon className="h-3 w-3" aria-hidden="true" />
+              {groupLabel === 'platform'
+                ? PLATFORM_LABELS[group as PlatformKey]
+                : (KIND_LABELS[group as ArtifactKind] ?? group)}
+            </span>
+            {artifacts.map((artifact) => (
+              <button
+                key={artifact.path}
+                type="button"
+                onClick={() => setActivePath(artifact.path)}
+                title={artifact.path}
+                className={`animate-fade-in-up flex items-center gap-2 truncate rounded-xl px-2.5 py-2 text-left text-xs transition-colors ${
+                  artifact.path === activePath
+                    ? 'border border-accent/40 bg-accent-deep/20 text-zinc-100'
+                    : 'border border-transparent text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300'
+                }`}
+              >
+                <span className="truncate">{artifact.path}</span>
+              </button>
+            ))}
+          </div>
+        );
+      })}
+    </nav>
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -142,9 +267,10 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
         </div>
       )}
 
-      <nav className="flex items-center justify-center gap-2" aria-label="Vistas del bundle">
+      <nav className="flex flex-wrap items-center justify-center gap-2" aria-label="Vistas del bundle">
         {[
           { id: 'files' as Tab, label: 'Archivos', Icon: LuFileCode2 },
+          { id: 'platforms' as Tab, label: 'Plataformas', Icon: LuLayers },
           { id: 'apply' as Tab, label: 'Cómo aplicarlo', Icon: LuListChecks },
           { id: 'manifest' as Tab, label: 'Manifest y hashes', Icon: LuBraces },
         ].map((item) => (
@@ -167,80 +293,15 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
 
       {tab === 'files' && (
         <div className="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
-          <nav className="creator-scroll flex max-h-[52vh] flex-col gap-3 overflow-y-auto pr-1">
-            {grouped.map(([kind, artifacts]) => {
-              const KindIcon = KIND_ICONS[kind];
-              return (
-                <div key={kind} className="flex flex-col gap-1">
-                  <span className="flex items-center gap-1.5 px-1 text-[10px] font-medium uppercase tracking-wide text-zinc-600">
-                    <KindIcon className="h-3 w-3" aria-hidden="true" />
-                    {KIND_LABELS[kind]}
-                  </span>
-                  {artifacts.map((artifact) => (
-                    <button
-                      key={artifact.path}
-                      type="button"
-                      onClick={() => setActivePath(artifact.path)}
-                      title={artifact.path}
-                      className={`animate-fade-in-up flex items-center gap-2 truncate rounded-xl px-2.5 py-2 text-left text-xs transition-colors ${
-                        artifact.path === activePath
-                          ? 'border border-accent/40 bg-accent-deep/20 text-zinc-100'
-                          : 'border border-transparent text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300'
-                      }`}
-                    >
-                      <span className="truncate">{artifact.path}</span>
-                    </button>
-                  ))}
-                </div>
-              );
-            })}
-          </nav>
+          {fileList(grouped, 'kind')}
+          {artifactPreview}
+        </div>
+      )}
 
-          {activeArtifact && (
-            <div className={glassCard('flex min-w-0 flex-col gap-3 rounded-2xl p-4')}>
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <span className="block truncate text-sm font-medium text-zinc-200">{activeArtifact.path}</span>
-                  <span className="text-xs text-zinc-500">{activeArtifact.description}</span>
-                </div>
-                <div className="flex shrink-0 items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => copy(activeArtifact.path, activeArtifact.content)}
-                    className={glassButton('px-3 py-1.5 text-xs')}
-                  >
-                    {copied === activeArtifact.path ? (
-                      <>
-                        <LuCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                        Copiado
-                      </>
-                    ) : (
-                      <>
-                        <LuClipboard className="h-3.5 w-3.5" aria-hidden="true" />
-                        Copiar
-                      </>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => downloadArtifact(activeArtifact)}
-                    className={glassButton('px-3 py-1.5 text-xs')}
-                  >
-                    <LuDownload className="h-3.5 w-3.5" aria-hidden="true" />
-                    Descargar
-                  </button>
-                </div>
-              </div>
-
-              <pre className="creator-scroll max-h-[42vh] overflow-auto rounded-2xl border border-white/[0.06] bg-black/30 p-3 text-xs leading-relaxed text-zinc-300">
-                {highlightArtifact(activeArtifact.content, detectArtifactLanguage(activeArtifact.path))}
-              </pre>
-
-              <p className="truncate font-mono text-[10px] text-zinc-600" title={activeArtifact.sha256}>
-                sha256 {activeArtifact.sha256}
-              </p>
-            </div>
-          )}
+      {tab === 'platforms' && (
+        <div className="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
+          {fileList(platformGroups, 'platform')}
+          {artifactPreview}
         </div>
       )}
 
@@ -330,7 +391,7 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
                     <td className="max-w-[16rem] truncate px-2 py-2 text-zinc-300" title={file.path}>
                       {file.path}
                     </td>
-                    <td className="px-2 py-2 text-zinc-500">{KIND_LABELS[file.kind]}</td>
+                    <td className="px-2 py-2 text-zinc-500">{KIND_LABELS[file.kind] ?? file.kind}</td>
                     <td className="truncate px-2 py-2 font-mono text-[10px] text-zinc-600" title={file.sha256}>
                       {file.sha256.slice(0, 16)}…
                     </td>

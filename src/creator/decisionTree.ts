@@ -334,11 +334,12 @@ export const creatorQuestions: DecisionQuestion[] = [
     id: 'agent_targets',
     section: 'Salida',
     prompt: '¿Para qué plataformas se generará la configuración?',
-    description: 'Huascar genera su formato nativo, Kiro usa `.kiro/` y Portable usa AGENTS.md/skills.',
+    description:
+      'Selecciona uno o más targets reales. Puedes generar artefactos nativos para varias plataformas simultáneamente.',
     type: 'catalog-multiselect',
     required: true,
     catalogCategories: ['agent-platform'],
-    maxSelections: 3,
+    maxSelections: 7,
   },
   {
     id: 'hooks_enabled',
