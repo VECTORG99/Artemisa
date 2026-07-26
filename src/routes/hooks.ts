@@ -1,6 +1,5 @@
 import crypto from 'crypto';
 import { Router } from 'express';
-import { resolveApproval } from '../kiro/hooks.js';
 import { ApiError, ErrorCodes } from '../errors.js';
 import type { CommitApproval } from '../services/approvals.js';
 import { approvalTimers } from '../services/approvals.js';
@@ -41,7 +40,6 @@ export function hooksRouter(commitApprovals: Map<string, CommitApproval>): Route
       const record = commitApprovals.get(id);
       if (!record) return next(new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'Approval request not found', 404));
       record.status = approved ? 'approved' : 'rejected';
-      resolveApproval(id, approved);
       res.json({ id, status: record.status });
     } catch (error: unknown) {
       next(error);
