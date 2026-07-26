@@ -152,10 +152,33 @@ function createMeteor(width: number, height: number): Meteor {
   };
 }
 
-export function SpaceSimulation() {
+interface SpaceSimulationProps {
+  /**
+   * Global brightness multiplier for stars, disk, ring and meteors — lets
+   * callers reuse the exact same simulation at a subtler intensity (e.g.
+   * the Creator background) without forking the canvas logic. 1 = landing
+   * page look, lower values dim everything uniformly.
+   */
+  intensity?: number;
+  /**
+   * Renders the accretion disk, photon ring and event horizon shadow.
+   * Defaults to true (the Landing's look). The Creator sets this to false
+   * — it reuses the exact same star field, gravitational lensing and
+   * meteor physics (they still orbit/bend around the same invisible
+   * `well`) but without painting the black hole itself, since a
+   * decorative black hole doesn't belong in a configuration tool.
+   */
+  showBlackHole?: boolean;
+}
+
+export function SpaceSimulation({ intensity = 1, showBlackHole = true }: SpaceSimulationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const accretionEnergyRef = useRef(0);
+  const intensityRef = useRef(intensity);
+  intensityRef.current = intensity;
+  const showBlackHoleRef = useRef(showBlackHole);
+  showBlackHoleRef.current = showBlackHole;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -211,6 +234,12 @@ export function SpaceSimulation() {
     const animate = () => {
       ctx.fillStyle = 'rgba(0, 0, 0, 1)';
       ctx.fillRect(0, 0, width, height);
+
+      // Everything drawn from here on (stars, disk, ring, meteors) is
+      // scaled by `intensity` — lets callers reuse this exact simulation
+      // at a subtler brightness (e.g. the Creator background) without
+      // touching every individual opacity computation below.
+      ctx.globalAlpha = intensityRef.current;
 
       // ─── Stars with gravitational lensing ──────────────────────────────
       // Stars drift downward with a fraction of scroll (parallax), wrapping
@@ -313,252 +342,267 @@ export function SpaceSimulation() {
       }
 
       // ─── Accretion disk: continuous beamed band + secondary lensed arc ─
-      const energy = accretionEnergyRef.current;
-      const diskBrightness = 0.75 + energy * 0.55;
-      const t = performance.now() * 0.00035;
+      // Skipped entirely when `showBlackHole` is false (Creator background)
+      // — stars above and meteors below still use `well` for lensing/
+      // gravity, so the field keeps the same physics, just without ever
+      // painting the hole itself.
+      if (showBlackHoleRef.current) {
+        const energy = accretionEnergyRef.current;
+        const diskBrightness = 0.75 + energy * 0.55;
+        const t = performance.now() * 0.00035;
 
-      // Orbital perspective driven by scroll: as the user scrolls down it
-      // feels like we are orbiting around the black hole and swinging
-      // closer to it, then pulling back — the disk tilts toward face-on,
-      // rotates its viewing angle, and breathes in scale, all as a
-      // continuous periodic function of scroll depth (never runs out).
-      const orbitPhase = scrollY * 0.0022;
-      const orbitTilt = DISK_TILT + Math.sin(orbitPhase) * 0.22;
-      const orbitScale = 1 + Math.sin(orbitPhase * 0.85 + 1.1) * 0.16;
-      const orbitRotation = Math.sin(orbitPhase * 0.6) * 0.35;
-      const orbitProximity = (Math.sin(orbitPhase + Math.PI / 2) + 1) / 2; // 0..1, 1 = closest pass
-      const orbitBrightness = diskBrightness * (0.82 + orbitProximity * 0.5);
+        // Orbital perspective driven by scroll: as the user scrolls down it
+        // feels like we are orbiting around the black hole and swinging
+        // closer to it, then pulling back — the disk tilts toward face-on,
+        // rotates its viewing angle, and breathes in scale, all as a
+        // continuous periodic function of scroll depth (never runs out).
+        const orbitPhase = scrollY * 0.0022;
+        const orbitTilt = DISK_TILT + Math.sin(orbitPhase) * 0.22;
+        const orbitScale = 1 + Math.sin(orbitPhase * 0.85 + 1.1) * 0.16;
+        const orbitRotation = Math.sin(orbitPhase * 0.6) * 0.35;
+        const orbitProximity = (Math.sin(orbitPhase + Math.PI / 2) + 1) / 2; // 0..1, 1 = closest pass
+        const orbitBrightness = diskBrightness * (0.82 + orbitProximity * 0.5);
 
-      // Draw the primary disk as a set of concentric orbits sampled densely
-      // enough to read as a continuous glowing band rather than particles.
-      // Layers go from wide/dim (outer disk) to narrow/bright (inner edge).
-      // All layers share the same hue at a given instant so they blend into
-      // one smooth band instead of showing as distinct overlapping color
-      // tiers.
-      //
-      // Each layer is stroked as ONE continuous path (single beginPath +
-      // many lineTo + a single stroke) instead of one stroke per segment.
-      // Canvas re-paints alpha at every join between separate strokes, and
-      // with 160 segments per layer that accumulation reads as ugly
-      // overlapping "micro circles" along the ring. A single path avoids
-      // that entirely; per-segment Doppler brightness is approximated with
-      // one representative opacity per layer instead.
-      const radiusRatios = [2.6, 2.1, 1.7, 1.35, 1.08];
-      for (const ratio of radiusRatios) {
-        const samples = sampleDisk(well, ratio * orbitScale, orbitTilt, t + orbitRotation, DISK_SAMPLES);
+        // Draw the primary disk as a set of concentric orbits sampled densely
+        // enough to read as a continuous glowing band rather than particles.
+        // Layers go from wide/dim (outer disk) to narrow/bright (inner edge).
+        // All layers share the same hue at a given instant so they blend into
+        // one smooth band instead of showing as distinct overlapping color
+        // tiers.
+        //
+        // Each layer is stroked as ONE continuous path (single beginPath +
+        // many lineTo + a single stroke) instead of one stroke per segment.
+        // Canvas re-paints alpha at every join between separate strokes, and
+        // with 160 segments per layer that accumulation reads as ugly
+        // overlapping "micro circles" along the ring. A single path avoids
+        // that entirely; per-segment Doppler brightness is approximated with
+        // one representative opacity per layer instead.
+        const radiusRatios = [2.6, 2.1, 1.7, 1.35, 1.08];
+        for (const ratio of radiusRatios) {
+          const samples = sampleDisk(well, ratio * orbitScale, orbitTilt, t + orbitRotation, DISK_SAMPLES);
 
-        // Representative brightness/width for this layer (average across
-        // samples), so the whole ring is one flat, evenly-lit stroke.
-        let avgBrightness = 0;
-        let avgWidth = 0;
-        for (const s of samples) {
-          avgBrightness += s.brightness;
-          avgWidth += s.width;
-        }
-        avgBrightness /= samples.length;
-        avgWidth /= samples.length;
-
-        const op = clampOpacity(avgBrightness * orbitBrightness * 0.55);
-        // Fade smoothly to zero near the cutoff instead of a hard `continue`.
-        // A binary skip means the faintest (outermost) ring pops in/out of
-        // existence whenever `op` oscillates around the threshold — e.g. on
-        // every orbital brightness cycle, or when scroll position jumps
-        // (programmatic scroll-to-top), causing a visible flicker.
-        const FADE_FLOOR = 0.015;
-        const FADE_RANGE = 0.05;
-        if (op < FADE_FLOOR) continue;
-        const fadedOp = op < FADE_FLOOR + FADE_RANGE ? op * ((op - FADE_FLOOR) / FADE_RANGE) : op;
-
-        ctx.beginPath();
-        ctx.moveTo(samples[0].x, samples[0].y);
-        for (let i = 1; i <= samples.length; i++) {
-          const s = samples[i % samples.length];
-          ctx.lineTo(s.x, s.y);
-        }
-        ctx.strokeStyle = buildNoiseGradient(
-          ctx,
-          well.x,
-          well.y,
-          performance.now(),
-          ratio,
-          RING_TINT_SATURATION,
-          84,
-          fadedOp,
-        );
-        ctx.lineWidth = avgWidth * (1 + energy * 0.6) * orbitScale;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.stroke();
-      }
-
-      // Bright inner rim of the disk right before it plunges past the
-      // photon sphere — the hottest, fastest-orbiting material. Drawn as a
-      // single continuous path (see primary disk above) to avoid alpha
-      // buildup at segment joins.
-      const innerSamples = sampleDisk(well, 1.0 * orbitScale, orbitTilt, t + orbitRotation, DISK_SAMPLES);
-      {
-        let avgBrightness = 0;
-        let avgWidth = 0;
-        for (const s of innerSamples) {
-          avgBrightness += s.brightness;
-          avgWidth += s.width;
-        }
-        avgBrightness /= innerSamples.length;
-        avgWidth /= innerSamples.length;
-        const op = clampOpacity(avgBrightness * orbitBrightness * 0.85);
-        if (op >= 0.02) {
-          ctx.beginPath();
-          ctx.moveTo(innerSamples[0].x, innerSamples[0].y);
-          for (let i = 1; i <= innerSamples.length; i++) {
-            const s = innerSamples[i % innerSamples.length];
-            ctx.lineTo(s.x, s.y);
+          // Representative brightness/width for this layer (average across
+          // samples), so the whole ring is one flat, evenly-lit stroke.
+          let avgBrightness = 0;
+          let avgWidth = 0;
+          for (const s of samples) {
+            avgBrightness += s.brightness;
+            avgWidth += s.width;
           }
-          ctx.strokeStyle = buildNoiseGradient(ctx, well.x, well.y, performance.now(), 5, RING_TINT_SATURATION, 88, op);
-          ctx.lineWidth = avgWidth * 1.3 * (1 + energy * 0.8) * orbitScale;
-          ctx.lineCap = 'round';
-          ctx.lineJoin = 'round';
-          ctx.stroke();
-        }
-      }
+          avgBrightness /= samples.length;
+          avgWidth /= samples.length;
 
-      // ─── Event horizon shadow (drawn over the far side of the disk) ───
-      const shadowGrd = ctx.createRadialGradient(
-        well.x,
-        well.y,
-        well.eventRadius * 0.6,
-        well.x,
-        well.y,
-        well.photonRadius * 1.02,
-      );
-      shadowGrd.addColorStop(0, 'rgba(0,0,0,1)');
-      shadowGrd.addColorStop(0.75, 'rgba(0,0,0,0.97)');
-      shadowGrd.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.beginPath();
-      ctx.arc(well.x, well.y, well.photonRadius * 1.02, 0, Math.PI * 2);
-      ctx.fillStyle = shadowGrd;
-      ctx.fill();
+          const op = clampOpacity(avgBrightness * orbitBrightness * 0.55);
+          // Fade smoothly to zero near the cutoff instead of a hard `continue`.
+          // A binary skip means the faintest (outermost) ring pops in/out of
+          // existence whenever `op` oscillates around the threshold — e.g. on
+          // every orbital brightness cycle, or when scroll position jumps
+          // (programmatic scroll-to-top), causing a visible flicker.
+          const FADE_FLOOR = 0.015;
+          const FADE_RANGE = 0.05;
+          if (op < FADE_FLOOR) continue;
+          const fadedOp = op < FADE_FLOOR + FADE_RANGE ? op * ((op - FADE_FLOOR) / FADE_RANGE) : op;
 
-      // Sharp horizon edge — the true event horizon, pure black.
-      ctx.beginPath();
-      ctx.arc(well.x, well.y, well.eventRadius, 0, Math.PI * 2);
-      ctx.fillStyle = '#000';
-      ctx.fill();
-
-      // ─── Secondary (lensed) image: far side of the disk bent around the
-      // photon sphere into a thin bright arc above the shadow — the
-      // signature feature distinguishing a real black hole render from a
-      // flat ring. Follows the same orbital perspective as the disk. Drawn
-      // as a single continuous path to avoid alpha buildup at joins. ────
-      const secondary = sampleSecondaryImage(well, t + orbitRotation, SECONDARY_SAMPLES);
-      {
-        let avgBrightness = 0;
-        let avgWidth = 0;
-        for (const s of secondary) {
-          avgBrightness += s.brightness;
-          avgWidth += s.width;
-        }
-        avgBrightness /= secondary.length;
-        avgWidth /= secondary.length;
-        const op = clampOpacity(avgBrightness * orbitBrightness * 0.7);
-        if (op >= 0.015) {
           ctx.beginPath();
-          ctx.moveTo(secondary[0].x, secondary[0].y);
-          for (let i = 1; i < secondary.length; i++) {
-            ctx.lineTo(secondary[i].x, secondary[i].y);
+          ctx.moveTo(samples[0].x, samples[0].y);
+          for (let i = 1; i <= samples.length; i++) {
+            const s = samples[i % samples.length];
+            ctx.lineTo(s.x, s.y);
           }
           ctx.strokeStyle = buildNoiseGradient(
             ctx,
             well.x,
             well.y,
             performance.now(),
-            11,
+            ratio,
             RING_TINT_SATURATION,
-            86,
-            op,
+            84,
+            fadedOp,
           );
           ctx.lineWidth = avgWidth * (1 + energy * 0.6) * orbitScale;
           ctx.lineCap = 'round';
           ctx.lineJoin = 'round';
           ctx.stroke();
         }
-      }
 
-      // ─── Photon ring: thin, crisp, asymmetric line right at the shadow
-      // boundary — brightest where the approaching disk material lenses
-      // directly onto it. Radius breathes and rotates with orbital
-      // perspective so it reads as swinging past the hole with the disk.
-      // Drawn as a single continuous path with a fixed, fully-opaque
-      // stroke color — brightness variation comes only from line width,
-      // not per-segment alpha, so there is no alpha buildup at the joins.
-      const ringSamples = 140;
-      const ringRadius = well.photonRadius * orbitScale;
-      const ringBaseOpacity = clampOpacity(0.5 + energy * 0.25);
-      ctx.beginPath();
-      for (let i = 0; i <= ringSamples; i++) {
-        const angle = (i / ringSamples) * Math.PI * 2;
-        const rx = well.x + Math.cos(angle) * ringRadius;
-        const ry = well.y + Math.sin(angle) * ringRadius;
-        if (i === 0) {
-          ctx.moveTo(rx, ry);
-        } else {
-          ctx.lineTo(rx, ry);
-        }
-      }
-      ctx.strokeStyle = buildNoiseGradient(
-        ctx,
-        well.x,
-        well.y,
-        performance.now(),
-        23,
-        RING_TINT_SATURATION,
-        90,
-        ringBaseOpacity,
-      );
-      ctx.lineWidth = 2 + energy * 2;
-      ctx.lineJoin = 'round';
-      ctx.stroke();
-
-      // A second, thinner pass with variable width per segment adds the
-      // asymmetric "brightest where approaching" highlight on top, using a
-      // single path per contiguous bright arc to avoid join artifacts.
-      {
-        let arcOpen = false;
-        for (let i = 0; i <= ringSamples; i++) {
-          const angle = (i / ringSamples) * Math.PI * 2;
-          const approach = Math.cos(angle + t * 1.4 + orbitRotation);
-          const bright = approach > 0.15;
-          const rx = well.x + Math.cos(angle) * ringRadius;
-          const ry = well.y + Math.sin(angle) * ringRadius;
-
-          if (bright && i < ringSamples) {
-            if (!arcOpen) {
-              ctx.beginPath();
-              ctx.moveTo(rx, ry);
-              arcOpen = true;
-            } else {
-              ctx.lineTo(rx, ry);
+        // Bright inner rim of the disk right before it plunges past the
+        // photon sphere — the hottest, fastest-orbiting material. Drawn as a
+        // single continuous path (see primary disk above) to avoid alpha
+        // buildup at segment joins.
+        const innerSamples = sampleDisk(well, 1.0 * orbitScale, orbitTilt, t + orbitRotation, DISK_SAMPLES);
+        {
+          let avgBrightness = 0;
+          let avgWidth = 0;
+          for (const s of innerSamples) {
+            avgBrightness += s.brightness;
+            avgWidth += s.width;
+          }
+          avgBrightness /= innerSamples.length;
+          avgWidth /= innerSamples.length;
+          const op = clampOpacity(avgBrightness * orbitBrightness * 0.85);
+          if (op >= 0.02) {
+            ctx.beginPath();
+            ctx.moveTo(innerSamples[0].x, innerSamples[0].y);
+            for (let i = 1; i <= innerSamples.length; i++) {
+              const s = innerSamples[i % innerSamples.length];
+              ctx.lineTo(s.x, s.y);
             }
-          } else if (arcOpen) {
-            ctx.lineTo(rx, ry);
-            const op = clampOpacity((0.25 + energy * 0.3) * (0.85 + orbitProximity * 0.3));
             ctx.strokeStyle = buildNoiseGradient(
               ctx,
               well.x,
               well.y,
               performance.now(),
-              31,
+              5,
               RING_TINT_SATURATION,
-              92,
+              88,
               op,
             );
-            ctx.lineWidth = 3.5 + energy * 2;
+            ctx.lineWidth = avgWidth * 1.3 * (1 + energy * 0.8) * orbitScale;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             ctx.stroke();
-            arcOpen = false;
           }
         }
-      }
+
+        // ─── Event horizon shadow (drawn over the far side of the disk) ───
+        const shadowGrd = ctx.createRadialGradient(
+          well.x,
+          well.y,
+          well.eventRadius * 0.6,
+          well.x,
+          well.y,
+          well.photonRadius * 1.02,
+        );
+        shadowGrd.addColorStop(0, 'rgba(0,0,0,1)');
+        shadowGrd.addColorStop(0.75, 'rgba(0,0,0,0.97)');
+        shadowGrd.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.beginPath();
+        ctx.arc(well.x, well.y, well.photonRadius * 1.02, 0, Math.PI * 2);
+        ctx.fillStyle = shadowGrd;
+        ctx.fill();
+
+        // Sharp horizon edge — the true event horizon, pure black.
+        ctx.beginPath();
+        ctx.arc(well.x, well.y, well.eventRadius, 0, Math.PI * 2);
+        ctx.fillStyle = '#000';
+        ctx.fill();
+
+        // ─── Secondary (lensed) image: far side of the disk bent around the
+        // photon sphere into a thin bright arc above the shadow — the
+        // signature feature distinguishing a real black hole render from a
+        // flat ring. Follows the same orbital perspective as the disk. Drawn
+        // as a single continuous path to avoid alpha buildup at joins. ────
+        const secondary = sampleSecondaryImage(well, t + orbitRotation, SECONDARY_SAMPLES);
+        {
+          let avgBrightness = 0;
+          let avgWidth = 0;
+          for (const s of secondary) {
+            avgBrightness += s.brightness;
+            avgWidth += s.width;
+          }
+          avgBrightness /= secondary.length;
+          avgWidth /= secondary.length;
+          const op = clampOpacity(avgBrightness * orbitBrightness * 0.7);
+          if (op >= 0.015) {
+            ctx.beginPath();
+            ctx.moveTo(secondary[0].x, secondary[0].y);
+            for (let i = 1; i < secondary.length; i++) {
+              ctx.lineTo(secondary[i].x, secondary[i].y);
+            }
+            ctx.strokeStyle = buildNoiseGradient(
+              ctx,
+              well.x,
+              well.y,
+              performance.now(),
+              11,
+              RING_TINT_SATURATION,
+              86,
+              op,
+            );
+            ctx.lineWidth = avgWidth * (1 + energy * 0.6) * orbitScale;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.stroke();
+          }
+        }
+
+        // ─── Photon ring: thin, crisp, asymmetric line right at the shadow
+        // boundary — brightest where the approaching disk material lenses
+        // directly onto it. Radius breathes and rotates with orbital
+        // perspective so it reads as swinging past the hole with the disk.
+        // Drawn as a single continuous path with a fixed, fully-opaque
+        // stroke color — brightness variation comes only from line width,
+        // not per-segment alpha, so there is no alpha buildup at the joins.
+        const ringSamples = 140;
+        const ringRadius = well.photonRadius * orbitScale;
+        const ringBaseOpacity = clampOpacity(0.5 + energy * 0.25);
+        ctx.beginPath();
+        for (let i = 0; i <= ringSamples; i++) {
+          const angle = (i / ringSamples) * Math.PI * 2;
+          const rx = well.x + Math.cos(angle) * ringRadius;
+          const ry = well.y + Math.sin(angle) * ringRadius;
+          if (i === 0) {
+            ctx.moveTo(rx, ry);
+          } else {
+            ctx.lineTo(rx, ry);
+          }
+        }
+        ctx.strokeStyle = buildNoiseGradient(
+          ctx,
+          well.x,
+          well.y,
+          performance.now(),
+          23,
+          RING_TINT_SATURATION,
+          90,
+          ringBaseOpacity,
+        );
+        ctx.lineWidth = 2 + energy * 2;
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+
+        // A second, thinner pass with variable width per segment adds the
+        // asymmetric "brightest where approaching" highlight on top, using a
+        // single path per contiguous bright arc to avoid join artifacts.
+        {
+          let arcOpen = false;
+          for (let i = 0; i <= ringSamples; i++) {
+            const angle = (i / ringSamples) * Math.PI * 2;
+            const approach = Math.cos(angle + t * 1.4 + orbitRotation);
+            const bright = approach > 0.15;
+            const rx = well.x + Math.cos(angle) * ringRadius;
+            const ry = well.y + Math.sin(angle) * ringRadius;
+
+            if (bright && i < ringSamples) {
+              if (!arcOpen) {
+                ctx.beginPath();
+                ctx.moveTo(rx, ry);
+                arcOpen = true;
+              } else {
+                ctx.lineTo(rx, ry);
+              }
+            } else if (arcOpen) {
+              ctx.lineTo(rx, ry);
+              const op = clampOpacity((0.25 + energy * 0.3) * (0.85 + orbitProximity * 0.3));
+              ctx.strokeStyle = buildNoiseGradient(
+                ctx,
+                well.x,
+                well.y,
+                performance.now(),
+                31,
+                RING_TINT_SATURATION,
+                92,
+                op,
+              );
+              ctx.lineWidth = 3.5 + energy * 2;
+              ctx.lineCap = 'round';
+              ctx.lineJoin = 'round';
+              ctx.stroke();
+              arcOpen = false;
+            }
+          }
+        }
+      } // end if (showBlackHoleRef.current)
 
       // ─── Meteors with gravitational effects ────────────────────────────
       // Scroll adds a bit more room/energy to the field: spawn rate and
@@ -587,7 +631,7 @@ export function SpaceSimulation() {
 
         if (grav.absorbed) {
           m.absorbed = true;
-          accretionEnergyRef.current = Math.min(1, energy + 0.35);
+          accretionEnergyRef.current = Math.min(1, accretionEnergyRef.current + 0.35);
           meteors.splice(i, 1);
           continue;
         }
@@ -663,7 +707,7 @@ export function SpaceSimulation() {
       }
 
       // Decay accretion energy over time
-      accretionEnergyRef.current = Math.max(0, energy - 0.004);
+      accretionEnergyRef.current = Math.max(0, accretionEnergyRef.current - 0.004);
 
       animRef.current = requestAnimationFrame(animate);
     };

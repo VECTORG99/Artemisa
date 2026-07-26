@@ -2,6 +2,7 @@
 
 import { LuArrowRight } from 'react-icons/lu';
 import { glassCardInteractive, glassPill } from '@/lib/glass';
+import { GlassIconButton } from '@/components/ui/glass-icon-button';
 import { CREATOR_PRESETS, type CreatorPreset } from '../presets/presets';
 
 interface PresetsGalleryProps {
@@ -17,7 +18,7 @@ interface PresetsGalleryProps {
  */
 export function PresetsGallery({ onSelect, onBack }: PresetsGalleryProps) {
   return (
-    <div className="flex flex-col items-center gap-10 text-center">
+    <div className="flex flex-col items-center gap-8 text-center">
       <div>
         <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Presets</span>
         <h1 className="mt-2 text-3xl font-semibold text-white sm:text-4xl">Elige un punto de partida</h1>
@@ -45,9 +46,7 @@ export function PresetsGallery({ onSelect, onBack }: PresetsGalleryProps) {
         ))}
       </div>
 
-      <button type="button" onClick={onBack} className="text-sm text-zinc-500 transition-colors hover:text-zinc-300">
-        ← Cambiar modo
-      </button>
+      <GlassIconButton onClick={onBack} label="Cambiar modo" />
     </div>
   );
 }

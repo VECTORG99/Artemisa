@@ -53,7 +53,7 @@ export function DynamicQuestion({ question, options, value, onChange, advancedCo
             {showAdvanced ? '– Ocultar avanzado' : '+ Avanzado'}
           </button>
           {showAdvanced && (
-            <div className="w-full rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 text-left">
+            <div className="w-full rounded-2xl border border-white/[0.07] bg-white/[0.012] p-4 text-left">
               {advancedControls}
             </div>
           )}
@@ -142,7 +142,7 @@ function QuestionInput({
               className={`flex flex-col gap-1 rounded-2xl border p-3.5 text-left text-sm transition-colors ${
                 isSelected
                   ? 'border-white/30 bg-white/[0.08] text-zinc-100'
-                  : 'border-white/[0.08] bg-white/[0.02] text-zinc-300 hover:border-white/20 hover:bg-white/[0.05]'
+                  : 'border-white/[0.07] bg-white/[0.012] text-zinc-300 hover:border-white/20 hover:bg-white/[0.05]'
               }`}
             >
               <span className="font-medium">{option.label}</span>
