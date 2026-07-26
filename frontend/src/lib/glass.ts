@@ -16,20 +16,20 @@ export function cn(...inputs: (string | undefined | null | false)[]) {
 
 /** Inline style object — identical to the landing's `glassStyle` constant. */
 export const glassStyle: React.CSSProperties = {
-  backdropFilter: 'blur(9px) saturate(140%)',
-  WebkitBackdropFilter: 'blur(9px) saturate(140%)',
-  background: 'rgba(255,255,255,0.02)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
+  backdropFilter: 'blur(6px) saturate(140%)',
+  WebkitBackdropFilter: 'blur(6px) saturate(140%)',
+  background: 'rgba(255,255,255,0.012)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
 };
 
 // Base glass effect for large panels or containers
 export function glassPanel(className?: string) {
   return cn(
-    'backdrop-blur-[9px] backdrop-saturate-[1.4]',
-    'bg-white/[0.02]',
-    'border border-white/[0.08]',
-    'shadow-[0_4px_24px_rgba(0,0,0,0.25)]',
+    'backdrop-blur-[6px] backdrop-saturate-[1.4]',
+    'bg-white/[0.012]',
+    'border border-white/[0.07]',
+    'shadow-[0_4px_24px_rgba(0,0,0,0.2)]',
     className,
   );
 }
@@ -37,10 +37,10 @@ export function glassPanel(className?: string) {
 // Cards
 export function glassCard(className?: string) {
   return cn(
-    'backdrop-blur-[9px] backdrop-saturate-[1.4]',
-    'bg-white/[0.02]',
-    'border border-white/[0.08]',
-    'shadow-[0_4px_24px_rgba(0,0,0,0.25)]',
+    'backdrop-blur-[6px] backdrop-saturate-[1.4]',
+    'bg-white/[0.012]',
+    'border border-white/[0.07]',
+    'shadow-[0_4px_24px_rgba(0,0,0,0.2)]',
     className,
   );
 }
@@ -50,7 +50,7 @@ export function glassCardInteractive(className?: string) {
   return cn(
     glassCard(),
     'transition-all duration-300 ease-in-out',
-    'hover:bg-white/[0.05] hover:border-white/[0.15] hover:-translate-y-0.5',
+    'hover:bg-white/[0.035] hover:border-white/[0.12] hover:-translate-y-0.5',
     'cursor-pointer',
     className,
   );
@@ -60,10 +60,10 @@ export function glassCardInteractive(className?: string) {
 export function glassInput(className?: string) {
   return cn(
     'w-full rounded-xl',
-    'bg-white/[0.02] backdrop-blur-sm',
-    'border border-white/[0.08]',
+    'bg-white/[0.012] backdrop-blur-sm',
+    'border border-white/[0.07]',
     'text-zinc-100 placeholder:text-zinc-500',
-    'focus:outline-none focus:ring-1 focus:ring-white/30 focus:border-white/30',
+    'focus:outline-none focus:ring-1 focus:ring-white/25 focus:border-white/25',
     'transition-all duration-200',
     'px-4 py-3',
     className,
@@ -74,12 +74,12 @@ export function glassInput(className?: string) {
 export function glassButton(className?: string) {
   return cn(
     'inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full',
-    'bg-white/[0.02] backdrop-blur-[9px] backdrop-saturate-[1.4]',
-    'border border-white/[0.08]',
+    'bg-white/[0.012] backdrop-blur-[6px] backdrop-saturate-[1.4]',
+    'border border-white/[0.07]',
     'text-white/85 font-medium',
-    'shadow-[0_4px_24px_rgba(0,0,0,0.25)]',
+    'shadow-[0_4px_24px_rgba(0,0,0,0.2)]',
     'transition-colors duration-200',
-    'hover:text-white hover:bg-white/[0.05]',
+    'hover:text-white hover:bg-white/[0.035]',
     'active:scale-[0.98]',
     className,
   );
@@ -91,12 +91,12 @@ export function glassButton(className?: string) {
 export function glassPrimaryButton(className?: string) {
   return cn(
     'inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full',
-    'bg-white/[0.03] backdrop-blur-[9px] backdrop-saturate-[1.4]',
-    'border border-white/[0.12]',
+    'bg-white/[0.02] backdrop-blur-[6px] backdrop-saturate-[1.4]',
+    'border border-white/[0.1]',
     'text-white font-medium',
-    'shadow-[0_4px_24px_rgba(0,0,0,0.3)]',
+    'shadow-[0_4px_24px_rgba(0,0,0,0.25)]',
     'transition-colors duration-200',
-    'hover:bg-white/[0.08] hover:border-white/20',
+    'hover:bg-white/[0.06] hover:border-white/15',
     'active:scale-[0.98]',
     className,
   );
@@ -106,7 +106,7 @@ export function glassPrimaryButton(className?: string) {
 export function glassPill(className?: string) {
   return cn(
     'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs',
-    'bg-white/[0.03] backdrop-blur-md border border-white/[0.08]',
+    'bg-white/[0.02] backdrop-blur-md border border-white/[0.07]',
     'text-zinc-300',
     className,
   );

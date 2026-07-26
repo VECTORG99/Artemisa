@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { LuMonitor } from 'react-icons/lu';
 
 import {
@@ -16,7 +16,7 @@ import {
 } from '@/features/creator/components';
 import type { CreatorPreset } from '@/features/creator/presets/presets';
 import { buildShortFlowDefaults, SHORT_FLOW_QUESTION_IDS } from '@/features/creator/presets/short-flow';
-import { StarfieldBackground } from '@/components/backgrounds/starfield-background';
+import { GlassBackButton, GlassIconButton } from '@/components/ui/glass-icon-button';
 import { glassButton } from '@/lib/glass';
 import { creator, registerAgent } from '@/lib/api';
 import type { AgentConfig } from '@/types/agent';
@@ -30,6 +30,11 @@ import type {
   Workflow,
   DecisionEvaluation,
 } from '@huascar/types';
+
+const SpaceSimulation = dynamic(
+  () => import('@/features/landing/components/space-simulation').then((m) => m.SpaceSimulation),
+  { ssr: false },
+);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -332,9 +337,7 @@ export default function NewAgentPage() {
         <p className="mt-3 text-sm text-zinc-400">
           El creador de agentes requiere una pantalla más grande para la mejor experiencia.
         </p>
-        <Link href="/" className={`mt-8 ${glassButton('px-6 py-3 font-medium')}`}>
-          ← Volver al inicio
-        </Link>
+        <GlassBackButton href="/" label="Volver al inicio" className="mt-8" />
       </div>
 
       <div className="hidden md:block">
@@ -351,19 +354,12 @@ export default function NewAgentPage() {
         )}
 
         {mode === 'avanzado' && !isReviewing && !bundle && !loading && (
-          <div className="relative min-h-screen px-4 py-8 text-zinc-100 sm:px-8">
-            <StarfieldBackground />
-            <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-6">
-              <header className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={backToModeSelect}
-                  className="text-sm text-zinc-500 transition-colors hover:text-zinc-300"
-                >
-                  ← Cambiar modo
-                </button>
-                <span className="text-xs uppercase tracking-wide text-zinc-600">Avanzado · Huascar Creator</span>
-              </header>
+          <div className="relative flex h-screen flex-col items-center justify-center overflow-hidden px-4 py-6 text-zinc-100 sm:px-8">
+            <SpaceSimulation showBlackHole={false} />
+            <div className="absolute left-4 top-6 z-20 sm:left-8">
+              <GlassIconButton onClick={backToModeSelect} label="Cambiar modo" />
+            </div>
+            <div className="relative z-10 mx-auto w-full max-w-6xl">
               <FineTuningDashboard
                 answers={answers}
                 onChange={setAnswers}
@@ -398,21 +394,9 @@ export default function NewAgentPage() {
 
                 <div className="mt-8 flex items-center justify-between">
                   {questionHistory.length > 0 ? (
-                    <button
-                      type="button"
-                      onClick={goBack}
-                      className="text-sm text-zinc-400 transition-colors hover:text-zinc-200"
-                    >
-                      ← Atrás
-                    </button>
+                    <GlassIconButton onClick={goBack} label="Atrás" />
                   ) : (
-                    <button
-                      type="button"
-                      onClick={backToModeSelect}
-                      className="text-sm text-zinc-400 transition-colors hover:text-zinc-200"
-                    >
-                      ← Cambiar modo
-                    </button>
+                    <GlassIconButton onClick={backToModeSelect} label="Cambiar modo" />
                   )}
                   <button
                     type="button"

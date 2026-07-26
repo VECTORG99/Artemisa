@@ -17,7 +17,7 @@ interface SwitchProps {
 export function Switch({ checked, onChange, label, description, disabled }: SwitchProps) {
   return (
     <label
-      className={`flex items-start justify-between gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 transition-colors ${
+      className={`flex items-start justify-between gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.012] p-4 transition-colors ${
         disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-white/[0.04]'
       }`}
     >
