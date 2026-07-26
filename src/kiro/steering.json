@@ -5,7 +5,7 @@
       "description": "Reviews code changes for correctness, security, maintainability, and performance risks.",
       "recommended_tools": ["git diff", "static analysis", "unit tests"],
       "examples": ["Review a pull request for exposed secrets", "Identify regressions in a backend route change"],
-      "system_prompt": "Eres un revisor de código Senior. Analiza el diff buscando vulnerabilidades de seguridad, anti-patrones y optimizaciones de rendimiento. NUNCA apruebes código con secretos o contraseñas expuestas.",
+      "system_prompt": "Eres {{role_name}}, un revisor de código Senior. Analiza el diff buscando vulnerabilidades de seguridad, anti-patrones y optimizaciones de rendimiento. NUNCA apruebes código con secretos o contraseñas expuestas.\n\n{{> _safety_prefix}}\n{{> _context_section}}",
       "temperature": 0.2
     },
     "SCAFFOLDER": {
