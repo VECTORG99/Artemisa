@@ -7,10 +7,12 @@ import { AgentForm } from '@/components/dashboard/AgentForm';
 import { ExecutionHistory } from '@/components/dashboard/ExecutionHistory';
 import { TabNavigation } from '@/components/dashboard/TabNavigation';
 import { TerminalOutput } from '@/components/dashboard/TerminalOutput';
+import { StarfieldBackground } from '@/components/backgrounds/starfield-background';
 import { useAgentExecution } from '@/hooks/useAgentExecution';
 import { useExecutionHistory } from '@/hooks/useExecutionHistory';
 import { useTranslations } from '@/i18n';
 import { getRoles } from '@/lib/api';
+import { glassPanel } from '@/lib/glass';
 import type { AgentConfig, AgentRole, HistoryRecord, Tab } from '@/types/agent';
 
 /** Maximum task length accepted from URL parameters. */
@@ -104,7 +106,8 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-y-auto bg-zinc-950 text-zinc-50 p-8 font-sans">
+    <div className="allow-scroll relative min-h-screen overflow-y-auto bg-gradient-to-b from-zinc-950 via-black to-zinc-950 p-8 font-sans text-zinc-50">
+      <StarfieldBackground />
       {/* URL prefill confirmation dialog */}
       {prefillRequest && (
         <div
@@ -113,7 +116,7 @@ export default function DashboardPage() {
           aria-describedby="prefill-desc"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
         >
-          <div className="w-full max-w-md rounded-lg border border-zinc-700 bg-zinc-900 p-6 shadow-xl">
+          <div className={glassPanel('w-full max-w-md rounded-lg p-6 shadow-xl')}>
             <h2 id="prefill-title" className="text-lg font-semibold text-amber-400">
               ⚠️ External link detected
             </h2>
@@ -160,7 +163,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="relative z-10 mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-emerald-400 tracking-tight">{t.heading}</h1>
           <p className="text-zinc-400">{t.subheading}</p>
@@ -169,7 +172,7 @@ export default function DashboardPage() {
           <Link
             href="/"
             aria-label="Volver a la landing"
-            className="w-fit rounded-md border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 focus:ring-offset-zinc-950"
+            className="w-fit rounded-md border border-white/[0.08] bg-white/[0.02] px-4 py-2 text-sm font-medium text-zinc-300 backdrop-blur-[9px] transition-colors hover:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 focus:ring-offset-zinc-950"
           >
             Landing
           </Link>
@@ -183,18 +186,20 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <AgentForm
-          role={role}
-          roles={roles}
-          task={task}
-          loading={loading}
-          onRoleChange={setRole}
-          onTaskChange={setTask}
-          onDeploy={execute}
-        />
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className={glassPanel('rounded-2xl p-6')}>
+          <AgentForm
+            role={role}
+            roles={roles}
+            task={task}
+            loading={loading}
+            onRoleChange={setRole}
+            onTaskChange={setTask}
+            onDeploy={execute}
+          />
+        </div>
 
-        <div className="flex flex-col gap-6">
+        <div className={glassPanel('flex flex-col gap-6 rounded-2xl p-6')}>
           <TabNavigation activeTab={activeTab} historyCount={history.length} onTabChange={setActiveTab} />
           {activeTab === 'terminal' && <TerminalOutput logs={logs} jsonResponse={jsonResponse} loading={loading} />}
           {activeTab === 'history' && (
