@@ -39,7 +39,7 @@ export function HeroSection() {
   const t = useTranslations('landing');
 
   return (
-    <section className="flex h-screen snap-start flex-col items-center justify-center px-6">
+    <section className="flex h-screen snap-start snap-always flex-col items-center justify-center px-6">
       <div className="relative z-10 max-w-3xl text-center">
         <h1 className="text-6xl font-bold tracking-tight text-white sm:text-7xl lg:text-8xl">
           <span className="bg-gradient-to-r from-white via-zinc-300 to-zinc-500 bg-clip-text text-transparent">
@@ -121,7 +121,7 @@ function PlanetIcon({ hue }: { hue: number }) {
 
 function ValuePropsSection() {
   return (
-    <section className="flex h-screen snap-start items-center justify-center px-6">
+    <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
       <div className="relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
         {valueProps.map((prop) => (
           <div
@@ -198,11 +198,9 @@ const techGroups: { title: string; items: TechItem[] }[] = [
 
 function TechStackSection() {
   return (
-    <section id="tecnologia" className="flex h-screen snap-start items-center justify-center px-6">
+    <section id="tecnologia" className="flex h-screen snap-start snap-always items-center justify-center px-6">
       <div className="relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10" style={glassStyle}>
-        <span className="text-xs font-semibold uppercase tracking-wider text-red-400/80">
-          Stack real del proyecto
-        </span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-red-400/80">Stack real del proyecto</span>
         <h2 className="mt-2 text-3xl font-bold text-white">Tecnología que usamos</h2>
         <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400">
           Huascar es open source. Este es el stack exacto con el que está construido.
@@ -245,7 +243,7 @@ function FinalCtaSection() {
   const t = useTranslations('landing');
 
   return (
-    <section className="flex h-screen snap-start items-center justify-center px-6">
+    <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
       <div className="relative z-10 w-full max-w-2xl rounded-3xl p-10 text-center" style={glassStyle}>
         <h2 className="text-3xl font-bold text-white">{t.ctaTitle}</h2>
         <p className="mt-3 max-w-md mx-auto text-zinc-400">{t.ctaDescription}</p>
