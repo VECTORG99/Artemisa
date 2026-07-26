@@ -2,6 +2,10 @@
 
 import { LuCompass, LuGauge, LuLayoutGrid, LuSlidersHorizontal } from 'react-icons/lu';
 import { glassCardInteractive, glassPill } from '@/lib/glass';
+import { apiUrl } from '@/lib/api';
+import { QuickStartCopy } from '@/components/ui/quick-start-copy';
+
+const STARTUP_URL = `${apiUrl}/api/v1/creator/startup`;
 
 export type CreatorMode = 'auto-corto' | 'auto-largo' | 'presets' | 'avanzado';
 
@@ -63,22 +67,35 @@ export function ModeSelect({ onSelect }: ModeSelectProps) {
         </p>
       </div>
 
-      <div className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {MODES.map((mode) => (
-          <button
-            key={mode.id}
-            type="button"
-            onClick={() => onSelect(mode.id)}
-            className={glassCardInteractive(
-              'flex flex-col items-center gap-3 rounded-3xl p-6 text-center hover:border-accent/40',
-            )}
-          >
-            <mode.Icon className="h-7 w-7 text-zinc-400 transition-colors group-hover:text-accent" aria-hidden="true" />
-            <span className="text-base font-medium text-white">{mode.label}</span>
-            <p className="flex-1 text-xs leading-relaxed text-zinc-400">{mode.description}</p>
-            <span className={glassPill('mt-1 py-0.5 text-[10px] text-zinc-400')}>{mode.tagline}</span>
-          </button>
-        ))}
+      <div className="w-full max-w-2xl space-y-8">
+        <QuickStartCopy url={STARTUP_URL} size="lg" showCompatible={true} />
+
+        <div className="flex items-center gap-4">
+          <div className="flex-1 h-px bg-white/10" />
+          <span className="text-sm text-zinc-500">o configura manualmente</span>
+          <div className="flex-1 h-px bg-white/10" />
+        </div>
+
+        <div className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {MODES.map((mode) => (
+            <button
+              key={mode.id}
+              type="button"
+              onClick={() => onSelect(mode.id)}
+              className={glassCardInteractive(
+                'flex flex-col items-center gap-3 rounded-3xl p-6 text-center hover:border-accent/40',
+              )}
+            >
+              <mode.Icon
+                className="h-7 w-7 text-zinc-400 transition-colors group-hover:text-accent"
+                aria-hidden="true"
+              />
+              <span className="text-base font-medium text-white">{mode.label}</span>
+              <p className="flex-1 text-xs leading-relaxed text-zinc-400">{mode.description}</p>
+              <span className={glassPill('mt-1 py-0.5 text-[10px] text-zinc-400')}>{mode.tagline}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <p className="text-[11px] text-zinc-600">

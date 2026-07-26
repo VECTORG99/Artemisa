@@ -23,12 +23,17 @@ import {
 } from 'react-icons/si';
 import { glassStyle, Modal, useLandingModal } from './landing-modal';
 import { useTranslations } from '@/i18n';
+import { glassButton } from '@/lib/glass';
+import { apiUrl } from '@/lib/api';
+import { QuickStartCopy } from '@/components/ui/quick-start-copy';
 
 // ─── Hero ───────────────────────────────────────────────────────────────────
 // Minimal by design: one headline, one subheadline, one call to action.
 // Everything else (tech stack, use cases, legal) lives in on-demand modals
 // so a first-time visitor gets the value proposition in a single glance
 // instead of scrolling through secondary information.
+
+const STARTUP_URL = `${apiUrl}/api/v1/creator/startup`;
 
 export function HeroSection() {
   const t = useTranslations('landing');
@@ -42,24 +47,22 @@ export function HeroSection() {
           </span>
         </h1>
 
+        <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">{t.heroDescription}</p>
+
+        <div className="mt-8 max-w-lg mx-auto">
+          <QuickStartCopy url={STARTUP_URL} size="md" showCompatible={true} />
+        </div>
+
+        <p className="mt-4 text-sm text-zinc-500">── o configura manualmente ──</p>
+
         <Link
           href="/agents/new"
-          className="group relative mt-6 inline-flex items-center gap-3 overflow-hidden rounded-full px-8 py-4 text-lg font-medium text-white/85 transition-colors hover:text-white"
-          style={glassStyle}
+          className={glassButton(
+            'mt-4 inline-flex items-center gap-2 text-sm font-medium text-white/85 hover:text-white',
+          )}
         >
           <span>{t.heroCta}</span>
-          <svg
-            className="h-4 w-4 transition-transform group-hover:translate-x-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-          </svg>
         </Link>
-
-        <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">{t.heroDescription}</p>
       </div>
 
       {/* Scroll hint */}
