@@ -112,30 +112,4 @@ describe('OptionPicker', () => {
     render(<OptionPicker options={options(3)} multiple value={[]} onChange={vi.fn()} ariaLabel="Prueba" />);
     expect(screen.queryByRole('button', { name: /No está en la lista/ })).not.toBeInTheDocument();
   });
-
-  it('selects an option with its number key', () => {
-    const onChange = vi.fn();
-    render(
-      <OptionPicker options={options(3)} multiple value={[]} onChange={onChange} ariaLabel="Prueba" enableNumberKeys />,
-    );
-    fireEvent.keyDown(window, { key: '2' });
-    expect(onChange).toHaveBeenCalledWith(['opt-1']);
-  });
-
-  it('ignores number keys while typing in a field', () => {
-    const onChange = vi.fn();
-    render(
-      <OptionPicker
-        options={options(30)}
-        multiple
-        value={[]}
-        onChange={onChange}
-        ariaLabel="Tecnologías"
-        enableNumberKeys
-      />,
-    );
-    const search = screen.getByLabelText('Buscar en Tecnologías');
-    fireEvent.keyDown(search, { key: '2' });
-    expect(onChange).not.toHaveBeenCalled();
-  });
 });

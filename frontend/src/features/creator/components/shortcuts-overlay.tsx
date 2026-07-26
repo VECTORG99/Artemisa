@@ -16,7 +16,6 @@ const GROUPS: { title: string; shortcuts: Shortcut[] }[] = [
       { keys: ['Enter'], action: 'Continuar a la siguiente pregunta' },
       { keys: ['Ctrl', 'Enter'], action: 'Continuar desde un campo de texto largo' },
       { keys: ['Alt', '←'], action: 'Volver a la pregunta anterior' },
-      { keys: ['1', '…', '9'], action: 'Elegir o alternar la opción N' },
       { keys: ['S'], action: 'Responder «Sí» en preguntas de sí/no' },
       { keys: ['N'], action: 'Responder «No» en preguntas de sí/no' },
     ],

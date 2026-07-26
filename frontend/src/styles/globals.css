@@ -144,7 +144,7 @@
   @keyframes fade-in-up {
     from {
       opacity: 0;
-      transform: translateY(12px);
+      transform: translateY(8px);
     }
     to {
       opacity: 1;
@@ -153,19 +153,14 @@
   }
 
   .animate-fade-in-up {
-    animation: fade-in-up 0.4s ease-out both;
+    animation: fade-in-up 0.25s ease-out both;
   }
 
-  /* Success checkmark burst — shown briefly when a bundle finishes
-     generating, before the artifact browser fades in. */
+  /* Success checkmark — a gentle scale-in without the exaggerated bounce */
   @keyframes success-pop {
     0% {
       opacity: 0;
-      transform: scale(0.4);
-    }
-    60% {
-      opacity: 1;
-      transform: scale(1.08);
+      transform: scale(0.85);
     }
     100% {
       opacity: 1;
@@ -174,22 +169,22 @@
   }
 
   .animate-success-pop {
-    animation: success-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation: success-pop 0.3s ease-out both;
   }
 
   @keyframes success-ring {
     0% {
-      opacity: 0.6;
-      transform: scale(0.6);
+      opacity: 0.5;
+      transform: scale(0.8);
     }
     100% {
       opacity: 0;
-      transform: scale(1.8);
+      transform: scale(1.5);
     }
   }
 
   .animate-success-ring {
-    animation: success-ring 0.6s ease-out both;
+    animation: success-ring 0.5s ease-out both;
   }
 
   /* Indeterminate sweep for the initial catalog/workflow load (issue #438). */
@@ -203,21 +198,21 @@
   }
 
   .animate-progress-sweep {
-    animation: progress-sweep 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    animation: progress-sweep 1.6s ease-in-out infinite;
   }
 
   @keyframes skeleton-pulse {
     0%,
     100% {
-      opacity: 0.35;
+      opacity: 0.3;
     }
     50% {
-      opacity: 0.75;
+      opacity: 0.6;
     }
   }
 
   .animate-skeleton {
-    animation: skeleton-pulse 1.6s ease-in-out infinite;
+    animation: skeleton-pulse 2s ease-in-out infinite;
   }
 }
 

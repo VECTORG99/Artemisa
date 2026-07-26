@@ -121,7 +121,6 @@ function QuestionInput({
         max={question.maxSelections}
         ariaLabel={question.prompt}
         allowCustom
-        enableNumberKeys
       />
     );
   }
@@ -153,7 +152,6 @@ function QuestionInput({
       max={multiple ? question.maxSelections : undefined}
       ariaLabel={question.prompt}
       allowCustom={isCatalog}
-      enableNumberKeys
       showIcons={isCatalog}
     />
   );

@@ -27,9 +27,6 @@ interface OptionPickerProps {
   /** Enables the `custom:<slug>` escape hatch every catalog question accepts. */
   allowCustom?: boolean;
   ariaLabel: string;
-  /** Binds 1-9 to the first nine visible options. Only for the guided flow,
-   * where exactly one picker is on screen. */
-  enableNumberKeys?: boolean;
   /** Tailwind max-height for the scroll area. */
   maxHeightClass?: string;
   columnsClass?: string;
@@ -55,7 +52,6 @@ export function OptionPicker({
   searchThreshold = 12,
   allowCustom = false,
   ariaLabel,
-  enableNumberKeys = false,
   maxHeightClass = 'max-h-[46vh]',
   columnsClass = 'sm:grid-cols-2',
   showIcons = true,
@@ -118,24 +114,6 @@ export function OptionPicker({
     },
     [multiple, onChange, selected, limit],
   );
-
-  // 1-9 selects from the *filtered* list, so the numbers always match what is
-  // on screen after a search.
-  useEffect(() => {
-    if (!enableNumberKeys) return;
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
-      const target = event.target as HTMLElement | null;
-      if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
-      if (!/^[1-9]$/.test(event.key)) return;
-      const option = filtered[Number(event.key) - 1];
-      if (!option) return;
-      event.preventDefault();
-      toggle(option.id);
-    }
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [enableNumberKeys, filtered, toggle]);
 
   // Drives the bottom fade: it must disappear at the end of the list so the
   // last option is never rendered dimmed.
@@ -243,11 +221,6 @@ export function OptionPicker({
                   <span className="truncate text-sm font-medium text-zinc-100">{option.label}</span>
                 </span>
                 <span className="flex shrink-0 items-center gap-1.5">
-                  {enableNumberKeys && index < 9 && !isSelected && (
-                    <kbd className="rounded border border-white/[0.08] px-1 font-mono text-[10px] text-zinc-600">
-                      {index + 1}
-                    </kbd>
-                  )}
                   {isSelected && <LuCheck className="h-3.5 w-3.5 text-white" aria-hidden="true" />}
                 </span>
               </span>

@@ -14,39 +14,34 @@ const MODES: {
   label: string;
   tagline: string;
   description: string;
-  bestFor: string;
   Icon: React.ComponentType<{ className?: string }>;
 }[] = [
   {
     id: 'auto-corto',
     label: 'Auto-corto',
     tagline: '8 preguntas',
-    description: 'Un test corto para entender qué necesitas. El resto se completa con valores seguros por defecto.',
-    bestFor: 'Primera vez',
+    description: 'Responde lo esencial y nosotros completamos el resto con valores seguros.',
     Icon: LuGauge,
   },
   {
     id: 'auto-largo',
     label: 'Auto-largo',
-    tagline: 'Árbol completo',
-    description: 'Recorre todas las preguntas visibles, incluidas las opcionales, antes de revisar.',
-    bestFor: 'Control paso a paso',
+    tagline: '32 preguntas',
+    description: 'Decide tú cada detalle, pregunta por pregunta.',
     Icon: LuCompass,
   },
   {
     id: 'presets',
     label: 'Presets',
-    tagline: '8 configuraciones',
-    description: 'Configuraciones completas por caso de uso. Llega, revisa y ajusta lo que quieras antes de generar.',
-    bestFor: 'Ir rápido',
+    tagline: '8 presets',
+    description: 'Elige una configuración lista y ajústala a tu gusto.',
     Icon: LuLayoutGrid,
   },
   {
     id: 'avanzado',
     label: 'Avanzado',
-    tagline: 'Todo a la vez',
-    description: 'Panel denso con cada pregunta del árbol agrupada por sección, sin recorrido guiado.',
-    bestFor: 'Ya sabes qué quieres',
+    tagline: 'Máximo control',
+    description: 'Todo en un solo panel, sin recorrido guiado.',
     Icon: LuSlidersHorizontal,
   },
 ];
@@ -81,10 +76,7 @@ export function ModeSelect({ onSelect }: ModeSelectProps) {
             <mode.Icon className="h-7 w-7 text-zinc-400 transition-colors group-hover:text-accent" aria-hidden="true" />
             <span className="text-base font-medium text-white">{mode.label}</span>
             <p className="flex-1 text-xs leading-relaxed text-zinc-400">{mode.description}</p>
-            <span className="flex flex-wrap items-center justify-center gap-1.5">
-              <span className={glassPill('py-0.5 text-[10px] text-zinc-400')}>{mode.tagline}</span>
-              <span className={glassPill('py-0.5 text-[10px] text-zinc-500')}>{mode.bestFor}</span>
-            </span>
+            <span className={glassPill('mt-1 py-0.5 text-[10px] text-zinc-400')}>{mode.tagline}</span>
           </button>
         ))}
       </div>

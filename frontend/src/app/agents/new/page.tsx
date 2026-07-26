@@ -109,21 +109,23 @@ function errorMessage(err: unknown, fallback: string): string {
 
 type TransitionPhase = 'enter' | 'visible' | 'exit';
 
+/**
+ * Simple fade + vertical slide. No blur, no scale — just opacity and a tiny
+ * translateY so the eye reads "next step" without any distracting effects.
+ *
+ * The curve is a custom ease-out that decelerates gently (like iOS page
+ * transitions), and the duration is kept short (220ms) so the UI feels
+ * responsive rather than theatrical.
+ */
 const PHASE_CLASSES: Record<TransitionPhase, string> = {
-  exit: 'opacity-0 scale-[0.98] blur-[3px]',
-  enter: 'opacity-0 scale-[0.98] blur-[3px]',
-  visible: 'opacity-100 scale-100 blur-0',
+  exit: 'opacity-0 translate-y-2',
+  enter: 'opacity-0 translate-y-2',
+  visible: 'opacity-100 translate-y-0',
 };
 
-/**
- * Soft morph between panels: the outgoing content blurs and contracts, the
- * incoming content expands and sharpens. `prefers-reduced-motion` collapses
- * the transition durations globally (see styles/globals.css), so this stays a
- * single code path for both preferences.
- */
 function AnimatedPanel({ phase, children }: { phase: TransitionPhase; children: React.ReactNode }) {
   return (
-    <div className={`w-full transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] ${PHASE_CLASSES[phase]}`}>
+    <div className={`w-full transition-[opacity,transform] duration-220 ease-out ${PHASE_CLASSES[phase]}`}>
       {children}
     </div>
   );
@@ -131,8 +133,7 @@ function AnimatedPanel({ phase, children }: { phase: TransitionPhase; children: 
 
 /**
  * Runs a state change between an exit and an enter animation, and guarantees
- * the pending timer is dropped on unmount — the previous implementation left
- * `setTimeout` callbacks writing to unmounted state.
+ * the pending timer is dropped on unmount.
  */
 function usePanelTransition() {
   const [phase, setPhase] = useState<TransitionPhase>('visible');
@@ -158,7 +159,7 @@ function usePanelTransition() {
       const id = window.setTimeout(() => {
         action();
         enter();
-      }, 260);
+      }, 180); // slightly shorter than the CSS duration so the swap is invisible
       timers.current.push(id);
     },
     [enter],
@@ -775,11 +776,7 @@ export default function NewAgentPage() {
           {/* Back control — outside the animated area so it never flickers */}
           {status === 'ready' && (
             <div className="absolute left-4 top-6 z-20 sm:left-8">
-              {!mode ? (
-                <GlassBackButton href="/" label="Volver al inicio" />
-              ) : (
-                <GlassIconButton onClick={handleBackButton} label="Atrás" />
-              )}
+              <GlassBackButton href="/" label="Volver al inicio" />
             </div>
           )}
 
@@ -886,7 +883,7 @@ export default function NewAgentPage() {
                 type="button"
                 onClick={returnToReview ? cancelEdit : goBackOneQuestion}
                 disabled={busy || (!returnToReview && visited.length === 0)}
-                className={glassButton('px-4 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-30')}
+                className={glassButton('w-40 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-30')}
               >
                 <LuArrowLeft className="h-4 w-4" aria-hidden="true" />
                 {returnToReview ? 'Cancelar' : 'Atrás'}
@@ -897,7 +894,7 @@ export default function NewAgentPage() {
                   type="button"
                   onClick={skipQuestion}
                   disabled={busy}
-                  className={glassButton('px-4 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-30')}
+                  className={glassButton('w-40 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-30')}
                 >
                   <LuSkipForward className="h-4 w-4" aria-hidden="true" />
                   Omitir
@@ -908,9 +905,9 @@ export default function NewAgentPage() {
                 type="button"
                 onClick={submitAnswer}
                 disabled={!advanceAllowed || busy}
-                className={glassPrimaryButton('px-8 py-2.5 text-sm')}
+                className={glassPrimaryButton('w-40 py-2.5 text-sm')}
               >
-                {busy ? 'Evaluando…' : returnToReview ? 'Guardar y volver' : 'Continuar'}
+                {busy ? 'Evaluando…' : returnToReview ? 'Guardar' : 'Continuar'}
                 <LuArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
