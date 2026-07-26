@@ -1,6 +1,12 @@
 /**
  * Liquid Glass styling system
- * Provides consistent glassy aesthetics across the application
+ *
+ * Mirrors the real landing page's glassStyle (see
+ * frontend/src/features/landing/components/landing-modal.tsx): light blur,
+ * near-transparent white background, subtle white border. Reads as glass
+ * over the starfield/space scene, not a solid zinc panel. Every Creator
+ * surface should use these helpers so the aesthetic matches the Landing
+ * exactly (issue #390).
  */
 
 // Helper function to combine class names
@@ -8,12 +14,22 @@ export function cn(...inputs: (string | undefined | null | false)[]) {
   return inputs.filter(Boolean).join(' ');
 }
 
+/** Inline style object — identical to the landing's `glassStyle` constant. */
+export const glassStyle: React.CSSProperties = {
+  backdropFilter: 'blur(9px) saturate(140%)',
+  WebkitBackdropFilter: 'blur(9px) saturate(140%)',
+  background: 'rgba(255,255,255,0.02)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
+};
+
 // Base glass effect for large panels or containers
 export function glassPanel(className?: string) {
   return cn(
-    'bg-zinc-900/40 backdrop-blur-md',
-    'border border-zinc-800/50',
-    'shadow-[0_0_15px_rgba(0,0,0,0.5)]',
+    'backdrop-blur-[9px] backdrop-saturate-[1.4]',
+    'bg-white/[0.02]',
+    'border border-white/[0.08]',
+    'shadow-[0_4px_24px_rgba(0,0,0,0.25)]',
     className,
   );
 }
@@ -21,9 +37,10 @@ export function glassPanel(className?: string) {
 // Cards
 export function glassCard(className?: string) {
   return cn(
-    'bg-zinc-900/40 backdrop-blur-md',
-    'border border-zinc-800/50',
-    'shadow-[0_0_15px_rgba(0,0,0,0.5)]',
+    'backdrop-blur-[9px] backdrop-saturate-[1.4]',
+    'bg-white/[0.02]',
+    'border border-white/[0.08]',
+    'shadow-[0_4px_24px_rgba(0,0,0,0.25)]',
     className,
   );
 }
@@ -33,7 +50,7 @@ export function glassCardInteractive(className?: string) {
   return cn(
     glassCard(),
     'transition-all duration-300 ease-in-out',
-    'hover:bg-zinc-800/50 hover:border-zinc-700/50',
+    'hover:bg-white/[0.05] hover:border-white/[0.15] hover:-translate-y-0.5',
     'cursor-pointer',
     className,
   );
@@ -43,50 +60,54 @@ export function glassCardInteractive(className?: string) {
 export function glassInput(className?: string) {
   return cn(
     'w-full rounded-xl',
-    'bg-zinc-950/50 backdrop-blur-sm',
-    'border border-zinc-800/80',
+    'bg-white/[0.02] backdrop-blur-sm',
+    'border border-white/[0.08]',
     'text-zinc-100 placeholder:text-zinc-500',
-    'focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50',
+    'focus:outline-none focus:ring-1 focus:ring-white/30 focus:border-white/30',
     'transition-all duration-200',
     'px-4 py-3',
     className,
   );
 }
 
-// Buttons with standard glass look
+// Buttons — landing-style glass pill (rounded-full, not rounded-lg)
 export function glassButton(className?: string) {
   return cn(
-    'px-4 py-2 rounded-lg',
-    'bg-zinc-800/50 backdrop-blur-md',
-    'border border-zinc-700/50',
-    'text-zinc-100 font-medium',
-    'transition-all duration-200',
-    'hover:bg-zinc-700/60 hover:border-zinc-600/60',
+    'inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full',
+    'bg-white/[0.02] backdrop-blur-[9px] backdrop-saturate-[1.4]',
+    'border border-white/[0.08]',
+    'text-white/85 font-medium',
+    'shadow-[0_4px_24px_rgba(0,0,0,0.25)]',
+    'transition-colors duration-200',
+    'hover:text-white hover:bg-white/[0.05]',
     'active:scale-[0.98]',
     className,
   );
 }
 
-// Primary action button (with emerald accent)
+// Primary action button — same glass pill, brighter border, no color accent
+// (the landing has no emerald/color accents on buttons — everything is
+// neutral white-on-glass).
 export function glassPrimaryButton(className?: string) {
   return cn(
-    'px-4 py-2 rounded-lg',
-    'bg-emerald-950/40 backdrop-blur-md',
-    'border border-emerald-900/50',
-    'text-emerald-50 font-medium',
-    'shadow-[0_0_15px_rgba(16,185,129,0.1)]',
-    'transition-all duration-200',
-    'hover:bg-emerald-900/60 hover:border-emerald-700/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.2)]',
+    'inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full',
+    'bg-white/[0.03] backdrop-blur-[9px] backdrop-saturate-[1.4]',
+    'border border-white/[0.12]',
+    'text-white font-medium',
+    'shadow-[0_4px_24px_rgba(0,0,0,0.3)]',
+    'transition-colors duration-200',
+    'hover:bg-white/[0.08] hover:border-white/20',
     'active:scale-[0.98]',
     className,
   );
 }
 
-// Pills for small labels
+// Pills for small labels/tags — landing tech-stack chip style
 export function glassPill(className?: string) {
   return cn(
-    'inline-flex items-center rounded-full px-2 py-0.5 font-medium border',
-    'bg-zinc-800/30 border-zinc-700/50 backdrop-blur-sm',
+    'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs',
+    'bg-white/[0.03] backdrop-blur-md border border-white/[0.08]',
+    'text-zinc-300',
     className,
   );
 }

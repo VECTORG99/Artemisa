@@ -28,7 +28,7 @@ function downloadBundleJson(bundle: GeneratedAgentBundle) {
 /**
  * Post-generation screen: browse every generated artifact inline (not just
  * a blind download button), download individually or as a full JSON bundle,
- * and register the agent for use from the dashboard.
+ * and register the agent for later use.
  */
 export function CompletionScreen({ bundle, onRegister, registered, error }: CompletionScreenProps) {
   const [activePath, setActivePath] = useState(bundle.artifacts[0]?.path ?? '');
@@ -36,12 +36,12 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <span className="text-xs font-medium uppercase tracking-wide text-emerald-300">Bundle generado</span>
-        <h2 className="mt-3 text-2xl font-semibold text-zinc-50">
+      <div className="text-center">
+        <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">Bundle generado</span>
+        <h2 className="mt-3 text-2xl font-semibold text-white">
           {bundle.blueprint?.identity?.name ?? 'Agente generado'}
         </h2>
-        <p className="mt-2 text-zinc-400">
+        <p className="mx-auto mt-2 max-w-md text-zinc-400">
           {bundle.artifacts.length} artefactos listos. Revisa cada uno antes de aplicarlo a tu proyecto.
         </p>
       </div>
@@ -53,7 +53,7 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
               key={artifact.path}
               type="button"
               onClick={() => setActivePath(artifact.path)}
-              className={`animate-fade-in-up truncate rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+              className={`animate-fade-in-up truncate rounded-2xl px-3 py-2 text-left text-sm transition-colors ${
                 artifact.path === activePath
                   ? 'bg-white/[0.08] text-zinc-100'
                   : 'text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300'
@@ -76,14 +76,14 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
                 Descargar
               </button>
             </div>
-            <pre className="max-h-96 overflow-auto rounded-lg border border-white/[0.06] bg-black/30 p-3 text-xs text-zinc-300">
+            <pre className="max-h-96 overflow-auto rounded-2xl border border-white/[0.06] bg-black/30 p-3 text-xs text-zinc-300">
               {activeArtifact.content}
             </pre>
           </div>
         )}
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-center justify-center gap-3">
         <button type="button" onClick={() => downloadBundleJson(bundle)} className={glassButton()}>
           Descargar bundle completo (JSON)
         </button>
