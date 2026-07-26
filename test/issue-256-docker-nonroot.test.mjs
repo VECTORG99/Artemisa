@@ -13,11 +13,14 @@ describe('Issue #256: Docker agent-creator non-root', () => {
   it('does not install serve globally', () => {
     const df = fs.readFileSync('Dockerfile.agent-creator', 'utf8');
     assert.doesNotMatch(df, /npm install -g serve/);
+    // CMD should not use npx serve (comments mentioning it are OK)
+    assert.doesNotMatch(df, /CMD.*serve/);
   });
 
-  it('uses local serve with pinned version', () => {
+  it('uses Caddy as static file server', () => {
     const df = fs.readFileSync('Dockerfile.agent-creator', 'utf8');
-    assert.match(df, /npm install.*--save-exact.*serve@/);
+    assert.match(df, /caddy/i);
+    assert.match(df, /CMD.*caddy.*run/);
   });
 
   it('copies dist with correct ownership', () => {

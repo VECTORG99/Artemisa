@@ -123,6 +123,8 @@ describe('E2E: Full Agent Creation — TypeScript Security Reviewer (Development
     answers.agent_targets = ['huascar', 'kiro', 'portable'];
     answers.hooks_enabled = true;
     answers.skills_enabled = true;
+    answers.skills_focus = 'security';
+    answers.mcps_enabled = false;
     evaluation = evaluateDecisionTree(answers);
     assert.equal(evaluation.progress.complete, true, `Not complete — next: ${evaluation.nextQuestion?.id}`);
     console.log(`    ✓ TREE COMPLETE — ${evaluation.progress.answered} questions answered`);
@@ -267,6 +269,8 @@ describe('E2E: Full Agent Creation — Python ML Ops (Production)', () => {
       agent_targets: ['huascar'],
       hooks_enabled: false,
       skills_enabled: true,
+      skills_focus: 'data-ai',
+      mcps_enabled: false,
     };
 
     const evaluation = evaluateDecisionTree(answers);
