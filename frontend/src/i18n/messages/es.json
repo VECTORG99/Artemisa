@@ -27,6 +27,15 @@
     "execute": "Desplegar y Ejecutar",
     "executing": "Ejecutando...",
     "history": "Historial",
-    "noHistory": "No hay ejecuciones registradas"
+    "noHistory": "No hay ejecuciones registradas",
+    "placeholder": "Ejecución de agentes y terminal — por implementar."
+  },
+  "landing": {
+    "heroTitle": "Huascar",
+    "heroDescription": "Diseña agentes de desarrollo y operación mediante un árbol de decisiones determinista. Genera su configuración. Entiende por qué fue construida así.",
+    "heroCta": "Empezar misión",
+    "ctaTitle": "¿Listo para construir tu agente?",
+    "ctaDescription": "El Creator te guía paso a paso. Sin sorpresas, sin caja negra.",
+    "ctaButton": "Iniciar Creator →"
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "@/i18n";
 
 interface Section {
   id: string;
@@ -64,19 +65,19 @@ function PlanetIcon({ hue }: { hue: number }) {
 }
 
 export function HeroSection() {
+  const t = useTranslations("landing");
+
   return (
     <section className="flex h-screen snap-start flex-col items-center justify-center px-6">
       <div className="relative z-10 max-w-3xl text-center">
         <h1 className="text-6xl font-bold tracking-tight text-white sm:text-7xl lg:text-8xl">
           <span className="bg-gradient-to-r from-white via-zinc-300 to-zinc-500 bg-clip-text text-transparent">
-            Huascar
+            {t.heroTitle}
           </span>
         </h1>
 
         <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">
-          Diseña agentes de desarrollo y operación mediante un árbol de
-          decisiones determinista. Genera su configuración. Entiende por qué fue
-          construida así.
+          {t.heroDescription}
         </p>
 
         <Link
@@ -84,7 +85,7 @@ export function HeroSection() {
           className="group relative mt-10 inline-flex items-center gap-3 overflow-hidden rounded-full border border-white/10 bg-white/[0.03] px-8 py-4 text-lg font-medium text-white backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/[0.06]"
         >
           <span className="absolute inset-0 -z-10 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-cyan-600/10 opacity-0 transition-opacity group-hover:opacity-100" />
-          <span>Empezar misión</span>
+          <span>{t.heroCta}</span>
           <svg
             className="h-4 w-4 transition-transform group-hover:translate-x-1"
             fill="none"
@@ -110,6 +111,8 @@ export function HeroSection() {
 }
 
 export function ContentSections() {
+  const t = useTranslations("landing");
+
   return (
     <>
       {sections.map((section) => (
@@ -149,16 +152,16 @@ export function ContentSections() {
       <section className="flex h-screen snap-start items-center justify-center px-6">
         <div className="relative z-10 w-full max-w-2xl rounded-2xl border border-white/[0.06] bg-black/50 p-10 text-center backdrop-blur-md">
           <h2 className="text-3xl font-bold text-white">
-            ¿Listo para construir tu agente?
+            {t.ctaTitle}
           </h2>
           <p className="mt-3 max-w-md mx-auto text-zinc-400">
-            El Creator te guía paso a paso. Sin sorpresas, sin caja negra.
+            {t.ctaDescription}
           </p>
           <Link
             href="/agents/new"
             className="mt-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-7 py-3 font-medium text-white backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/[0.08]"
           >
-            Iniciar Creator →
+            {t.ctaButton}
           </Link>
         </div>
       </section>
