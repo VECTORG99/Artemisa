@@ -1,25 +1,24 @@
-# Stage 1: Builder — install all deps + compile TypeScript
+# syntax=docker/dockerfile:1
+# Stage 1: Builder — install all deps, compile TypeScript, then prune to production deps
 FROM node:22-alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts && npm rebuild better-sqlite3
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --ignore-scripts && npm rebuild better-sqlite3
 COPY . .
 RUN npx tsc
+# Prune devDependencies in-place so the runner stage can copy a single,
+# already-native-rebuilt node_modules instead of installing it twice.
+RUN --mount=type=cache,target=/root/.npm \
+    npm prune --omit=dev --ignore-scripts && npm rebuild better-sqlite3
 
-# Stage 2: Deps — production-only node_modules
-FROM node:22-alpine AS deps
-WORKDIR /app
-RUN apk add --no-cache python3 make g++
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts && npm rebuild better-sqlite3
-
-# Stage 3: Runner — production image (no build tools)
+# Stage 2: Runner — production image (no build tools)
 FROM node:22-alpine AS runner
 ENV NODE_ENV=production
 RUN addgroup -S huascar && adduser -S huascar -G huascar
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/src/kiro ./src/kiro
