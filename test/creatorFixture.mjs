@@ -22,7 +22,9 @@ export const developmentAnswers = {
   skills_enabled: true,
   skills_focus: 'development',
   mcps_enabled: true,
-  mcps_selection: ['github-mcp']
+  // Ids for `mcps_selection` come from the curated MCP catalog, which is the
+  // source of the catalog's `mcp` category (see src/creator/catalog.ts).
+  mcps_selection: ['github-mcp-server'],
 };
 
 export const productionAnswers = {

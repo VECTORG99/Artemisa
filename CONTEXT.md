@@ -24,13 +24,19 @@ Updated: 2026-07-23
   - `GET /api/rag/sources` and `DELETE /api/rag/sources/:source` inspect/remove indexed RAG chunks.
   - `/api/agents` CRUD stores generated agent configs; `/api/agents/:id/execute` runs a registered agent.
   - `/api/v1/creator/catalog|workflow|tutorial` are public; `/evaluate|preview|generate` are protected by API auth when enabled.
+  - The catalog's `skill` and `mcp` categories are derived from `src/creator/skillsCatalog.ts` and `src/creator/mcpCatalog.ts` rather than declared separately, because the decision tree validates `skills_selection`/`mcps_selection` against those categories. When they were separate lists the ids did not intersect, so both questions were unanswerable from any UI.
+  - `RATE_LIMIT_CREATOR` defaults to 120/min: the Creator re-evaluates the whole tree per step, so one completed Auto-largo run costs ~35 requests.
 - Sessions work for direct and registered agent execution: `SessionManager` creates/touches SQLite sessions, enforces role matching and TTL, and injects recent messages into the next task.
 - SSE currently wraps the same execution path as JSON and reports lifecycle events; token/tool streaming is not implemented.
 - RAG supports `local_file`, `local_directory`, `inline`, and `web_url` sources in code; persisted vector chunks use OpenAI embeddings only when `OPENAI_API_KEY` and a `Store` exist.
 - `src/kiro/rag.json` is schema-tested as a local-file source list and currently indexes the configured docs sources, including `docs/CONVENTIONS.md`, `CONTRIBUTING.md`, and this `CONTEXT.md`.
 - MCP config exists in `src/kiro/mcps.json` for filesystem, bash, and GitHub servers; `McpConnectionPool` supplies connected tools to `HuascarEngine`.
 - Next dashboard in `frontend/src/app/page.tsx` can list roles, submit tasks, show terminal/history tabs, and deep-link imported role/task/config query params.
-- Next creator route `frontend/src/app/agents/new/page.tsx` consumes backend creator workflow/catalog, generates a bundle, and registers it through `/api/agents`.
+- Next creator route `frontend/src/app/agents/new/page.tsx` consumes backend creator workflow/catalog, generates a bundle, and registers it through `/api/agents`. It owns the state machine (mode select -> question flow -> review -> completion) and delegates:
+  - `features/creator/lib/flow.ts` — guided navigation. The backend's `nextQuestion` only covers required questions, so the client walks `evaluation.visibleQuestions` with its own visited trail; this is what makes the 4 optional questions reachable and the back button work.
+  - `features/creator/lib/session.ts` — `sessionStorage` draft, namespaced by workflow version.
+  - `features/creator/lib/answer-labels.ts` — id -> human label formatting shared by review and presets.
+  - `features/creator/components/option-picker.tsx` — the single option grid (search, chips, `maxSelections`, `custom:<slug>`) used by both the guided flow and the advanced dashboard.
 
 ## Known Limitations
 

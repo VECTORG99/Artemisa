@@ -1,13 +1,6 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { GlassBackButton } from '@/components/ui/glass-icon-button';
 import { glassPanel } from '@/lib/glass';
-
-const SpaceSimulation = dynamic(
-  () => import('@/features/landing/components/space-simulation').then((m) => m.SpaceSimulation),
-  { ssr: false },
-);
 
 interface StepContainerProps {
   children: React.ReactNode;
@@ -15,42 +8,66 @@ interface StepContainerProps {
   progress?: number;
   /** Small label above the progress bar, e.g. current section name. */
   progressLabel?: string;
+  /** Right-aligned counter, e.g. "Paso 4 de 21". */
+  stepLabel?: string;
+  /** Reserves room for the page's fixed continue bar so content never hides
+   * behind it while the panel scrolls. */
+  withActionBar?: boolean;
+  /** `wide` is used by Review and Completion, which show two columns. */
+  size?: 'default' | 'wide';
 }
 
 /**
- * Shared wizard shell: the exact same star field, gravitational lensing and
- * meteor physics as the Landing's SpaceSimulation, with the black hole
- * itself turned off (`showBlackHole={false}`) — a decorative black hole
- * doesn't belong in a configuration tool, but the rest of the scene should
- * match Landing exactly. Liquid-glass main panel plus an optional progress
- * bar. Every Creator screen (mode select, questions, review, completion)
- * renders inside this, always centered in the viewport — the panel scrolls
- * internally if its content overflows instead of growing the page.
+ * Shared wizard panel shell: liquid-glass panel with optional progress bar.
+ * The background (SpaceSimulation) and navigation controls (back button)
+ * live at the page level so they persist across mode changes without
+ * remounting — this component only handles the glass card and its content.
  */
-export function StepContainer({ children, progress, progressLabel }: StepContainerProps) {
+export function StepContainer({
+  children,
+  progress,
+  progressLabel,
+  stepLabel,
+  withActionBar = false,
+  size = 'default',
+}: StepContainerProps) {
+  const maxWidth = size === 'wide' ? 'max-w-6xl' : 'max-w-5xl';
+
   return (
-    <main className="relative flex h-screen flex-col items-center justify-center overflow-hidden px-4 py-6 text-zinc-50 sm:px-8">
-      <SpaceSimulation showBlackHole={false} />
-
-      <div className="absolute left-4 top-6 z-20 sm:left-8">
-        <GlassBackButton href="/" label="Volver al inicio" />
-      </div>
-
-      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-6">
-        {progress !== undefined && (
-          <div className="flex flex-col gap-2">
-            {progressLabel && <span className="text-xs text-zinc-500">{progressLabel}</span>}
-            <div className="h-1 overflow-hidden rounded-full bg-white/[0.05]">
-              <div
-                className="h-full rounded-full bg-white/80 shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+    <div className={`relative z-10 mx-auto flex w-full flex-col gap-4 ${maxWidth}`}>
+      {progress !== undefined && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-baseline justify-between gap-3">
+            {progressLabel ? (
+              <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">{progressLabel}</span>
+            ) : (
+              <span />
+            )}
+            {stepLabel && <span className="shrink-0 text-[11px] tabular-nums text-zinc-500">{stepLabel}</span>}
           </div>
-        )}
+          <div
+            className="h-1 overflow-hidden rounded-full bg-white/[0.05]"
+            role="progressbar"
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={progressLabel ? `Progreso: ${progressLabel}` : 'Progreso'}
+          >
+            <div
+              className="h-full rounded-full bg-accent shadow-[0_0_10px_rgba(245,11,11,0.45)] transition-[width] duration-500 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      )}
 
-        <section className={glassPanel('max-h-[80vh] overflow-y-auto rounded-2xl p-6 sm:p-10')}>{children}</section>
-      </div>
-    </main>
+      <section
+        className={glassPanel(
+          `creator-scroll max-h-[78vh] overflow-y-auto rounded-2xl p-6 sm:p-8 ${withActionBar ? 'pb-20' : ''}`,
+        )}
+      >
+        {children}
+      </section>
+    </div>
   );
 }

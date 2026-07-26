@@ -101,9 +101,13 @@ const executeLimiter = rateLimit({
   keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
 });
 
+// The Creator re-evaluates the whole decision tree on every step. Auto-largo
+// walks 32 questions, so a single completed agent costs ~35 requests; at 30/min
+// a normal user was rate limited mid-flow. These calls are pure CPU (no I/O, no
+// LLM) and already capped at 128 KB per body, so a higher ceiling is safe.
 const creatorLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_CREATOR || '30', 10),
+  max: parseInt(process.env.RATE_LIMIT_CREATOR || '120', 10),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Creator API rate limit exceeded' },
