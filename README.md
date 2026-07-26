@@ -14,6 +14,8 @@ Huascar separa dos responsabilidades:
 
 El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no modifica el proyecto del usuario. Sus preguntas, recomendaciones y artefactos son deterministas y auditables.
 
+![Flujo del Creator — de problema a bundle de configuración reproducible](docs/images/creator-flow.svg)
+
 ---
 
 ## Estado actual

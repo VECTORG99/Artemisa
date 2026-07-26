@@ -2,50 +2,43 @@
 
 Frontend Vite + React que renderiza el árbol de decisiones del Creator Backend v1.
 
+> **Nota:** `agent-creator/` es la app legacy. El Creator activo está en `frontend/agents/new` (Next.js). Esta app se mantiene en el workspace pero no recibe nuevas features del Creator.
+
+## Capturas
+
+### 1. Árbol de decisiones — selección de propósito
+
+El usuario elige el propósito del agente. Cada opción abre ramas específicas del árbol (26 preguntas en total, pero sólo se muestran las relevantes).
+
+![Pregunta del árbol de decisiones](../docs/images/creator-question.svg)
+
+### 2. Revisión de recomendaciones
+
+Antes de generar el bundle, el Creator muestra las respuestas acumuladas y las recomendaciones explicables (con motivo, beneficios, trade-offs y alternativas). Cada respuesta es editable.
+
+![Pantalla de revisión con recomendaciones](../docs/images/creator-review.svg)
+
+### 3. Bundle generado
+
+El bundle es un conjunto de artefactos deterministas con SHA-256 por archivo. Huascar no escribe los archivos automáticamente — el usuario los revisa y los copia al proyecto destino.
+
+![Bundle generado con artefactos](../docs/images/creator-bundle.svg)
+
 ## Funcionalidad
 
 - Carga catálogo, workflow y tutorial desde `/api/v1/creator`.
 - Presenta un tutorial ficticio y skippable.
 - Renderiza preguntas de texto, booleanas, opciones y catálogo sin codificar el flujo en el cliente.
-- Permite buscar tecnologías y agregar opciones `custom:<slug>`.
-- Conserva respuestas, cursor visible y fase de navegación en `sessionStorage`.
-- Reevalúa ramas, progreso, recomendaciones y advertencias con el backend.
-- Revisa todas las decisiones antes de generar.
-- Descarga el bundle JSON o cada artefacto individual.
-
-El frontend no ejecuta agentes, no escribe archivos y no realiza despliegues.
 
 ## Desarrollo
 
 ```bash
-cp .env.example .env
+# Desde la raíz del repo
 npm ci
-npm run dev
+npm run dev  # backend en :3001
+
+# App legacy
+npm --prefix agent-creator run dev  # frontend en :5173
 ```
 
-Variables:
-
-```env
-VITE_API_URL=http://localhost:3001
-```
-
-La URL debe ser accesible desde el navegador, no sólo desde la red interna de Docker.
-
-## Validación
-
-```bash
-npm run lint
-npm run build
-```
-
-## Contrato utilizado
-
-```text
-GET  /api/v1/creator/catalog
-GET  /api/v1/creator/workflow
-GET  /api/v1/creator/tutorial
-POST /api/v1/creator/evaluate
-POST /api/v1/creator/preview
-```
-
-Las respuestas se mantienen en el cliente. El backend es stateless, devuelve la evaluación canónica y poda ramas ocultas. El cursor restaura la pregunta visible exacta; para datos antiguos sin cursor, el cliente retoma la primera decisión visible pendiente. Con respuestas requeridas completas, restaura la edición sólo si esa era la fase guardada y, en caso contrario, abre la revisión.
+La app activa del Creator (Next.js) corre en `http://localhost:3000/agents/new`.
