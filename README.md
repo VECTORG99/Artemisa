@@ -1,5 +1,10 @@
 # Huascar
 
+[CI](https://github.com/VECTORG99/Huascar/actions/workflows/ci.yml) | [License](LICENSE) | [Homepage](https://huascar.vercel.app)
+
+> Construido para el Hackathon Kiro x Código Facilito 2026.
+> Documentación en español. Lectores LLM: leer AGENTS.md y CONTEXT.md para el contexto completo del proyecto.
+
 **Plataforma open-source para diseñar agentes de desarrollo y operación mediante un árbol de decisiones, generar su configuración y explicar por qué fue construida de esa manera.**
 
 Huascar separa dos responsabilidades:
@@ -25,11 +30,13 @@ El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no 
 
 ### Implementado en la interfaz
 
-- `agent-creator/` carga catálogo, workflow y tutorial directamente desde `/api/v1/creator`.
+- `frontend/agents/new` carga catálogo, workflow, skills y MCPs directamente desde `/api/v1/creator`.
+- Cuatro modos de entrada: **Auto-corto** (subconjunto curado de preguntas con valores por defecto seguros), **Auto-largo** (árbol de decisiones completo), **Presets** (configuraciones completas listas para revisar y ajustar) y **Avanzado** (panel de control denso con switches, proveedores de modelo, RAG y selección directa de skills/MCPs).
 - Renderiza preguntas y ramas del backend sin codificar el orden en React.
-- Conserva respuestas, pregunta actual y fase de navegación en `sessionStorage`, permite volver y recalcula el árbol mediante `/evaluate`.
-- Incluye tutorial visual skippable, revisión de recomendaciones y advertencias.
+- Fondo espacial y estética "liquid glass" compartidos con el Landing.
+- Revisión de recomendaciones y advertencias antes de generar, con cada respuesta editable.
 - Descarga el bundle JSON completo o artefactos individuales del preview.
+- `agent-creator/` (Vite) queda como app legacy, sin desarrollo activo de Creator.
 - **Login, cuentas y multiusuario están documentados como roadmap; no están implementados.**
 - La descarga ZIP, escritura automática en repositorios y despliegue se dejan para una fase posterior.
 
@@ -53,7 +60,7 @@ El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no 
 [Recomendaciones explicables]
       ↓
 [Preview del bundle]
-      ├─ configuraciones
+      ├─ configuraciónes
       ├─ manifest + hashes
       ├─ INSTALL.md
       └─ WHY.md
@@ -117,25 +124,25 @@ Cada recomendación incluye motivo, evidencia usada, beneficios, trade-offs y al
 
 Siempre se generan:
 
-| Archivo | Función |
-|---|---|
-| `huascar.blueprint.json` | Modelo canónico de todas las decisiones. |
-| `manifest.json` | Inventario de archivos y hashes SHA-256. |
-| `docs/INSTALL.md` | Tutorial para aplicar y validar el agente. |
-| `docs/WHY.md` | Explicación del objetivo, stack, entorno y recomendaciones. |
+| Archivo                  | Función                                                     |
+| ------------------------ | ----------------------------------------------------------- |
+| `huascar.blueprint.json` | Modelo canónico de todas las decisiones.                    |
+| `manifest.json`          | Inventario de archivos y hashes SHA-256.                    |
+| `docs/INSTALL.md`        | Tutorial para aplicar y validar el agente.                  |
+| `docs/WHY.md`            | Explicación del objetivo, stack, entorno y recomendaciones. |
 
 Según las respuestas se agregan:
 
-| Condición | Artefactos |
-|---|---|
-| Desarrollo, Kiro o portable | `AGENTS.md` |
-| Skills activadas | `skills/<agente>/SKILL.md` |
-| Target Huascar | `huascar/steering.json`, `security-policy.json`, `governance.json`, `mcps.json` |
-| Target Huascar + RAG activado | `huascar/rag.json` |
-| Target Huascar + PR review activado | `huascar/pr-review.json` |
-| Target Kiro | `.kiro/steering/<agente>.md` |
-| Kiro + hooks | `.kiro/hooks/<agente>-quality.json` |
-| Kiro + skills | `.kiro/skills/<agente>/SKILL.md` |
+| Condición                           | Artefactos                                                                      |
+| ----------------------------------- | ------------------------------------------------------------------------------- |
+| Desarrollo, Kiro o portable         | `AGENTS.md`                                                                     |
+| Skills activadas                    | `skills/<agente>/SKILL.md`                                                      |
+| Target Huascar                      | `huascar/steering.json`, `security-policy.json`, `governance.json`, `mcps.json` |
+| Target Huascar + RAG activado       | `huascar/rag.json`                                                              |
+| Target Huascar + PR review activado | `huascar/pr-review.json`                                                        |
+| Target Kiro                         | `.kiro/steering/<agente>.md`                                                    |
+| Kiro + hooks                        | `.kiro/hooks/<agente>-quality.json`                                             |
+| Kiro + skills                       | `.kiro/skills/<agente>/SKILL.md`                                                |
 
 El bundle se devuelve como JSON. Huascar no escribe estos archivos automáticamente: el usuario debe revisarlos y copiarlos al proyecto destino.
 
@@ -316,7 +323,7 @@ El Creator:
 - calcula SHA-256 para cada artefacto;
 - no usa filesystem, red, SQLite, LLM, MCP ni shell.
 
-Las configuraciones MCP generadas son sugerencias. Antes de producción deben fijarse versiones exactas, aplicarse allowlists y ejecutarse en sandbox.
+Las configuraciónes MCP generadas son sugerencias. Antes de producción deben fijarse versiones exactas, aplicarse allowlists y ejecutarse en sandbox.
 
 ---
 
@@ -324,12 +331,12 @@ Las configuraciones MCP generadas son sugerencias. Antes de producción deben fi
 
 El runtime mantiene las rutas anteriores:
 
-| Ruta | Función |
-|---|---|
-| `GET /api/health` | Salud del backend. |
-| `GET /api/history` | Historial SQLite. |
-| `POST /api/agent/execute` | Ejecuta una tarea con HuascarEngine. |
-| `/api/hooks/commit-approval/*` | Prototipo de aprobación. |
+| Ruta                           | Función                              |
+| ------------------------------ | ------------------------------------ |
+| `GET /api/health`              | Salud del backend.                   |
+| `GET /api/history`             | Historial SQLite.                    |
+| `POST /api/agent/execute`      | Ejecuta una tarea con HuascarEngine. |
+| `/api/hooks/commit-approval/*` | Prototipo de aprobación.             |
 
 `HuascarEngine` carga steering, fuentes RAG, servidores MCP y ejecuta un bucle ReAct. Sin API key o con `LLM_MOCK_MODE=true`, usa modo simulado.
 
@@ -338,6 +345,8 @@ El runtime mantiene las rutas anteriores:
 ---
 
 ## Quick start
+
+Web app: https://huascar.vercel.app
 
 ### Backend
 
@@ -361,17 +370,16 @@ curl http://localhost:3001/api/v1/creator/workflow
 curl http://localhost:3001/api/v1/creator/tutorial
 ```
 
-### Frontends actuales
+### Frontend
 
 ```bash
 cd frontend && npm ci && npm run dev
-cd agent-creator && npm ci && npm run dev
 ```
 
-- Dashboard Next.js: `http://localhost:3000`
-- Agent Creator Vite: `http://localhost:5173`
+- Dashboard: `http://localhost:3000/dashboard`
+- Creator: `http://localhost:3000/agents/new`
 
-El Agent Creator consume el workflow dinámico del backend. Configura `VITE_API_URL` con la URL pública del backend antes del build o desarrollo.
+`agent-creator/` (Vite, `http://localhost:5173`) sigue en el workspace como app legacy sin desarrollo activo del Creator; no recibe nuevas features.
 
 ### Docker
 
@@ -467,9 +475,10 @@ test/
 
 - [`docs/architecture.md`](docs/architecture.md): motor y arquitectura interna.
 - [`docs/deployment.md`](docs/deployment.md): despliegue local, Docker y Render.
-- [`docs/use_cases.md`](docs/use_cases.md): casos de uso iniciales.
+- [`docs/use_cases.md`](docs/use_cases.md): casos de uso.
 - [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md): ejemplo de conocimiento versionado.
+- OpenAPI spec: disponible en `/api/openapi.json` al ejecutar el backend.
 
 ## Licencia
 
-MIT
+MPL-2.0 — ver [`LICENSE`](LICENSE). Copyleft débil: los archivos derivados de este código deben conservarse bajo MPL-2.0 y mantener el aviso de copyright y contribuidores, pero puede combinarse con código propietario en un mismo proyecto sin licenciar ese código bajo MPL.

@@ -3,23 +3,135 @@ import { CatalogCategory, CatalogItem } from './domain.js';
 export const CATALOG_VERSION = '1.0.0';
 
 export const catalogCategories: CatalogCategory[] = [
-  { id: 'language', label: 'Lenguajes y runtimes', description: 'Lenguaje principal y runtime del proyecto.', multiple: true },
-  { id: 'frontend', label: 'Frontend web', description: 'Frameworks y meta-frameworks para interfaces web.', multiple: true },
-  { id: 'backend', label: 'Backend y APIs', description: 'Frameworks para APIs, servicios y aplicaciones de servidor.', multiple: true },
+  {
+    id: 'language',
+    label: 'Lenguajes y runtimes',
+    description: 'Lenguaje principal y runtime del proyecto.',
+    multiple: true,
+  },
+  {
+    id: 'frontend',
+    label: 'Frontend web',
+    description: 'Frameworks y meta-frameworks para interfaces web.',
+    multiple: true,
+  },
+  {
+    id: 'backend',
+    label: 'Backend y APIs',
+    description: 'Frameworks para APIs, servicios y aplicaciones de servidor.',
+    multiple: true,
+  },
   { id: 'mobile', label: 'Desarrollo móvil', description: 'Stacks nativos y multiplataforma.', multiple: true },
-  { id: 'data-ai', label: 'Datos e IA', description: 'Procesamiento de datos, machine learning y agentes.', multiple: true },
-  { id: 'database', label: 'Persistencia', description: 'Bases relacionales, documentales, caché, búsqueda y vectores.', multiple: true },
-  { id: 'architecture', label: 'Arquitecturas', description: 'Estilos arquitectónicos y patrones de organización.', multiple: false },
-  { id: 'testing', label: 'Pruebas y calidad', description: 'Herramientas para validación funcional, estática y de seguridad.', multiple: true },
+  {
+    id: 'data-ai',
+    label: 'Datos e IA',
+    description: 'Procesamiento de datos, machine learning y agentes.',
+    multiple: true,
+  },
+  {
+    id: 'database',
+    label: 'Persistencia',
+    description: 'Bases relacionales, documentales, caché, búsqueda y vectores.',
+    multiple: true,
+  },
+  {
+    id: 'architecture',
+    label: 'Arquitecturas',
+    description: 'Estilos arquitectónicos y patrones de organización.',
+    multiple: false,
+  },
+  {
+    id: 'testing',
+    label: 'Pruebas y calidad',
+    description: 'Herramientas para validación funcional, estática y de seguridad.',
+    multiple: true,
+  },
   { id: 'cicd', label: 'CI/CD', description: 'Automatización de integración, entrega y promoción.', multiple: false },
-  { id: 'infrastructure', label: 'Infraestructura como código', description: 'Definición reproducible de infraestructura.', multiple: true },
-  { id: 'container', label: 'Contenedores y orquestación', description: 'Empaquetado y operación de workloads.', multiple: true },
+  {
+    id: 'infrastructure',
+    label: 'Infraestructura como código',
+    description: 'Definición reproducible de infraestructura.',
+    multiple: true,
+  },
+  {
+    id: 'container',
+    label: 'Contenedores y orquestación',
+    description: 'Empaquetado y operación de workloads.',
+    multiple: true,
+  },
   { id: 'cloud', label: 'Cloud y hosting', description: 'Proveedores y plataformas de ejecución.', multiple: true },
-  { id: 'observability', label: 'Observabilidad', description: 'Logs, métricas, trazas y gestión de errores.', multiple: true },
-  { id: 'security', label: 'Seguridad y supply chain', description: 'Secretos, análisis y controles de dependencias.', multiple: true },
-  { id: 'repository', label: 'Código y colaboración', description: 'Repositorios, pull requests e incidencias.', multiple: false },
-  { id: 'agent-platform', label: 'Plataformas de agente', description: 'Formatos de configuración que generará Huascar.', multiple: true },
-  { id: 'knowledge', label: 'Conocimiento', description: 'Mecanismos para aportar contexto estable o recuperable.', multiple: true },
+  {
+    id: 'observability',
+    label: 'Observabilidad',
+    description: 'Logs, métricas, trazas y gestión de errores.',
+    multiple: true,
+  },
+  {
+    id: 'security',
+    label: 'Seguridad y supply chain',
+    description: 'Secretos, análisis y controles de dependencias.',
+    multiple: true,
+  },
+  {
+    id: 'repository',
+    label: 'Código y colaboración',
+    description: 'Repositorios, pull requests e incidencias.',
+    multiple: false,
+  },
+  {
+    id: 'agent-platform',
+    label: 'Plataformas de agente',
+    description: 'Formatos de configuración que generará Huascar.',
+    multiple: true,
+  },
+  {
+    id: 'knowledge',
+    label: 'Conocimiento',
+    description: 'Mecanismos para aportar contexto estable o recuperable.',
+    multiple: true,
+  },
+  {
+    id: 'blockchain',
+    label: 'Blockchain y Web3',
+    description: 'Protocolos, smart contracts y aplicaciones descentralizadas.',
+    multiple: true,
+  },
+  {
+    id: 'cybersecurity',
+    label: 'Ciberseguridad',
+    description: 'Herramientas ofensivas, defensivas, análisis y auditoría.',
+    multiple: true,
+  },
+  {
+    id: 'networking',
+    label: 'Redes e infraestructura',
+    description: 'Protocolos, SDN, service mesh y balanceo.',
+    multiple: true,
+  },
+  {
+    id: 'mlops',
+    label: 'MLOps y LLMOps',
+    description: 'Operaciones de modelos, serving, monitoreo y pipelines ML.',
+    multiple: true,
+  },
+  {
+    id: 'automation',
+    label: 'Automatización y orquestación',
+    description: 'RPA, workflows, scheduling y pipelines de automatización.',
+    multiple: true,
+  },
+  {
+    id: 'skill',
+    label: 'Skills (Habilidades)',
+    description: 'Rutinas reusables e instrucciones para el agente.',
+    multiple: true,
+  },
+  {
+    id: 'mcp',
+    label: 'MCP Servers',
+    description: 'Servidores de protocolo de contexto para el agente.',
+    multiple: true,
+  },
 ];
 
 type ItemSpec = [id: string, label: string, description: string, tags?: string[], recommendedFor?: string[]];
@@ -38,13 +150,37 @@ function makeItems(category: string, specs: ItemSpec[]): CatalogItem[] {
 
 export const catalogItems: CatalogItem[] = [
   ...makeItems('language', [
-    ['typescript', 'TypeScript', 'JavaScript tipado para frontend, backend y tooling.', ['node', 'web'], ['web', 'api', 'agent']],
+    [
+      'typescript',
+      'TypeScript',
+      'JavaScript tipado para frontend, backend y tooling.',
+      ['node', 'web'],
+      ['web', 'api', 'agent'],
+    ],
     ['javascript', 'JavaScript', 'Lenguaje universal del ecosistema web y Node.js.', ['node', 'web']],
-    ['python', 'Python', 'Automatización, APIs, datos, IA y scripting.', ['ai', 'data', 'api'], ['agent', 'data', 'automation']],
-    ['java', 'Java', 'Servicios empresariales y plataformas de larga vida.', ['jvm', 'enterprise'], ['api', 'enterprise']],
+    [
+      'python',
+      'Python',
+      'Automatización, APIs, datos, IA y scripting.',
+      ['ai', 'data', 'api'],
+      ['agent', 'data', 'automation'],
+    ],
+    [
+      'java',
+      'Java',
+      'Servicios empresariales y plataformas de larga vida.',
+      ['jvm', 'enterprise'],
+      ['api', 'enterprise'],
+    ],
     ['kotlin', 'Kotlin', 'JVM moderno, Android y servicios multiplataforma.', ['jvm', 'android']],
     ['csharp', 'C#/.NET', 'Aplicaciones empresariales, APIs, escritorio y cloud.', ['dotnet', 'enterprise']],
-    ['go', 'Go', 'Servicios de red, plataformas cloud y herramientas DevOps.', ['cloud', 'systems'], ['microservices', 'devops']],
+    [
+      'go',
+      'Go',
+      'Servicios de red, plataformas cloud y herramientas DevOps.',
+      ['cloud', 'systems'],
+      ['microservices', 'devops'],
+    ],
     ['rust', 'Rust', 'Sistemas seguros, alto rendimiento y WebAssembly.', ['systems', 'wasm']],
     ['php', 'PHP', 'Aplicaciones web y plataformas de contenido.', ['web']],
     ['ruby', 'Ruby', 'Aplicaciones web orientadas a productividad.', ['web']],
@@ -52,6 +188,21 @@ export const catalogItems: CatalogItem[] = [
     ['dart', 'Dart', 'Aplicaciones multiplataforma con Flutter.', ['mobile']],
     ['cpp', 'C/C++', 'Sistemas, motores y aplicaciones de alto rendimiento.', ['systems', 'embedded']],
     ['elixir', 'Elixir', 'Sistemas distribuidos y tolerantes a fallos sobre BEAM.', ['distributed', 'realtime']],
+    ['assembly', 'Assembly/x86', 'Programación de bajo nivel y optimización de hardware.', ['systems', 'embedded']],
+    ['zig', 'Zig', 'Sistemas modernos sin garbage collector.', ['systems']],
+    ['nim', 'Nim', 'Sistemas eficientes con sintaxis expresiva.', ['systems']],
+    ['scala', 'Scala', 'Programación funcional en JVM y Spark.', ['jvm', 'data'], ['data', 'enterprise']],
+    ['r-lang', 'R', 'Análisis estadístico y visualización.', ['data', 'science']],
+    ['julia', 'Julia', 'Computación científica de alto rendimiento.', ['science', 'data']],
+    ['solidity', 'Solidity', 'Smart contracts para Ethereum/EVM.', ['blockchain']],
+    ['lua', 'Lua', 'Scripting embebido y extensiones de juegos.', ['embedded', 'scripting']],
+    ['haskell', 'Haskell', 'Programación funcional pura y sistemas verificables.', ['functional']],
+    ['clojure', 'Clojure', 'Lisp funcional sobre JVM.', ['jvm', 'functional']],
+    ['fortran', 'Fortran', 'Computación numérica y simulaciones científicas.', ['science', 'hpc']],
+    ['bash', 'Bash/Shell', 'Scripting de sistema y automatización Unix.', ['scripting', 'systems']],
+    ['sql', 'SQL', 'Consultas y gestión de bases de datos.', ['data', 'database']],
+    ['perl', 'Perl', 'Procesamiento de texto y administración de sistemas.', ['scripting', 'systems']],
+    ['vhdl', 'VHDL/Verilog', 'Diseño de hardware y FPGAs.', ['hardware', 'embedded']],
   ]),
   ...makeItems('frontend', [
     ['react', 'React', 'Biblioteca para interfaces por componentes.', ['spa'], ['web']],
@@ -94,11 +245,35 @@ export const catalogItems: CatalogItem[] = [
     ['llamaindex', 'LlamaIndex', 'Ingesta, indexado y recuperación para LLM.', ['llm', 'rag']],
     ['vercel-ai-sdk', 'Vercel AI SDK', 'Integración de modelos y streaming en TypeScript.', ['llm', 'typescript']],
     ['ollama', 'Ollama', 'Ejecución local de modelos abiertos.', ['llm', 'local']],
+    ['scikit-learn', 'scikit-learn', 'Machine learning clásico y pipelines.', ['ml', 'python']],
+    ['huggingface', 'Hugging Face Transformers', 'Modelos pre-entrenados y fine-tuning.', ['ml', 'llm']],
+    ['mlflow', 'MLflow', 'Tracking, registry y serving de modelos ML.', ['mlops']],
+    ['kubeflow', 'Kubeflow', 'ML pipelines en Kubernetes.', ['mlops', 'kubernetes']],
+    ['ray', 'Ray', 'Computación distribuida para ML y datos.', ['ml', 'distributed']],
+    ['dbt', 'dbt', 'Transformaciones SQL versionadas.', ['data', 'sql']],
+    ['airflow', 'Apache Airflow', 'Orquestación de workflows de datos.', ['data', 'orchestration']],
+    ['kafka', 'Apache Kafka', 'Streaming de eventos y mensajería distribuida.', ['streaming', 'distributed']],
+    ['flink', 'Apache Flink', 'Procesamiento de streams en tiempo real.', ['streaming', 'distributed']],
+    ['dvc', 'DVC', 'Control de versiones para datos y modelos.', ['mlops', 'versioning']],
+    ['weights-biases', 'Weights & Biases', 'Experiment tracking y model registry.', ['mlops', 'tracking']],
+    ['onnx', 'ONNX', 'Formato portable de modelos ML.', ['ml', 'inference']],
+    ['triton', 'NVIDIA Triton', 'Inference serving de alto rendimiento.', ['ml', 'inference']],
+    ['lora-finetuning', 'LoRA/QLoRA', 'Fine-tuning eficiente de LLMs.', ['llm', 'ml']],
+    ['vllm', 'vLLM', 'Serving de LLMs con PagedAttention.', ['llm', 'inference']],
+    ['stable-diffusion', 'Stable Diffusion', 'Generación de imágenes.', ['ml', 'generative']],
+    ['opencv', 'OpenCV', 'Visión por computadora.', ['ml', 'vision']],
+    ['spacy', 'spaCy', 'NLP industrial y pipelines de texto.', ['ml', 'nlp']],
   ]),
   ...makeItems('database', [
     ['postgresql', 'PostgreSQL', 'Base relacional general con extensiones avanzadas.', ['sql'], ['production']],
     ['mysql', 'MySQL/MariaDB', 'Base relacional ampliamente soportada.', ['sql']],
-    ['sqlite', 'SQLite', 'Base embebida para desarrollo, edge y baja concurrencia.', ['sql', 'embedded'], ['development']],
+    [
+      'sqlite',
+      'SQLite',
+      'Base embebida para desarrollo, edge y baja concurrencia.',
+      ['sql', 'embedded'],
+      ['development'],
+    ],
     ['mongodb', 'MongoDB', 'Documentos JSON y esquemas flexibles.', ['nosql']],
     ['dynamodb', 'DynamoDB', 'Key-value administrado y serverless en AWS.', ['nosql', 'aws']],
     ['redis', 'Redis', 'Caché, estructuras en memoria y coordinación.', ['cache']],
@@ -109,10 +284,27 @@ export const catalogItems: CatalogItem[] = [
     ['qdrant', 'Qdrant', 'Motor vectorial open-source y administrado.', ['vector', 'rag']],
   ]),
   ...makeItems('architecture', [
-    ['modular-monolith', 'Monolito modular', 'Despliegue único con límites internos explícitos.', ['modular'], ['new-project', 'small-team']],
+    [
+      'modular-monolith',
+      'Monolito modular',
+      'Despliegue único con límites internos explícitos.',
+      ['modular'],
+      ['new-project', 'small-team'],
+    ],
     ['monolith', 'Monolito tradicional', 'Aplicación única optimizada para simplicidad inicial.', ['simple']],
-    ['microservices', 'Microservicios', 'Servicios desplegables de forma independiente.', ['distributed'], ['large-team', 'production']],
-    ['serverless', 'Serverless', 'Funciones y servicios administrados con escalado por demanda.', ['cloud', 'event-driven']],
+    [
+      'microservices',
+      'Microservicios',
+      'Servicios desplegables de forma independiente.',
+      ['distributed'],
+      ['large-team', 'production'],
+    ],
+    [
+      'serverless',
+      'Serverless',
+      'Funciones y servicios administrados con escalado por demanda.',
+      ['cloud', 'event-driven'],
+    ],
     ['event-driven', 'Event-driven', 'Componentes desacoplados por eventos y mensajería.', ['async', 'distributed']],
     ['hexagonal', 'Arquitectura hexagonal', 'Dominio aislado mediante puertos y adaptadores.', ['domain']],
     ['clean-architecture', 'Clean Architecture', 'Dependencias orientadas hacia reglas de negocio.', ['domain']],
@@ -141,6 +333,9 @@ export const catalogItems: CatalogItem[] = [
     ['cloudformation', 'AWS CloudFormation/CDK', 'Infraestructura nativa de AWS.', ['aws', 'iac']],
     ['bicep', 'Azure Bicep', 'Infraestructura declarativa de Azure.', ['azure', 'iac']],
     ['ansible', 'Ansible', 'Configuración y automatización de servidores.', ['configuration']],
+    ['crossplane', 'Crossplane', 'Control plane multi-cloud con Kubernetes.', ['iac', 'kubernetes']],
+    ['cdk', 'AWS CDK', 'Infraestructura como código en lenguajes generales.', ['aws', 'iac']],
+    ['nixos', 'NixOS/Nix', 'Configuración reproducible de sistemas.', ['configuration', 'reproducible']],
   ]),
   ...makeItems('container', [
     ['docker', 'Docker', 'Empaquetado reproducible en contenedores.', ['container']],
@@ -148,18 +343,70 @@ export const catalogItems: CatalogItem[] = [
     ['kubernetes', 'Kubernetes', 'Orquestación de workloads distribuidos.', ['orchestration']],
     ['helm', 'Helm', 'Empaquetado y despliegue declarativo en Kubernetes.', ['kubernetes']],
     ['nomad', 'HashiCorp Nomad', 'Orquestación ligera de workloads.', ['orchestration']],
+    ['podman', 'Podman', 'Contenedores rootless compatible con Docker.', ['container']],
+    ['buildkit', 'BuildKit/Kaniko', 'Construcción de imágenes en CI.', ['container', 'ci']],
+    ['argocd-deploy', 'Argo CD', 'Despliegue GitOps continuo.', ['gitops', 'kubernetes']],
   ]),
   ...makeItems('cloud', [
     ['aws-ec2', 'AWS EC2', 'Máquinas virtuales administradas por el equipo.', ['aws', 'vm'], ['production']],
     ['aws-ecs', 'AWS ECS/Fargate', 'Contenedores administrados en AWS.', ['aws', 'container']],
     ['aws-eks', 'AWS EKS', 'Kubernetes administrado en AWS.', ['aws', 'kubernetes']],
     ['aws-lambda', 'AWS Lambda', 'Funciones serverless en AWS.', ['aws', 'serverless']],
+    ['aws-s3', 'AWS S3', 'Almacenamiento de objetos escalable y duradero.', ['aws', 'storage']],
+    ['aws-rds', 'AWS RDS/Aurora', 'Bases de datos relacionales administradas.', ['aws', 'database']],
+    ['aws-sqs', 'AWS SQS', 'Cola de mensajes completamente administrada.', ['aws', 'messaging']],
+    ['aws-sns', 'AWS SNS', 'Pub/sub de notificaciones.', ['aws', 'messaging']],
+    ['aws-eventbridge', 'AWS EventBridge', 'Bus de eventos serverless.', ['aws', 'event-driven']],
+    ['aws-api-gateway', 'AWS API Gateway', 'APIs REST/HTTP/WebSocket administradas.', ['aws', 'api']],
+    ['aws-cognito', 'AWS Cognito', 'Identidad y autenticación de usuarios.', ['aws', 'identity']],
+    ['aws-bedrock', 'AWS Bedrock', 'Modelos fundacionales y GenAI administrado.', ['aws', 'ai']],
+    ['aws-cloudfront', 'AWS CloudFront', 'CDN global de baja latencia.', ['aws', 'cdn']],
+    ['aws-waf', 'AWS WAF', 'Firewall de aplicaciones web.', ['aws', 'security']],
+    ['aws-guardduty', 'AWS GuardDuty', 'Detección inteligente de amenazas.', ['aws', 'security']],
+    ['aws-kinesis', 'AWS Kinesis', 'Streaming de datos en tiempo real.', ['aws', 'streaming']],
+    ['aws-glue', 'AWS Glue', 'ETL serverless y catálogo de datos.', ['aws', 'data']],
+    ['aws-athena', 'AWS Athena', 'Consultas SQL sobre S3 sin servidor.', ['aws', 'analytics']],
+    ['aws-emr', 'AWS EMR', 'Procesamiento big data con Spark/Hadoop.', ['aws', 'big-data']],
+    ['aws-elasticache', 'AWS ElastiCache', 'Redis/Memcached administrado.', ['aws', 'cache']],
+    ['aws-step-functions', 'AWS Step Functions', 'Orquestación de workflows serverless.', ['aws', 'orchestration']],
+    ['aws-codepipeline', 'AWS CodePipeline', 'CI/CD nativo de AWS.', ['aws', 'cicd']],
+    ['aws-iot-core', 'AWS IoT Core', 'Conectividad y gestión de dispositivos IoT.', ['aws', 'iot']],
     ['azure-vm', 'Azure Virtual Machines', 'Máquinas virtuales en Azure.', ['azure', 'vm']],
     ['azure-container-apps', 'Azure Container Apps', 'Contenedores serverless administrados.', ['azure', 'container']],
     ['azure-aks', 'Azure AKS', 'Kubernetes administrado en Azure.', ['azure', 'kubernetes']],
+    [
+      'azure-cosmos-db',
+      'Azure Cosmos DB',
+      'Base de datos multi-modelo distribuida globalmente.',
+      ['azure', 'database'],
+    ],
+    ['azure-functions', 'Azure Functions', 'Funciones serverless event-driven.', ['azure', 'serverless']],
+    ['azure-app-service', 'Azure App Service', 'Hosting de aplicaciones web administrado.', ['azure', 'web']],
+    ['azure-service-bus', 'Azure Service Bus', 'Mensajería empresarial y colas.', ['azure', 'messaging']],
+    ['azure-event-grid', 'Azure Event Grid', 'Enrutamiento de eventos reactivo.', ['azure', 'event-driven']],
+    ['azure-openai', 'Azure OpenAI Service', 'Modelos GPT/DALL-E administrados por Microsoft.', ['azure', 'ai']],
+    ['azure-sentinel', 'Azure Sentinel', 'SIEM y SOAR cloud-native.', ['azure', 'security']],
+    ['azure-front-door', 'Azure Front Door', 'CDN y balanceo global.', ['azure', 'cdn']],
+    ['azure-redis', 'Azure Cache for Redis', 'Redis administrado.', ['azure', 'cache']],
+    ['azure-synapse', 'Azure Synapse Analytics', 'Data warehousing y big data unificados.', ['azure', 'analytics']],
+    ['azure-data-factory', 'Azure Data Factory', 'Pipelines de integración de datos.', ['azure', 'data']],
+    ['azure-devops-boards', 'Azure DevOps Boards', 'Gestión ágil de trabajo.', ['azure', 'management']],
+    ['azure-iot-hub', 'Azure IoT Hub', 'Conectividad bidireccional de dispositivos IoT.', ['azure', 'iot']],
     ['gcp-compute', 'Google Compute Engine', 'Máquinas virtuales en GCP.', ['gcp', 'vm']],
     ['gcp-cloud-run', 'Google Cloud Run', 'Contenedores serverless administrados.', ['gcp', 'container']],
     ['gcp-gke', 'Google GKE', 'Kubernetes administrado en GCP.', ['gcp', 'kubernetes']],
+    ['gcp-bigquery', 'Google BigQuery', 'Data warehouse serverless y analytics.', ['gcp', 'analytics']],
+    ['gcp-pubsub', 'Google Pub/Sub', 'Mensajería y streaming global.', ['gcp', 'messaging']],
+    ['gcp-cloud-functions', 'Google Cloud Functions', 'Funciones serverless event-driven.', ['gcp', 'serverless']],
+    ['gcp-app-engine', 'Google App Engine', 'PaaS completamente administrado.', ['gcp', 'web']],
+    ['gcp-firestore', 'Google Firestore', 'Base documental serverless.', ['gcp', 'database']],
+    ['gcp-spanner', 'Google Cloud Spanner', 'Base relacional global y distribuida.', ['gcp', 'database']],
+    ['gcp-dataflow', 'Google Dataflow', 'Procesamiento de streams y batch.', ['gcp', 'data']],
+    ['gcp-dataproc', 'Google Dataproc', 'Clusters Spark/Hadoop administrados.', ['gcp', 'big-data']],
+    ['gcp-cloud-armor', 'Google Cloud Armor', 'Protección DDoS y WAF.', ['gcp', 'security']],
+    ['gcp-vertex-search', 'Vertex AI Search', 'Búsqueda y recuperación semántica.', ['gcp', 'ai']],
+    ['gcp-cloud-sql', 'Google Cloud SQL', 'MySQL/PostgreSQL administrado.', ['gcp', 'database']],
+    ['gcp-iot-core', 'Google IoT Core', 'Gestión de dispositivos IoT.', ['gcp', 'iot']],
     ['vercel', 'Vercel', 'Hosting y funciones orientadas a frontend/full-stack.', ['managed', 'web']],
     ['render', 'Render', 'Servicios, workers y bases administradas.', ['managed']],
     ['flyio', 'Fly.io', 'Aplicaciones distribuidas en máquinas ligeras.', ['managed']],
@@ -172,6 +419,9 @@ export const catalogItems: CatalogItem[] = [
     ['datadog', 'Datadog', 'Observabilidad administrada full-stack.', ['managed']],
     ['sentry', 'Sentry', 'Errores, performance y releases.', ['errors']],
     ['elastic-observability', 'Elastic Observability', 'Logs, métricas, APM y búsqueda.', ['elastic']],
+    ['jaeger', 'Jaeger', 'Distributed tracing open-source.', ['tracing']],
+    ['loki', 'Grafana Loki', 'Agregación de logs eficiente.', ['logs']],
+    ['vector-observ', 'Vector', 'Pipeline de datos de observabilidad.', ['pipeline']],
   ]),
   ...makeItems('security', [
     ['oidc', 'OIDC/OAuth 2.0', 'Identidad federada y autorización estándar.', ['identity']],
@@ -194,17 +444,171 @@ export const catalogItems: CatalogItem[] = [
     ['portable', 'Portable', 'AGENTS.md, skills y documentación independiente.', ['agent']],
   ]),
   ...makeItems('knowledge', [
-    ['repository-docs', 'Documentación del repositorio', 'README, arquitectura, ADR y convenciones versionadas.', ['static']],
+    [
+      'repository-docs',
+      'Documentación del repositorio',
+      'README, arquitectura, ADR y convenciones versionadas.',
+      ['static'],
+    ],
     ['source-code', 'Código fuente', 'Contexto del código y estructura del proyecto.', ['static']],
     ['web-documentation', 'Documentación web', 'Documentación externa revisada y permitida.', ['web']],
     ['tickets', 'Issues y tickets', 'Trabajo vivo desde el sistema de seguimiento.', ['dynamic']],
     ['runbooks', 'Runbooks operacionales', 'Procedimientos de operación y respuesta.', ['operations']],
     ['rag-vector-store', 'RAG vectorial', 'Corpus indexado para recuperación semántica.', ['rag']],
   ]),
+  ...makeItems('blockchain', [
+    ['ethereum', 'Ethereum/EVM', 'Contratos inteligentes y dApps.', ['smart-contracts']],
+    ['hardhat', 'Hardhat', 'Desarrollo y testing de smart contracts.', ['smart-contracts', 'testing']],
+    ['foundry', 'Foundry', 'Suite de testing rápida para Solidity.', ['smart-contracts', 'testing']],
+    ['web3js', 'Web3.js/Ethers.js', 'Interacción con blockchain desde JS.', ['frontend', 'sdk']],
+    ['ipfs', 'IPFS', 'Almacenamiento descentralizado.', ['storage', 'decentralized']],
+    ['polygon', 'Polygon/L2', 'Redes de escalabilidad para Ethereum.', ['l2', 'scaling']],
+    ['substrate', 'Substrate/Polkadot', 'Framework de blockchains custom.', ['framework']],
+    ['cosmos-sdk', 'Cosmos SDK', 'Blockchains interoperables.', ['framework', 'interop']],
+  ]),
+  ...makeItems('cybersecurity', [
+    ['burpsuite', 'Burp Suite', 'Proxy y escáner de aplicaciones web.', ['offensive', 'web']],
+    ['metasploit', 'Metasploit', 'Framework de pentesting y exploits.', ['offensive']],
+    ['nmap', 'Nmap', 'Escaneo de redes y puertos.', ['reconnaissance']],
+    ['wireshark', 'Wireshark', 'Análisis de tráfico de red.', ['network', 'analysis']],
+    ['owasp-zap', 'OWASP ZAP', 'Escáner de seguridad web open-source.', ['offensive', 'web']],
+    ['snort-suricata', 'Snort/Suricata', 'IDS/IPS de red.', ['defensive', 'network']],
+    ['wazuh', 'Wazuh', 'SIEM y detección de amenazas.', ['defensive', 'siem']],
+    ['kali-tools', 'Kali Linux Tools', 'Suite de pentesting y auditoría.', ['offensive']],
+    ['osquery', 'osquery', 'Monitoreo de endpoints como SQL.', ['defensive', 'endpoint']],
+    ['vault', 'HashiCorp Vault', 'Gestión de secretos y cifrado.', ['secrets', 'defensive']],
+    ['trivy', 'Trivy', 'Escaneo de vulnerabilidades de contenedores e IaC.', ['defensive', 'scanning']],
+    ['falco', 'Falco', 'Detección de amenazas en runtime de contenedores.', ['defensive', 'runtime']],
+    ['sonarqube', 'SonarQube', 'Análisis estático de calidad y seguridad.', ['sast', 'quality']],
+  ]),
+  ...makeItems('networking', [
+    ['nginx', 'Nginx', 'Proxy reverso y balanceo de carga.', ['proxy', 'load-balancing']],
+    ['envoy', 'Envoy', 'Service proxy para microservicios.', ['proxy', 'service-mesh']],
+    ['istio', 'Istio', 'Service mesh para Kubernetes.', ['service-mesh', 'kubernetes']],
+    ['consul', 'HashiCorp Consul', 'Service discovery y configuración.', ['discovery', 'configuration']],
+    ['traefik', 'Traefik', 'Proxy dinámico para contenedores.', ['proxy', 'container']],
+    ['wireguard', 'WireGuard', 'VPN moderna y eficiente.', ['vpn', 'security']],
+    ['cloudflare', 'Cloudflare', 'CDN, DNS y protección DDoS.', ['cdn', 'security']],
+  ]),
+  ...makeItems('mlops', [
+    ['sagemaker', 'AWS SageMaker', 'Entrenamiento y serving de modelos en AWS.', ['aws', 'training']],
+    ['vertex-ai', 'Google Vertex AI', 'Plataforma ML de GCP.', ['gcp', 'training']],
+    ['azure-ml', 'Azure Machine Learning', 'ML en la nube de Microsoft.', ['azure', 'training']],
+    ['bentoml', 'BentoML', 'Empaquetado y serving de modelos.', ['serving']],
+    ['seldon', 'Seldon Core', 'ML serving en Kubernetes.', ['serving', 'kubernetes']],
+    ['evidently', 'Evidently AI', 'Monitoreo de drift y calidad de modelos.', ['monitoring']],
+    ['label-studio', 'Label Studio', 'Anotación y etiquetado de datos.', ['labeling']],
+    ['feast', 'Feast', 'Feature store open-source.', ['feature-store']],
+  ]),
+  ...makeItems('automation', [
+    ['n8n', 'n8n', 'Automatización de workflows open-source.', ['workflow']],
+    ['temporal', 'Temporal', 'Orquestación de workflows distribuidos duraderos.', ['workflow', 'distributed']],
+    ['prefect', 'Prefect', 'Orquestación moderna de data pipelines.', ['workflow', 'data']],
+    ['celery', 'Celery', 'Cola de tareas distribuida para Python.', ['queue', 'python']],
+    ['bull', 'BullMQ', 'Colas de tareas para Node.js/Redis.', ['queue', 'node']],
+    ['step-functions', 'AWS Step Functions', 'Workflows serverless.', ['aws', 'serverless']],
+    ['github-actions-wf', 'GitHub Actions (Workflows)', 'Automatización basada en eventos.', ['ci', 'github']],
+  ]),
+  ...makeItems('skill', [
+    [
+      'code-reviewer',
+      'Code Reviewer',
+      'Analiza diffs y archivos para identificar bugs, vulnerabilidades, olores de código y problemas arquitectónicos.',
+      ['review', 'security', 'quality'],
+      ['pr-review'],
+    ],
+    [
+      'security-auditor',
+      'Security Auditor',
+      'Realiza auditorías de seguridad antes del despliegue, bloquea vulnerabilidades críticas.',
+      ['security', 'audit', 'deployment'],
+      ['security'],
+    ],
+    [
+      'test-master',
+      'Test Master',
+      'Genera pruebas, estrategias de mock, analiza cobertura y planes de pruebas.',
+      ['testing', 'qa', 'coverage'],
+      ['testing'],
+    ],
+    [
+      'devops-engineer',
+      'DevOps Engineer',
+      'Crea Dockerfiles, pipelines CI/CD, manifiestos Kubernetes.',
+      ['devops', 'kubernetes', 'docker'],
+      ['devops'],
+    ],
+    [
+      'api-designer',
+      'API Designer',
+      'Diseña APIs REST/GraphQL, especificaciones OpenAPI, modelos de recursos.',
+      ['api', 'design', 'openapi'],
+      ['coding'],
+    ],
+    [
+      'database-optimizer',
+      'Database Optimizer',
+      'Optimiza consultas SQL, índices, analiza planes de ejecución.',
+      ['database', 'sql', 'performance'],
+      ['data-ai'],
+    ],
+    [
+      'architecture-designer',
+      'Architecture Designer',
+      'Diseña arquitecturas, ADRs, evalúa trade-offs tecnológicos.',
+      ['architecture', 'design', 'adr'],
+      ['coding'],
+    ],
+    [
+      'legacy-modernizer',
+      'Legacy Modernizer',
+      'Diseña estrategias de migración, analiza dependencias, strangler fig.',
+      ['legacy', 'migration'],
+      ['coding'],
+    ],
+  ]),
+  ...makeItems('mcp', [
+    [
+      'github-mcp',
+      'GitHub MCP',
+      'Interactúa con GitHub: PRs, issues, repositorios, búsqueda de código.',
+      ['github', 'vcs', 'mcp'],
+    ],
+    [
+      'atlassian-mcp',
+      'Atlassian MCP',
+      'Integración con Jira y Confluence usando JQL y CQL.',
+      ['jira', 'confluence', 'mcp'],
+    ],
+    [
+      'context7-mcp',
+      'Context7 MCP',
+      'Obtiene documentación de librerías, frameworks y SDKs actualizados.',
+      ['docs', 'mcp'],
+    ],
+    [
+      'postgres-mcp',
+      'PostgreSQL MCP',
+      'Conexión a BD Postgres para inspeccionar esquemas y consultar datos.',
+      ['database', 'postgres', 'mcp'],
+    ],
+    [
+      'playwright-mcp',
+      'Playwright MCP',
+      'Controla navegadores Chromium/Firefox/WebKit para pruebas E2E.',
+      ['testing', 'browser', 'mcp'],
+    ],
+    [
+      'brave-search',
+      'Brave Search MCP',
+      'Búsquedas web y noticias a través de la API de Brave.',
+      ['search', 'web', 'mcp'],
+    ],
+  ]),
 ];
 
-const itemIndex = new Map(catalogItems.map(item => [item.id, item]));
-const categoryIndex = new Map(catalogCategories.map(category => [category.id, category]));
+const itemIndex = new Map(catalogItems.map((item) => [item.id, item]));
+const categoryIndex = new Map(catalogCategories.map((category) => [category.id, category]));
 
 export function getCatalogItem(id: string): CatalogItem | undefined {
   return itemIndex.get(id);
@@ -218,15 +622,27 @@ export function isCatalogItemFor(id: string, categories: string[]): boolean {
 
 export function getCreatorCatalog(filters?: { category?: string; environment?: string; q?: string }) {
   let items = catalogItems;
-  if (filters?.category && categoryIndex.has(filters.category)) {
-    items = items.filter(item => item.category === filters.category);
+  if (filters?.category) {
+    if (categoryIndex.has(filters.category)) {
+      items = items.filter((item) => item.category === filters.category);
+    } else {
+      items = [];
+    }
   }
-  if (filters?.environment === 'development' || filters?.environment === 'production' || filters?.environment === 'both') {
-    items = items.filter(item => item.environments.includes(filters.environment as 'development' | 'production' | 'both'));
+  if (
+    filters?.environment === 'development' ||
+    filters?.environment === 'production' ||
+    filters?.environment === 'both'
+  ) {
+    items = items.filter((item) =>
+      item.environments.includes(filters.environment as 'development' | 'production' | 'both'),
+    );
   }
   if (filters?.q) {
     const query = filters.q.toLowerCase().trim();
-    items = items.filter(item => [item.id, item.label, item.description, ...item.tags].some(value => value.toLowerCase().includes(query)));
+    items = items.filter((item) =>
+      [item.id, item.label, item.description, ...item.tags].some((value) => value.toLowerCase().includes(query)),
+    );
   }
   return {
     version: CATALOG_VERSION,

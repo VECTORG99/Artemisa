@@ -5,6 +5,22 @@ import { CreatorInputError } from '../src/creator/domain.js';
 import { developmentAnswers, productionAnswers } from './creatorFixture.mjs';
 
 describe('Creator generator', () => {
+  it('applies agent_persona verbatim to the generated system prompt', () => {
+    const persona = 'Tono directo, sin rodeos, siempre cita la línea exacta del código.';
+    const bundle = generateAgentBundle({ ...developmentAnswers, agent_persona: persona });
+    const steering = JSON.parse(bundle.artifacts.find((a) => a.path === 'huascar/steering.json').content);
+    const [role] = Object.values(steering.roles);
+    assert.ok(role.system_prompt.includes(persona), 'system_prompt must include the persona text verbatim');
+  });
+
+  it('omits persona line when agent_persona is not answered', () => {
+    const { agent_persona: _unused, ...withoutPersona } = developmentAnswers;
+    const bundle = generateAgentBundle(withoutPersona);
+    const steering = JSON.parse(bundle.artifacts.find((a) => a.path === 'huascar/steering.json').content);
+    const [role] = Object.values(steering.roles);
+    assert.ok(!role.system_prompt.includes('Estilo/tono/restricciones'));
+  });
+
   it('generates Huascar, Kiro, portable, RAG, PR and skill artifacts when applicable', () => {
     const bundle = generateAgentBundle(developmentAnswers);
     const paths = bundle.artifacts.map(artifact => artifact.path);
@@ -26,6 +42,7 @@ describe('Creator generator', () => {
     ]) assert.ok(paths.includes(expected), `missing ${expected}`);
     assert.equal(bundle.blueprint.prReview.enabled, true);
     assert.equal(bundle.manifest.artifactCount, bundle.artifacts.length);
+    assert.equal(bundle.manifest.files.length, bundle.artifacts.length - 1);
     assert.ok(bundle.artifacts.every(artifact => /^[a-f0-9]{64}$/.test(artifact.sha256)));
   });
 
@@ -48,7 +65,10 @@ describe('Creator generator', () => {
     assert.ok(bundle.warnings.some(message => message.includes('producción')));
 
     const policy = JSON.parse(bundle.artifacts.find(file => file.path === 'huascar/security-policy.json').content);
-    assert.deepEqual(Object.keys(policy).sort(), ['blocked_args_substrings', 'blocked_tool_patterns']);
+    assert.ok(policy.blocked_tool_patterns.length > 0);
+    assert.ok(policy.blocked_args_substrings.execute_bash.length > 0);
+    assert.equal(policy.default_filesystem_mode, 'read-only');
+    assert.ok(Array.isArray(policy.require_approval_patterns));
   });
 
   it('quotes YAML frontmatter descriptions containing colons', () => {

@@ -1,8 +1,10 @@
+import { CreatorError, ErrorCodes } from '../errors.js';
 export type CreatorAnswerValue = string | boolean | string[];
 export type CreatorAnswers = Record<string, CreatorAnswerValue>;
 
 export type EnvironmentScope = 'development' | 'production' | 'both';
-export type QuestionType = 'text' | 'textarea' | 'select' | 'multiselect' | 'boolean' | 'catalog-multiselect' | 'catalog-select';
+export type QuestionType =
+  'text' | 'textarea' | 'select' | 'multiselect' | 'boolean' | 'catalog-multiselect' | 'catalog-select' | 'custom';
 
 export interface CatalogCategory {
   id: string;
@@ -92,6 +94,8 @@ export interface AgentBlueprint {
     type: string;
     objective: string;
     successCriteria: string;
+    /** Optional free-text tone/style/restriction, applied verbatim to the generated system prompt. */
+    persona: string | null;
   };
   project: {
     stage: string;
@@ -107,7 +111,7 @@ export interface AgentBlueprint {
     containerPlatforms: string[];
   };
   devops: {
-    ciCd: string;
+    ciCd: string[];
     infrastructure: string[];
     observability: string[];
     compliance: string[];
@@ -163,14 +167,11 @@ export interface GeneratedAgentBundle {
   warnings: string[];
 }
 
-export class CreatorInputError extends Error {
-  readonly statusCode: number;
+export class CreatorInputError extends CreatorError {
   readonly issues: AnswerIssue[];
 
   constructor(message: string, issues: AnswerIssue[], statusCode = 400) {
-    super(message);
-    this.name = 'CreatorInputError';
+    super(ErrorCodes.CREATOR_INPUT_ERROR, message, statusCode, { issues });
     this.issues = issues;
-    this.statusCode = statusCode;
   }
 }

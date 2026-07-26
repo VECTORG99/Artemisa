@@ -9,7 +9,7 @@ export const developmentAnswers = {
   repository_provider: 'github',
   environment: 'development',
   development_setup: 'docker-compose',
-  ci_cd: 'github-actions',
+  ci_cd: ['github-actions'],
   security_controls: ['least-privilege', 'container-scan', 'secrets-manager'],
   capabilities: ['read-repository', 'edit-code', 'run-tests', 'review-pr'],
   autonomy: 'advisory',
@@ -20,6 +20,9 @@ export const developmentAnswers = {
   agent_targets: ['huascar', 'kiro', 'portable'],
   hooks_enabled: true,
   skills_enabled: true,
+  skills_focus: 'development',
+  mcps_enabled: true,
+  mcps_selection: ['github-mcp']
 };
 
 export const productionAnswers = {
@@ -34,7 +37,7 @@ export const productionAnswers = {
   environment: 'production',
   deployment_target: 'aws-ec2',
   container_platforms: ['docker'],
-  ci_cd: 'github-actions',
+  ci_cd: ['github-actions'],
   infrastructure: ['terraform', 'ansible'],
   observability: ['opentelemetry', 'cloudwatch', 'sentry'],
   security_controls: ['least-privilege', 'secrets-manager', 'sbom'],
@@ -47,4 +50,6 @@ export const productionAnswers = {
   agent_targets: ['huascar', 'portable'],
   hooks_enabled: true,
   skills_enabled: true,
+  skills_focus: 'operations',
+  mcps_enabled: false,
 };

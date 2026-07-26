@@ -1,0 +1,12 @@
+cliff.toml
+node_modules
+dist
+.next
+out
+coverage
+*.db
+*.db-wal
+*.db-shm
+package-lock.json
+data/
+.git

@@ -52,6 +52,7 @@ Huascar es un motor de agentes de IA configurable que abstrae la complejidad de 
 ## Modulos del Sistema
 
 ### `server.ts`
+
 Punto de entrada Express. Crea instancia unica de Store, configura rutas, maneja lifecycle (SIGTERM/SIGINT).
 
 - `GET /api/health` → healthcheck
@@ -59,7 +60,9 @@ Punto de entrada Express. Crea instancia unica de Store, configura rutas, maneja
 - `GET /api/history` → historial de ejecuciones
 
 ### `HuascarEngine.ts`
+
 Motor principal. Orquesta el pipeline completo:
+
 1. Carga steering (rol)
 2. Conecta servidores MCP
 3. Carga fuentes RAG
@@ -68,15 +71,19 @@ Motor principal. Orquesta el pipeline completo:
 6. Desconecta MCP
 
 ### `config.ts`
+
 Modulo centralizado de configuracion. Lee `process.env` con defaults tipados. No tiene dependencias externas ni riesgo de circular imports.
 
 ### `RagEngine.ts`
+
 Recolector de contexto. Lee archivos locales/directorios/texto inline y produce un string para inyectar en el system prompt.
 
 ### `Store.ts`
+
 Persistencia SQLite. WAL mode, indice en `created_at`. Singleton inyectado en `server.ts` y `HuascarEngine`.
 
 ### `hooks.ts`
+
 Seguridad. Carga `security-policy.json` y valida cada tool call antes de ejecutarla.
 
 ---
@@ -99,36 +106,36 @@ Seguridad. Carga `security-policy.json` y valida cada tool call antes de ejecuta
 import { config } from './config.js';
 
 // File paths
-config.paths.steering   // → './src/kiro/steering.json'
-config.paths.mcps       // → './src/kiro/mcps.json'
-config.paths.rag        // → './src/kiro/rag.json'
-config.paths.db         // → './data/huascar.db'
+config.paths.steering; // → './src/kiro/steering.json'
+config.paths.mcps; // → './src/kiro/mcps.json'
+config.paths.rag; // → './src/kiro/rag.json'
+config.paths.db; // → './data/huascar.db'
 
 // Server
-config.server.port      // → 3001
-config.server.host      // → '0.0.0.0'
+config.server.port; // → 3001
+config.server.host; // → '0.0.0.0'
 
 // ReAct loop
-config.react.maxIterations      // → 3
-config.react.toolResultMaxChars // → 8192
-config.react.mcpTimeoutMs       // → 30000
+config.react.maxIterations; // → 3
+config.react.toolResultMaxChars; // → 8192
+config.react.mcpTimeoutMs; // → 30000
 
 // RAG
-config.rag.maxContentChars  // → 16000
-config.rag.encoding         // → 'utf8'
+config.rag.maxContentChars; // → 16000
+config.rag.encoding; // → 'utf8'
 
 // Store
-config.store.historyLimit   // → 20
+config.store.historyLimit; // → 20
 
 // LLM
-config.llm.modelId  // → 'gpt-4o'
-config.llm.mockMode // → false
+config.llm.modelId; // → 'gpt-4o'
+config.llm.mockMode; // → false
 
 // MCP
-config.mcp.stderr   // → 'ignore'
+config.mcp.stderr; // → 'ignore'
 
 // Estado
-config.hasApiKey    // → !!process.env.OPENAI_API_KEY
+config.hasApiKey; // → !!process.env.OPENAI_API_KEY
 ```
 
 ### Como agregar una nueva variable
@@ -151,7 +158,12 @@ La seguridad se implementa en dos capas:
 
 2. **Hook de ejecucion** (`src/kiro/hooks.ts`)
    - `agentHooks.before_action(toolName, args)`: validacion pre-ejecucion, recibe datos estructurados
-   - `agentHooks.on_commit(diffContext)`: HITL para commits (stub, pending)
+
+3. **Aprobación HITL de commits** (`src/routes/hooks.ts` + `src/services/approvals.ts`)
+   - `POST /api/hooks/commit-approval`: crea una solicitud de aprobación, persiste `diffContext` en memoria (`commitApprovals` Map, TTL 60s)
+   - `GET /api/hooks/commit-approval/:id`: expone el registro completo — incluye `diffContext` — para que el aprobador revise el diff real antes de decidir
+   - `POST /api/hooks/commit-approval/:id`: resuelve la solicitud (`approved: true|false`)
+   - Este es el mecanismo HITL real y activo; `agentHooks` no expone un hook de commit — cualquier gate de commit debe implementarse en el caller usando este flujo HTTP.
 
 ### Flujo de validacion
 
@@ -200,7 +212,19 @@ LLM produce USE_TOOL: execute_bash + args
 
 ### Mock mode
 
-Sin `OPENAI_API_KEY` y con `LLM_MOCK_MODE=false`, el motor ejecuta un ReAct simulado que retorna pasos predefinidos. Esto permite desarrollo y tests sin conexion a LLM.
+Sin `OPENAI_API_KEY` o con `LLM_MOCK_MODE=true`, el motor ejecuta un ReAct simulado (mock mode) que permite desarrollo y tests reproducibles sin consumir tokens reales. El comportamiento se puede configurar usando escenarios deterministas:
+
+1. **Escenarios Integrados (Built-in)**:
+   - `happy_path` (default): Simula un análisis rápido y completa con éxito.
+   - `multi_step`: Simula 3 iteraciones secuenciales simulando pensamientos intermedios.
+   - `blocked`: Intenta ejecutar una herramienta prohibida (ej. `execute_bash` con `rm -rf`) para verificar que las políticas de seguridad (security hooks) bloquean la acción.
+   - `timeout`: Simula retraso de latencia y un posterior error de timeout.
+   - `error`: Provoca un error inmediato del proveedor LLM simulado.
+
+2. **Configuración**:
+   - Por request: Se puede pasar `"mock_scenario"` en el JSON body del endpoint `/api/agent/execute` o `/api/agents/:id/execute`.
+   - Por entorno: `MOCK_SCENARIO` define el escenario por defecto.
+   - Personalizados: Se pueden declarar en un archivo JSON externo indicando su ruta con `MOCK_SCENARIOS_PATH`. El archivo debe estructurarse con la lista de pasos (`steps`) conteniendo `type`, `text`, `tool`, `args`, `delay_ms`, etc.
 
 ---
 
@@ -238,9 +262,7 @@ Las entradas `env` en `mcps.json` soportan sustitucion `${VAR_NAME}` via `resolv
 
 ```json
 {
-  "knowledge_bases": [
-    { "type": "local_file", "path": "./docs/CONVENTIONS.md" }
-  ]
+  "knowledge_bases": [{ "type": "local_file", "path": "./docs/CONVENTIONS.md" }]
 }
 ```
 
@@ -277,26 +299,26 @@ El contexto RAG se inyecta en el system prompt del LLM, antes de la seccion de h
 
 ## Referencia de Variables de Entorno
 
-| Variable | Default | Descripcion |
-|---|---|---|
-| `PORT` | `3001` | Puerto del servidor HTTP |
-| `HOST` | `0.0.0.0` | Interfaz de red |
-| `OPENAI_API_KEY` | — | API key de OpenAI (requerida para modo real) |
-| `MODEL_ID` | `gpt-4o` | Modelo LLM por defecto |
-| `LLM_MOCK_MODE` | `false` | Forzar modo simulado incluso con API key |
-| `REACT_MAX_ITERATIONS` | `3` | Maximo de iteraciones del bucle ReAct |
-| `TOOL_RESULT_MAX_CHARS` | `8192` | Truncado de resultados de herramientas |
-| `MCP_TIMEOUT_MS` | `30000` | Timeout por llamada MCP (ms) |
-| `RAG_MAX_CONTENT_CHARS` | `16000` | Maximo de caracteres del contexto RAG |
-| `FILE_ENCODING` | `utf8` | Encoding para lectura de archivos |
-| `HUASCAR_DB_PATH` | `./data/huascar.db` | Ruta a la base de datos SQLite |
-| `HISTORY_LIMIT_DEFAULT` | `20` | Limite por defecto en GET /api/history |
-| `MCP_STDERR` | `ignore` | Manejo de stderr de MCP (ignore/piped/inherit) |
-| `STEERING_CONFIG_PATH` | `./src/kiro/steering.json` | Ruta al archivo de roles |
-| `MCPS_CONFIG_PATH` | `./src/kiro/mcps.json` | Ruta a config de servidores MCP |
-| `RAG_CONFIG_PATH` | `./src/kiro/rag.json` | Ruta a config de fuentes RAG |
-| `SECURITY_POLICY_PATH` | `./src/kiro/security-policy.json` | Ruta a politica de seguridad |
-| `GITHUB_TOKEN` | — | Token para servidor MCP de GitHub |
+| Variable                | Default                           | Descripcion                                    |
+| ----------------------- | --------------------------------- | ---------------------------------------------- |
+| `PORT`                  | `3001`                            | Puerto del servidor HTTP                       |
+| `HOST`                  | `0.0.0.0`                         | Interfaz de red                                |
+| `OPENAI_API_KEY`        | —                                 | API key de OpenAI (requerida para modo real)   |
+| `MODEL_ID`              | `gpt-4o`                          | Modelo LLM por defecto                         |
+| `LLM_MOCK_MODE`         | `false`                           | Forzar modo simulado incluso con API key       |
+| `REACT_MAX_ITERATIONS`  | `3`                               | Maximo de iteraciones del bucle ReAct          |
+| `TOOL_RESULT_MAX_CHARS` | `8192`                            | Truncado de resultados de herramientas         |
+| `MCP_TIMEOUT_MS`        | `30000`                           | Timeout por llamada MCP (ms)                   |
+| `RAG_MAX_CONTENT_CHARS` | `16000`                           | Maximo de caracteres del contexto RAG          |
+| `FILE_ENCODING`         | `utf8`                            | Encoding para lectura de archivos              |
+| `HUASCAR_DB_PATH`       | `./data/huascar.db`               | Ruta a la base de datos SQLite                 |
+| `HISTORY_LIMIT_DEFAULT` | `20`                              | Limite por defecto en GET /api/history         |
+| `MCP_STDERR`            | `ignore`                          | Manejo de stderr de MCP (ignore/piped/inherit) |
+| `STEERING_CONFIG_PATH`  | `./src/kiro/steering.json`        | Ruta al archivo de roles                       |
+| `MCPS_CONFIG_PATH`      | `./src/kiro/mcps.json`            | Ruta a config de servidores MCP                |
+| `RAG_CONFIG_PATH`       | `./src/kiro/rag.json`             | Ruta a config de fuentes RAG                   |
+| `SECURITY_POLICY_PATH`  | `./src/kiro/security-policy.json` | Ruta a politica de seguridad                   |
+| `GITHUB_TOKEN`          | —                                 | Token para servidor MCP de GitHub              |
 
 ---
 
@@ -304,15 +326,15 @@ El contexto RAG se inyecta en el system prompt del LLM, antes de la seccion de h
 
 ### Manejo de errores
 
-| Escenario | Respuesta HTTP | Log |
-|---|---|---|
-| Faltan parametros | `400 { error: "..." }` | — |
-| Rol inexistente | `500 { error: "..." }` | throw con detalle |
-| Tool falla (MCP timeout) | — | warn, toolResult = "Error..." |
-| Hook bloquea accion | `500 { error: "HOOK TRIGGERED: ..." }` | console.error |
-| Fallo de store.saveExecution | — | console.warn (no afecta respuesta) |
-| RAG source no encontrada | — | warn, skip source |
-| Policy file corrupto | — | console.error, fail-closed |
+| Escenario                    | Respuesta HTTP                         | Log                                |
+| ---------------------------- | -------------------------------------- | ---------------------------------- |
+| Faltan parametros            | `400 { error: "..." }`                 | —                                  |
+| Rol inexistente              | `500 { error: "..." }`                 | throw con detalle                  |
+| Tool falla (MCP timeout)     | —                                      | warn, toolResult = "Error..."      |
+| Hook bloquea accion          | `500 { error: "HOOK TRIGGERED: ..." }` | console.error                      |
+| Fallo de store.saveExecution | —                                      | console.warn (no afecta respuesta) |
+| RAG source no encontrada     | —                                      | warn, skip source                  |
+| Policy file corrupto         | —                                      | console.error, fail-closed         |
 
 ### Principios
 
@@ -366,7 +388,6 @@ huascar/
 6. **Sin dependencias circulares**: Los modulos importan config, no al reves.
 7. **MCP lifecycle en finally**: Los servidores MCP siempre se desconectan, incluso en error.
 
-
 ---
 
 ## Creator Backend v1
@@ -389,13 +410,13 @@ HTTP answers
 
 ### Módulos
 
-| Módulo | Responsabilidad |
-|---|---|
-| `src/creator/domain.ts` | Contratos de catálogo, preguntas, evaluación, blueprint, artefactos y errores. |
-| `src/creator/catalog.ts` | Taxonomía y catálogo tecnológico versionado, búsqueda y validación de categorías. |
-| `src/creator/decisionTree.ts` | Condiciones, preguntas visibles, progreso, validación y recomendaciones. |
-| `src/creator/generator.ts` | Compilación del blueprint, documentación, adaptadores Huascar/Kiro/portable y manifest. |
-| `src/creator/router.ts` | API REST versionada y Problem Details. |
+| Módulo                        | Responsabilidad                                                                         |
+| ----------------------------- | --------------------------------------------------------------------------------------- |
+| `src/creator/domain.ts`       | Contratos de catálogo, preguntas, evaluación, blueprint, artefactos y errores.          |
+| `src/creator/catalog.ts`      | Taxonomía y catálogo tecnológico versionado, búsqueda y validación de categorías.       |
+| `src/creator/decisionTree.ts` | Condiciones, preguntas visibles, progreso, validación y recomendaciones.                |
+| `src/creator/generator.ts`    | Compilación del blueprint, documentación, adaptadores Huascar/Kiro/portable y manifest. |
+| `src/creator/router.ts`       | API REST versionada y Problem Details.                                                  |
 
 ### Estado y versiones
 

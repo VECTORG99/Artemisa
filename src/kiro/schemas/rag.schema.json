@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["knowledge_bases"],
+  "additionalProperties": false,
+  "properties": {
+    "knowledge_bases": {
+      "type": "array",
+      "description": "Mirrors the RagSource union in src/engine/RagEngine.ts.",
+      "items": {
+        "type": "object",
+        "required": ["type"],
+        "additionalProperties": false,
+        "properties": {
+          "type": { "type": "string", "enum": ["local_file", "local_directory", "inline", "web_url"] },
+          "path": { "type": "string" },
+          "pattern": { "type": "string" },
+          "content": { "type": "string" },
+          "url": { "type": "string" }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "type": { "const": "local_file" } }, "required": ["type"] },
+            "then": { "required": ["path"] }
+          },
+          {
+            "if": { "properties": { "type": { "const": "local_directory" } }, "required": ["type"] },
+            "then": { "required": ["path", "pattern"] }
+          },
+          {
+            "if": { "properties": { "type": { "const": "inline" } }, "required": ["type"] },
+            "then": { "required": ["content"] }
+          },
+          {
+            "if": { "properties": { "type": { "const": "web_url" } }, "required": ["type"] },
+            "then": { "required": ["url"] }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+# Estas opciones permiten mostrar un boton de Sponsor en el repositorio.
+# Descomentar y configurar segun corresponda.
+
+# github: [usuario]
+# patreon: usuario
+# open_collective: huascar
+# ko_fi: usuario
+# tidelift: npm/huascar
+# custom: [url]
