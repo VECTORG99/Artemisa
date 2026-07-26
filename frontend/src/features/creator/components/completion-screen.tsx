@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { glassButton, glassCard, glassCardInteractive } from '@/lib/glass';
 import { detectArtifactLanguage, highlightArtifact } from '@/features/creator/lib/artifact-highlight';
 import type { GeneratedAgentBundle } from '@huascar/types';
@@ -33,10 +33,35 @@ function downloadBundleJson(bundle: GeneratedAgentBundle) {
  */
 export function CompletionScreen({ bundle, onRegister, registered, error }: CompletionScreenProps) {
   const [activePath, setActivePath] = useState(bundle.artifacts[0]?.path ?? '');
+  const [showSuccessBurst, setShowSuccessBurst] = useState(true);
   const activeArtifact = bundle.artifacts.find((artifact) => artifact.path === activePath);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowSuccessBurst(false), 900);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   return (
     <div className="flex flex-col gap-6">
+      {showSuccessBurst && (
+        <div className="flex items-center justify-center py-2" role="status" aria-live="polite">
+          <span className="relative flex h-14 w-14 items-center justify-center">
+            <span className="animate-success-ring absolute inset-0 rounded-full border-2 border-emerald-400/70" />
+            <span className="animate-success-pop relative flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300">
+              <svg viewBox="0 0 24 24" fill="none" className="h-7 w-7" aria-hidden="true">
+                <path
+                  d="M5 13l4 4L19 7"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </span>
+        </div>
+      )}
+
       <div className="text-center">
         <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">Bundle generado</span>
         <h2 className="mt-3 text-2xl font-semibold text-white">
