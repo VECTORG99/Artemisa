@@ -341,6 +341,12 @@ export const catalogItems: CatalogItem[] = [
     ['docker', 'Docker', 'Empaquetado reproducible en contenedores.', ['container']],
     ['docker-compose', 'Docker Compose', 'Orquestación local y de servidor simple.', ['container']],
     ['kubernetes', 'Kubernetes', 'Orquestación de workloads distribuidos.', ['orchestration']],
+    [
+      'k3s',
+      'K3s',
+      'Kubernetes ligero para edge, IoT y clusters de bajo recurso.',
+      ['kubernetes', 'lightweight', 'edge'],
+    ],
     ['helm', 'Helm', 'Empaquetado y despliegue declarativo en Kubernetes.', ['kubernetes']],
     ['nomad', 'HashiCorp Nomad', 'Orquestación ligera de workloads.', ['orchestration']],
     ['podman', 'Podman', 'Contenedores rootless compatible con Docker.', ['container']],
