@@ -248,6 +248,14 @@ export function SpaceSimulation({
     const stars: Star[] = Array.from({ length: STAR_COUNT }, () => createStar(width, height));
     const meteors: Meteor[] = [];
 
+    // #403: respect prefers-reduced-motion — render a single static frame
+    // instead of running the animation loop. Users with motion sensitivity
+    // still get the visual but without the per-frame paint cost / motion.
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     const animate = () => {
       ctx.fillStyle = 'rgba(0, 0, 0, 1)';
       ctx.fillRect(0, 0, width, height);
@@ -754,12 +762,30 @@ export function SpaceSimulation({
       animRef.current = requestAnimationFrame(animate);
     };
 
-    animate();
+    // #403: pause the animation when the tab is hidden to save CPU/GPU;
+    // resume on visibilitychange. Reduced-motion users get one static frame.
+    const onVisibility = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animRef.current);
+      } else if (!prefersReducedMotion) {
+        animRef.current = requestAnimationFrame(animate);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    if (prefersReducedMotion) {
+      // Render a single frame; no RAF loop.
+      animate();
+      cancelAnimationFrame(animRef.current);
+    } else {
+      animate();
+    }
 
     return () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', resize);
       scrollContainer?.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, []);
 
