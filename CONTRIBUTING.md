@@ -5,6 +5,22 @@ Bienvenido a Huascar. Este proyecto acepta contribuciones de humanos y agentes d
 - **Contribuidores humanos**: leer esta seccion. Para cambios de codigo, la guia detallada para IA mas abajo tambien aplica.
 - **Agentes de IA**: la seccion "AI Contributor Guide" es tu entrada principal.
 
+## Dónde vive la documentación
+
+Toda la documentación del proyecto vive en el repositorio bajo `docs/`:
+
+| Archivo / directorio | Contenido |
+| -------------------- | --------- |
+| `README.md` | Introducción, arquitectura, quick start y roadmap. |
+| `CONTEXT.md` | Estado del proyecto, módulos, rutas críticas y zonas de alto riesgo. |
+| `CONTRIBUTING.md` | Este archivo — guía para contribuidores humanos y agentes. |
+| `docs/architecture.md` | Motor, capas y decisiones de diseño. |
+| `docs/deployment.md` | Despliegue local, Docker y Render. |
+| `docs/CONVENTIONS.md` | Convenciones de código, tests, API y Git. |
+| `docs/adr/` | Architecture Decision Records. |
+
+El **Wiki de GitHub está deshabilitado** intencionalmente: tener dos lugares para la documentación crea confusión sobre cuál está actualizado. Toda la documentación técnica y de usuario vive con el código para que sea revisable, versionable y consultable sin salir del repositorio.
+
 ## Flujo para humanos
 
 1. Busca un issue con label `good first issue` o `help wanted`.
