@@ -53,5 +53,39 @@ jobs:
       - name: Update npm
         run: npm install -g npm@latest
       - run: npm install
-      - name: Audit dependencies
-        run: npm audit --audit-level=critical
+      - name: Audit dependencies (with retry)
+        run: |
+          max_attempts=3
+          attempt=0
+          while [ $attempt -lt $max_attempts ]; do
+            attempt=$((attempt + 1))
+            echo "::group::npm audit attempt $attempt/$max_attempts"
+            set +e
+            output=$(npm audit --audit-level=critical 2>&1)
+            exit_code=$?
+            set -e
+            echo "$output"
+            echo "::endgroup::"
+
+            if [ $exit_code -eq 0 ]; then
+              echo "✓ npm audit passed"
+              exit 0
+            fi
+
+            # Check if failure is due to registry/network errors (not real vulnerabilities)
+            if echo "$output" | grep -qiE '(ECONNREFUSED|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|fetch failed|request to .* failed|429|503|registry error|Unexpected token|Unexpected end of JSON)'; then
+              echo "::warning::npm audit attempt $attempt failed due to registry/network error"
+              if [ $attempt -lt $max_attempts ]; then
+                echo "Retrying in 10s..."
+                sleep 10
+              fi
+            else
+              # Real vulnerability findings — fail immediately
+              echo "::error::npm audit found critical vulnerabilities"
+              exit $exit_code
+            fi
+          done
+
+          # All retries exhausted due to registry errors
+          echo "::warning title=npm audit skipped::All $max_attempts attempts failed due to npm registry errors (possible brownout). Audit was not evaluated — review manually."
+          exit 0
