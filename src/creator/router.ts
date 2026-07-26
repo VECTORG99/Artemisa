@@ -6,6 +6,7 @@ import { creatorTutorial, evaluateDecisionTree, getWorkflowDefinition, WORKFLOW_
 import { generateAgentBundle } from './generator.js';
 import { getSkillsCatalog } from './skillsCatalog.js';
 import { getMcpCatalog } from './mcpCatalog.js';
+import { sendWithEtag } from './etag.js';
 import {
   generateAgentBundle as generateAgentBundleProtocol,
   getAgentProtocol,
@@ -116,32 +117,36 @@ creatorPublicRouter.get('/catalog', (req, res) => {
   const category = typeof req.query.category === 'string' ? req.query.category : undefined;
   const environment = typeof req.query.environment === 'string' ? req.query.environment : undefined;
   const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
-  res.set('Cache-Control', 'public, max-age=300');
-  res.json(getCreatorCatalog({ category, environment, q }));
+  const payload = getCreatorCatalog({ category, environment, q });
+  if (sendWithEtag(req, res, payload)) return;
+  res.json(payload);
 });
 
-creatorPublicRouter.get('/workflow', (_req, res) => {
-  res.set('Cache-Control', 'public, max-age=300');
-  res.json(getWorkflowDefinition());
+creatorPublicRouter.get('/workflow', (req, res) => {
+  const payload = getWorkflowDefinition();
+  if (sendWithEtag(req, res, payload)) return;
+  res.json(payload);
 });
 
-creatorPublicRouter.get('/tutorial', (_req, res) => {
-  res.set('Cache-Control', 'public, max-age=300');
+creatorPublicRouter.get('/tutorial', (req, res) => {
+  if (sendWithEtag(req, res, creatorTutorial)) return;
   res.json(creatorTutorial);
 });
 
 creatorPublicRouter.get('/skills', (req, res) => {
   const focus = typeof req.query.focus === 'string' ? req.query.focus.slice(0, 50) : undefined;
   const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
-  res.set('Cache-Control', 'public, max-age=300');
-  res.json(getSkillsCatalog({ focus, q }));
+  const payload = getSkillsCatalog({ focus, q });
+  if (sendWithEtag(req, res, payload)) return;
+  res.json(payload);
 });
 
 creatorPublicRouter.get('/mcps', (req, res) => {
   const category = typeof req.query.category === 'string' ? req.query.category.slice(0, 50) : undefined;
   const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
-  res.set('Cache-Control', 'public, max-age=300');
-  res.json(getMcpCatalog({ category, q }));
+  const payload = getMcpCatalog({ category, q });
+  if (sendWithEtag(req, res, payload)) return;
+  res.json(payload);
 });
 
 creatorProtectedRouter.post('/evaluate', (req, res, next) => {

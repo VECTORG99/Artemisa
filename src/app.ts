@@ -3,6 +3,7 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import compression from 'compression';
 import { config } from './config.js';
 import { createStore, Store } from './engine/Store.js';
 import { creatorProtectedRouter, creatorPublicRouter } from './creator/router.js';
@@ -47,6 +48,20 @@ app.use(
 
 // Strict Content-Type enforcement for mutation requests (#249 — handles charset params)
 app.use(enforceJsonContentType);
+
+// HTTP compression (#404) — gzip/brotli for JSON responses (catalog ~34KB,
+// workflow ~52KB compress ~70-85%). threshold=1KB skips tiny responses.
+app.use(
+  compression({
+    level: 6,
+    threshold: 1024,
+    filter: (req, res) => {
+      // Don't compress if the client explicitly opts out.
+      if (req.headers['x-no-compression']) return false;
+      return compression.filter(req, res);
+    },
+  }),
+);
 
 const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:5173')
   .split(',')
