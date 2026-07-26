@@ -298,6 +298,18 @@ Exige un árbol completo y devuelve blueprint, artefactos, manifest, guía y war
 
 Alias semántico de `/preview`. También genera únicamente el bundle en memoria; no escribe archivos ni ejecuta el agente.
 
+### Endpoints para Agentes IA
+
+Estos endpoints son públicos y están diseñados para que agentes de IA (Claude, GPT, Copilot, Devin, etc.) consuman el Creator sin autenticación. Devuelven JSON excepto `GET /startup`, que responde Markdown por defecto o JSON si se envía `Accept: application/json`.
+
+| Ruta              | Método | Descripción                                    |
+| ----------------- | ------ | ---------------------------------------------- |
+| `/agent`          | GET    | Protocolo de onboarding completo               |
+| `/agent/start`    | GET    | Primera pregunta + catálogo resumido           |
+| `/agent/answer`   | POST   | Envía answers, recibe siguiente pregunta       |
+| `/agent/generate` | POST   | Genera bundle con instrucciones de aplicación  |
+| `/startup`        | GET    | Documento Markdown de onboarding autocontenido |
+
 ### Versionado y errores
 
 El cliente puede fijar `workflowVersion` y `catalogVersion`:
