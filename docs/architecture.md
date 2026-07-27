@@ -150,7 +150,7 @@ HTTP answers
 
 El backend no crea sesiones. Cada llamada a `evaluate`, `preview` o `generate` recibe todas las respuestas acumuladas. El cliente puede fijar `workflowVersion` y `catalogVersion`; un mismatch responde `409` para no generar con reglas distintas de las que vio el usuario.
 
-Esto permite volver atrás, recalcular ramas y escalar horizontalmente sin coordinar estado. La persistencia se añadirá junto con login, ownership y autorización.
+Esto permite volver atrás, recalcular ramas y escalar horizontalmente sin coordinar estado. El Creator es stateless por diseño: no hay base de datos, sesiones ni almacenamiento persistente.
 
 ### Invariantes del generador
 
