@@ -35,11 +35,11 @@ function nextIndex(current: number): number {
   return next >= current ? next + 1 : next;
 }
 
-/** Only buttons and links — not every form control. */
-const INTERACTIVE_SELECTOR = 'button, a, [role="button"], .glassCardInteractive';
+/** Only buttons and links — not option cards or form controls. */
+const INTERACTIVE_SELECTOR = 'button, a, [role="button"]';
 
 /** Minimum time between colour changes (ms). */
-const COOLDOWN_MS = 1000;
+const COOLDOWN_MS = 1500;
 
 export function AccentColorCycler() {
   useEffect(() => {

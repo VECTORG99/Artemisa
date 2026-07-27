@@ -50,8 +50,8 @@
     --color-accent-muted: color-mix(in srgb, var(--color-accent) 58%, black);
     --color-accent-deep: color-mix(in srgb, var(--color-accent) 40%, black);
 
-    /* Smooth fade between rainbow hops (requires @property above). */
-    transition: --color-accent 0.8s ease;
+    /* Instant colour change — no transition (avoids hue cycling). */
+    transition: none;
 
     /* Glow used by the progress bar — follows the animated accent. */
     --accent-glow: color-mix(in srgb, var(--color-accent) 45%, transparent);
