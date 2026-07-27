@@ -1,0 +1,35 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "back": "Back",
+    "next": "Next",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "download": "Download",
+    "close": "Close"
+  },
+  "creator": {
+    "title": "Huascar Creator",
+    "preparing": "Preparing the creator",
+    "loadingCatalog": "Loading catalog and decision tree...",
+    "evaluating": "Evaluating answers...",
+    "generating": "Compiling bundle...",
+    "reviewTitle": "Your configuration is ready to compile",
+    "bundleGenerated": "Bundle generated",
+    "createAnother": "Create another configuration",
+    "generate": "Generate configuration",
+    "skip": "Skip tutorial"
+  },
+  "landing": {
+    "heroTitle": "Huascar",
+    "heroCta": "Generate configuration",
+    "heroDescription": "Configure development agents compatible with 6+ platforms in minutes. An explainable decision tree generates reproducible files ready to apply, no black box.",
+    "ctaTitle": "Ready to configure your agent?",
+    "ctaDescription": "Answer 32 guided questions and get a bundle ready for Cursor, Devin, CodeRabbit, Kiro and more.",
+    "ctaButton": "Start creator →",
+    "disableAnimations": "Disable animations",
+    "enableAnimations": "Enable animations"
+  }
+}
