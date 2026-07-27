@@ -83,6 +83,7 @@ interface ValueProp {
   title: string;
   description: string;
   hue: number;
+  icon: string;
 }
 
 const valueProps: ValueProp[] = [
@@ -91,31 +92,35 @@ const valueProps: ValueProp[] = [
     description:
       '32 preguntas stateless que se adaptan a tu contexto: desarrollo, producción o ambos. Sin un LLM decidiendo la arquitectura por ti.',
     hue: 200,
+    icon: '/images/arbol.svg',
   },
   {
     title: 'Recomendaciones con evidencia',
     description:
       'Cada sugerencia incluye motivo, trade-offs y alternativas. Sabes por qué se elige cada opción, no solo qué elegir.',
     hue: 280,
+    icon: '/images/recomendaciones.svg',
   },
   {
     title: 'Bundle listo para aplicar',
     description:
       'Blueprint, manifest, hashes SHA-256, INSTALL.md y WHY.md. Reproducible, auditable y seguro desde el primer commit.',
     hue: 160,
+    icon: '/images/bundle.svg',
   },
 ];
 
-function PlanetIcon({ hue }: { hue: number }) {
+function GlassIcon({ src, alt }: { src: string; alt: string; hue: number }) {
   return (
-    <div className="relative mx-auto h-14 w-14 shrink-0">
-      <div className="absolute inset-0 rounded-full border" style={{ borderColor: `hsla(${hue}, 80%, 60%, 0.25)` }} />
-      <div
-        className="absolute inset-2 rounded-full"
-        style={{
-          background: `radial-gradient(circle at 35% 35%, hsla(${hue}, 70%, 60%, 0.6), hsla(${hue}, 60%, 30%, 0.8))`,
-          boxShadow: `0 0 16px hsla(${hue}, 100%, 60%, 0.4), inset 0 0 8px rgba(0,0,0,0.4)`,
-        }}
+    <div className="relative mx-auto h-40 w-40 shrink-0">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt}
+        width={512}
+        height={512}
+        className="h-full w-full object-contain"
+        style={{ mixBlendMode: 'screen' }}
       />
     </div>
   );
@@ -131,7 +136,7 @@ function ValuePropsSection() {
             className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
             style={glassStyle}
           >
-            <PlanetIcon hue={prop.hue} />
+            <GlassIcon src={prop.icon} alt={prop.title} hue={prop.hue} />
             <h2 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
               {prop.title}
             </h2>
