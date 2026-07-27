@@ -3,8 +3,8 @@
  *
  * Kept as static data (like src/creator/catalog.ts) rather than fetching
  * awesome-skills.github.io or GitHub at request time: the Creator is
- * explicitly stateless and network-free (see README "Por qué generación y
- * ejecución están separadas"), and the project is currently prioritizing low
+ * explicitly stateless and network-free (see README "Por qué el Creator es
+ * stateless"), and the project is currently prioritizing low
  * infra load over freshness. Entries are curated from
  * https://github.com/theneoai/awesome-skills (956 skills across
  * persona/tool/workflow kinds) — this is a representative sample, not the

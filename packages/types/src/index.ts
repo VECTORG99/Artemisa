@@ -233,30 +233,6 @@ export interface PreviewRequest {
   answers: CreatorAnswers;
 }
 
-// ─── Runtime (legacy) ─────────────────────────────────────────────────────────
-
-export interface ExecuteRequest {
-  task: string;
-  role: string;
-  config?: Record<string, unknown>;
-  system_prompt?: string;
-}
-
-export interface ExecuteResponse {
-  status: 'success' | 'error' | 'blocked';
-  agent_role: string;
-  response: string;
-  error?: string;
-}
-
-export interface HistoryRecord {
-  id: number;
-  role: string;
-  task: string;
-  response: string;
-  created_at: string;
-}
-
 export interface HealthResponse {
   status: string;
   uptime: number;

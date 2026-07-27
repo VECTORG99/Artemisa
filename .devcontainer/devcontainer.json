@@ -18,7 +18,6 @@
     }
   },
   "remoteEnv": {
-    "LLM_MOCK_MODE": "true",
     "NODE_ENV": "development"
   }
 }
