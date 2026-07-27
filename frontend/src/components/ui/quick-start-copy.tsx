@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { LuCheck, LuCopy } from 'react-icons/lu';
 import { glassButton, glassInput } from '@/lib/glass';
+import { useTranslations } from '@/i18n';
 
 interface QuickStartCopyProps {
   url: string;
@@ -10,8 +11,9 @@ interface QuickStartCopyProps {
 }
 
 export function QuickStartCopy({ url, size = 'md' }: QuickStartCopyProps) {
+  const t = useTranslations('common');
   const [copied, setCopied] = useState(false);
-  const copyText = `Configura mi agente de desarrollo con Artemisa usando la configuración de este endpoint: ${url}`;
+  const copyText = t.quickStartPrompt.replace('{url}', url);
 
   const handleCopy = async () => {
     try {
@@ -32,7 +34,7 @@ export function QuickStartCopy({ url, size = 'md' }: QuickStartCopyProps) {
   return (
     <div className="mx-auto w-full max-w-xl">
       <h3 className="mb-1.5 text-center text-[11px] font-medium uppercase tracking-wide text-zinc-400">
-        Inicio Rápido: Pega en tu chat de IA
+        {t.quickStartTitle}
       </h3>
       <div className="flex items-center gap-1.5">
         <input
@@ -40,15 +42,15 @@ export function QuickStartCopy({ url, size = 'md' }: QuickStartCopyProps) {
           value={copyText}
           readOnly
           aria-readonly="true"
-          aria-label="Prompt de inicio rápido para tu chat de IA"
+          aria-label={t.quickStartTitle}
           title={copyText}
           className={`${glassInput(`min-w-0 flex-1 truncate font-mono text-white/70 ${inputClasses}`)} cursor-default`}
         />
         <button
           type="button"
           onClick={handleCopy}
-          aria-label="Copiar prompt de inicio rápido"
-          title="Copiar"
+          aria-label={t.copyPromptAria}
+          title={t.copyAria}
           className={`${glassButton('shrink-0 px-2 py-1.5')}`}
         >
           {copied ? (
@@ -62,7 +64,7 @@ export function QuickStartCopy({ url, size = 'md' }: QuickStartCopyProps) {
           the button label change is visual (icon swap); the aria-live
           region is the only spoken announcement. */}
       <p className="mt-1 min-h-4 text-center text-[11px] text-emerald-400" aria-live="polite">
-        {copied ? '¡Copiado!' : ''}
+        {copied ? t.copiedFeedback : ''}
       </p>
     </div>
   );

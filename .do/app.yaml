@@ -1,0 +1,33 @@
+name: artemisa-backend
+services:
+  - name: artemisa-backend
+    github:
+      repo: VECTORG99/Artemisa
+      branch: master
+      deploy_on_push: true
+    dockerfile_path: ./Dockerfile.backend
+    http_port: 3001
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    health_check:
+      http_path: /api/health/live
+      port: 3001
+    envs:
+      - key: PORT
+        value: '3001'
+      - key: NODE_ENV
+        value: production
+      - key: AUTH_REQUIRED
+        value: 'true'
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://artemisa.vercel.app
+      - key: ARTEMISA_API_KEYS
+        type: SECRET
+      - key: BYPASS_SECRET
+        type: SECRET
+      - key: METRICS_SECRET
+        type: SECRET
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+  - rule: SERVICE_RESTARTED

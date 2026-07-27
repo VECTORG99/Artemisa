@@ -3,11 +3,10 @@
 # Stage 1: Install all workspace dependencies
 FROM node:22-alpine AS deps
 WORKDIR /app
-# python3/make/g++ are needed to compile better-sqlite3's native binding
-# (no prebuilt binary for this platform). Installing them here lets a
-# plain `npm ci` run every workspace's postinstall — including the
-# platform-specific optional deps (lightningcss, @tailwindcss/oxide) that
-# Tailwind v4 needs at build time — without special-casing each one.
+# python3/make/g++ are installed so `npm ci` can build platform-specific
+# optional dependencies (lightningcss, @tailwindcss/oxide) that Tailwind v4
+# needs at build time for this musl platform. Installing them here lets a
+# plain `npm ci` run every workspace's postinstall without special-casing each one.
 RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
 COPY frontend/package.json ./frontend/package.json

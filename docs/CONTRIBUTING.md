@@ -15,7 +15,7 @@ Toda la documentación del proyecto vive en el repositorio bajo `docs/`:
 | `CONTEXT.md`           | Estado del proyecto, módulos, rutas críticas y zonas de alto riesgo. |
 | `docs/CONTRIBUTING.md` | Este archivo — guía para contribuidores humanos y agentes.           |
 | `docs/architecture.md` | Motor, capas y decisiones de diseño.                                 |
-| `docs/deployment.md`   | Despliegue local, Docker y Render.                                   |
+| `docs/deployment.md`   | Despliegue local, Docker y DigitalOcean.                             |
 | `docs/CONVENTIONS.md`  | Convenciones de código, tests, API y Git.                            |
 | `docs/adr/`            | Architecture Decision Records.                                       |
 
@@ -114,7 +114,6 @@ Frontend checks are separate dependency domains; run only when that app changed:
 
 ```bash
 npm --prefix frontend run build
-npm --prefix agent-creator run build
 ```
 
 ## Recipes

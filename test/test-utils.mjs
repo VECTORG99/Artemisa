@@ -21,18 +21,6 @@ export function withCleanEnv(fn) {
   };
 }
 
-/**
- * Serial test execution helper — prevents database race conditions.
- * Use when tests share a SQLite database.
- */
 export function serialTest(name, fn) {
   return { name, fn, serial: true };
-}
-
-/**
- * Create an isolated in-memory database for each test.
- */
-export function createIsolatedDb() {
-  // Tests should use :memory: databases to avoid file contention
-  return ':memory:';
 }

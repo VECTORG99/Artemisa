@@ -3,28 +3,29 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-describe('Render deployment security (issue #286)', () => {
-  const renderYaml = fs.readFileSync(path.resolve('render.yaml'), 'utf8');
+describe('DigitalOcean deployment security', () => {
+  const appYaml = fs.readFileSync(path.resolve('.do/app.yaml'), 'utf8');
 
-  it('render.yaml sets AUTH_REQUIRED=true', () => {
-    assert.match(renderYaml, /AUTH_REQUIRED[\s\S]*value:\s*["']?true["']?/);
+  it('.do/app.yaml sets AUTH_REQUIRED=true', () => {
+    assert.match(appYaml, /AUTH_REQUIRED[\s\S]*?value:\s*["']?true["']?/);
   });
 
-  it('render.yaml generates ARTEMISA_API_KEYS', () => {
-    assert.match(renderYaml, /ARTEMISA_API_KEYS[\s\S]*generateValue:\s*true/);
+  it('.do/app.yaml marks ARTEMISA_API_KEYS as SECRET', () => {
+    assert.match(appYaml, /ARTEMISA_API_KEYS[\s\S]*?type:\s*SECRET/);
   });
 
-  it('render.yaml sets NODE_ENV=production', () => {
-    assert.match(renderYaml, /NODE_ENV[\s\S]*value:\s*["']?production["']?/);
+  it('.do/app.yaml sets NODE_ENV=production', () => {
+    assert.match(appYaml, /NODE_ENV[\s\S]*?value:\s*production/);
   });
 
-  it('render.yaml generates METRICS_SECRET', () => {
-    assert.match(renderYaml, /METRICS_SECRET[\s\S]*generateValue:\s*true/);
+  it('.do/app.yaml marks METRICS_SECRET as SECRET', () => {
+    assert.match(appYaml, /METRICS_SECRET[\s\S]*?type:\s*SECRET/);
   });
 
   it('frontend api.ts does NOT hardcode a production URL', () => {
     const apiTs = fs.readFileSync(path.resolve('frontend/src/lib/api.ts'), 'utf8');
     assert.doesNotMatch(apiTs, /onrender\.com/);
+    assert.doesNotMatch(apiTs, /ondigitalocean\.app/);
     assert.doesNotMatch(apiTs, /https:\/\/artemisa\./);
   });
 

@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react';
 import { LuCheck, LuCircleAlert, LuX } from 'react-icons/lu';
 import { glassInput, glassNotice, glassOptionCard, glassPill } from '@/lib/glass';
 import type { AnswerIssue, CatalogItem, DecisionQuestion, QuestionOption } from '@artemisa/types';
+import { useTranslations } from '@/i18n';
 import { OptionPicker, type PickerOption } from './option-picker';
 import { SkillsBrowser } from './skills-browser';
 import { McpBrowser } from './mcp-browser';
@@ -46,6 +47,8 @@ function toPickerOptions(options: (QuestionOption | CatalogItem)[]): PickerOptio
  * comes back with `issues[]`.
  */
 export function DynamicQuestion({ question, options, value, onChange, issues = [], allowedIds }: DynamicQuestionProps) {
+  const common = useTranslations('common');
+  const t = useTranslations('dynamicQuestion');
   const optional = !question.required;
 
   return (
@@ -53,7 +56,7 @@ export function DynamicQuestion({ question, options, value, onChange, issues = [
       <div className="w-full">
         <div className="flex items-center justify-center gap-2">
           <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">{question.section}</span>
-          {optional && <span className={glassPill('py-0.5 text-[10px] text-zinc-500')}>Opcional</span>}
+          {optional && <span className={glassPill('py-0.5 text-[10px] text-zinc-500')}>{common.optional}</span>}
         </div>
         <h2 className="mx-auto mt-3 max-w-2xl text-balance text-2xl font-semibold text-white">{question.prompt}</h2>
         {question.description && (
@@ -153,6 +156,7 @@ function QuestionInput({
       ariaLabel={question.prompt}
       allowCustom={isCatalog}
       showIcons={isCatalog}
+      collapsible
     />
   );
 }
@@ -168,6 +172,7 @@ function TextAnswer({
   onChange: (next: string) => void;
   multiline: boolean;
 }) {
+  const t = useTranslations('dynamicQuestion');
   const max = multiline ? TEXTAREA_MAX : TEXT_MAX;
   const remaining = max - value.length;
   const near = remaining <= max * 0.1;
@@ -197,9 +202,9 @@ function TextAnswer({
         />
       )}
       <div className="flex items-center justify-between gap-3 text-[11px]">
-        <span className="text-zinc-600">{multiline ? 'Ctrl + Enter para continuar' : 'Enter para continuar'}</span>
+        <span className="text-zinc-600">{multiline ? t.textareaContinue : t.textContinue}</span>
         <span className={`tabular-nums ${near ? 'text-warn' : 'text-zinc-600'}`}>
-          {value.length} / {max}
+          {t.characterCount.replace('{length}', String(value.length)).replace('{max}', String(max))}
         </span>
       </div>
     </div>
@@ -212,6 +217,9 @@ function TextAnswer({
  * unanswered question indistinguishable from a deliberate no.
  */
 function BooleanAnswer({ value, onChange }: { value: boolean | undefined; onChange: (next: boolean) => void }) {
+  const common = useTranslations('common');
+  const t = useTranslations('dynamicQuestion');
+
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
@@ -232,12 +240,16 @@ function BooleanAnswer({ value, onChange }: { value: boolean | undefined; onChan
   }, [onChange]);
 
   const choices: { id: 'yes' | 'no'; label: string; hint: string; selected: boolean; next: boolean }[] = [
-    { id: 'yes', label: 'Sí', hint: 'S', selected: value === true, next: true },
-    { id: 'no', label: 'No', hint: 'N', selected: value === false, next: false },
+    { id: 'yes', label: common.yes, hint: 'S', selected: value === true, next: true },
+    { id: 'no', label: common.no, hint: 'N', selected: value === false, next: false },
   ];
 
   return (
-    <div className="mx-auto grid w-full max-w-md gap-2.5 sm:grid-cols-2" role="radiogroup" aria-label="Sí o no">
+    <div
+      className="mx-auto grid w-full max-w-md gap-2.5 sm:grid-cols-2"
+      role="radiogroup"
+      aria-label={t.booleanAriaLabel}
+    >
       {choices.map((choice) => (
         <button
           key={choice.id}

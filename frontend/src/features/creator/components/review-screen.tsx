@@ -11,13 +11,9 @@ import {
   LuTriangleAlert,
 } from 'react-icons/lu';
 import { glassCard, glassNotice, glassPill, glassPrimaryButton } from '@/lib/glass';
-import {
-  buildLabelLookup,
-  FALLBACK_SECTION,
-  groupAnswersBySection,
-  type FormattedAnswer,
-} from '@/features/creator/lib/answer-labels';
+import { buildLabelLookup, groupAnswersBySection, type FormattedAnswer } from '@/features/creator/lib/answer-labels';
 import { TechIcon } from '@/features/creator/lib/tech-icons';
+import { useTranslations } from '@/i18n';
 import type { AnswerIssue, Catalog, CreatorAnswers, CreatorRecommendation, Workflow } from '@artemisa/types';
 
 interface ReviewScreenProps {
@@ -34,13 +30,15 @@ interface ReviewScreenProps {
   error?: string;
 }
 
-const SEVERITY: Record<
+type SeverityConfig = Record<
   CreatorRecommendation['severity'],
-  { label: string; className: string; Icon: React.ComponentType<{ className?: string }> }
-> = {
-  warning: { label: 'Advertencia', className: 'text-warn', Icon: LuTriangleAlert },
-  recommended: { label: 'Recomendado', className: 'text-zinc-200', Icon: LuSparkles },
-  info: { label: 'Informativo', className: 'text-zinc-400', Icon: LuInfo },
+  { className: string; Icon: React.ComponentType<{ className?: string }> }
+>;
+
+const SEVERITY_CONFIG: SeverityConfig = {
+  warning: { className: 'text-warn', Icon: LuTriangleAlert },
+  recommended: { className: 'text-zinc-200', Icon: LuSparkles },
+  info: { className: 'text-zinc-400', Icon: LuInfo },
 };
 
 const SEVERITY_ORDER: CreatorRecommendation['severity'][] = ['warning', 'recommended', 'info'];
@@ -66,8 +64,24 @@ export function ReviewScreen({
   generating,
   error,
 }: ReviewScreenProps) {
+  const t = useTranslations('review');
+  const common = useTranslations('common');
+  const optionPicker = useTranslations('optionPicker');
+
   const lookup = useMemo(() => buildLabelLookup({ catalog }), [catalog]);
-  const sections = useMemo(() => groupAnswersBySection(answers, workflow, lookup), [answers, workflow, lookup]);
+  const answerLabels = useMemo(
+    () => ({
+      yesLabel: common.yes,
+      noLabel: common.no,
+      customPrefix: optionPicker.custom.chipPrefix,
+      fallbackSection: t.fallbackSectionName,
+    }),
+    [common, optionPicker, t],
+  );
+  const sections = useMemo(
+    () => groupAnswersBySection(answers, workflow, lookup, answerLabels),
+    [answers, workflow, lookup, answerLabels],
+  );
 
   const sorted = useMemo(
     () => [...recommendations].sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity)),
@@ -86,24 +100,25 @@ export function ReviewScreen({
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Revisión final</span>
-        <h2 className="mt-3 text-2xl font-semibold text-white">Confirma antes de generar</h2>
-        <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-zinc-400">
-          Nada se ejecuta ni se escribe todavía. Al generar obtienes un bundle de archivos para revisar y copiar tú
-          mismo al proyecto.
-        </p>
+        <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">{t.title}</span>
+        <h2 className="mt-3 text-2xl font-semibold text-white">{t.heading}</h2>
+        <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-zinc-400">{t.description}</p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-          <span className={glassPill('py-0.5 text-[11px] text-zinc-400')}>{answeredCount} respuestas</span>
           <span className={glassPill('py-0.5 text-[11px] text-zinc-400')}>
-            {recommendations.length} recomendaciones
+            {t.answeredCount.replace('{count}', String(answeredCount))}
+          </span>
+          <span className={glassPill('py-0.5 text-[11px] text-zinc-400')}>
+            {t.recommendationsCount.replace('{count}', String(recommendations.length))}
           </span>
           {warnings.length > 0 && (
             <span className={glassPill('border-warn/30 py-0.5 text-[11px] text-warn')}>
-              {warnings.length} advertencias
+              {t.warningsCount.replace('{count}', String(warnings.length))}
             </span>
           )}
           {customCount > 0 && (
-            <span className={glassPill('py-0.5 text-[11px] text-zinc-400')}>{customCount} personalizadas</span>
+            <span className={glassPill('py-0.5 text-[11px] text-zinc-400')}>
+              {t.customCount.replace('{count}', String(customCount))}
+            </span>
           )}
         </div>
       </div>
@@ -112,7 +127,7 @@ export function ReviewScreen({
         <div className={glassNotice('danger', 'flex-col')} role="alert">
           <span className="flex items-center gap-2 font-medium">
             <LuCircleAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
-            El backend rechazó algunas respuestas
+            {t.backendRejected}
           </span>
           <ul className="ml-6 list-disc space-y-0.5">
             {issues.map((issue, index) => (
@@ -128,7 +143,7 @@ export function ReviewScreen({
         <div className={glassNotice('warn', 'flex-col')}>
           <span className="flex items-center gap-2 font-medium">
             <LuTriangleAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
-            Advertencias del árbol de decisiones
+            {t.decisionTreeWarnings}
           </span>
           <ul className="ml-6 list-disc space-y-1 text-amber-100/90">
             {warnings.map((warning, index) => (
@@ -139,12 +154,8 @@ export function ReviewScreen({
       )}
 
       <section className="flex flex-col gap-3">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">Por qué el bundle se verá así</h3>
-        {sorted.length === 0 && (
-          <p className={glassNotice('neutral', 'text-zinc-500')}>
-            El árbol no produjo recomendaciones para esta combinación de respuestas.
-          </p>
-        )}
+        <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">{t.whyBundle}</h3>
+        {sorted.length === 0 && <p className={glassNotice('neutral', 'text-zinc-500')}>{t.noRecommendations}</p>}
         <div className="grid gap-3 lg:grid-cols-2">
           {sorted.map((recommendation) => (
             <RecommendationCard key={recommendation.id} recommendation={recommendation} />
@@ -153,14 +164,14 @@ export function ReviewScreen({
       </section>
 
       <section className="flex flex-col gap-3">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">Tus decisiones</h3>
+        <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">{t.yourDecisions}</h3>
         <div className="grid gap-3 lg:grid-cols-2">
           {sections.map((section) => (
             <div key={section.section} className={glassCard('flex flex-col gap-2 rounded-2xl p-4')}>
               <span className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
                 {section.section}
-                {section.section === FALLBACK_SECTION && (
-                  <span className="ml-2 normal-case text-zinc-600">(sin sección en el workflow)</span>
+                {section.section === t.fallbackSectionName && (
+                  <span className="ml-2 normal-case text-zinc-600">{t.fallbackSectionHint}</span>
                 )}
               </span>
               <dl className="flex flex-col divide-y divide-white/[0.05]">
@@ -190,23 +201,20 @@ export function ReviewScreen({
           {generating ? (
             <>
               <LuLoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
-              Generando…
+              {t.generating}
             </>
           ) : (
-            'Generar configuración'
+            t.generate
           )}
         </button>
-        <p className="text-[11px] text-zinc-600">
-          {issues.length > 0
-            ? 'Corrige las respuestas rechazadas antes de generar.'
-            : 'La generación es determinista: las mismas respuestas producen el mismo bundle y los mismos hashes.'}
-        </p>
+        <p className="text-[11px] text-zinc-600">{issues.length > 0 ? t.fixBeforeGenerate : t.deterministicInfo}</p>
       </div>
     </div>
   );
 }
 
 function AnswerRow({ answer, onEdit }: { answer: FormattedAnswer; onEdit: (questionId: string) => void }) {
+  const t = useTranslations('review');
   // agent_targets is the one answer where the icon communicates the most: it
   // tells the user which agent platforms the bundle targets. The raw value is
   // the catalog id array (same order as `values`), so we pair them and render
@@ -221,7 +229,7 @@ function AnswerRow({ answer, onEdit }: { answer: FormattedAnswer; onEdit: (quest
       <dt className="min-w-0 flex-1 text-xs leading-relaxed text-zinc-500">{answer.label}</dt>
       <dd className="flex min-w-0 max-w-[58%] shrink-0 items-start justify-end gap-2">
         {answer.empty ? (
-          <span className="break-words text-right text-sm text-zinc-600">Sin responder</span>
+          <span className="break-words text-right text-sm text-zinc-600">{t.emptyAnswer}</span>
         ) : platformChips ? (
           <ul className="flex flex-wrap justify-end gap-1.5">
             {platformChips.map((chip) => (
@@ -239,8 +247,8 @@ function AnswerRow({ answer, onEdit }: { answer: FormattedAnswer; onEdit: (quest
         <button
           type="button"
           onClick={() => onEdit(answer.questionId)}
-          aria-label={`Editar: ${answer.label}`}
-          title="Editar esta respuesta"
+          aria-label={t.editAria.replace('{label}', answer.label)}
+          title={t.editTitle}
           className="mt-0.5 shrink-0 rounded-full p-1 text-zinc-600 opacity-0 transition-all hover:bg-white/[0.06] hover:text-white focus-visible:opacity-100 group-hover:opacity-100"
         >
           <LuPencil className="h-3 w-3" aria-hidden="true" />
@@ -251,8 +259,10 @@ function AnswerRow({ answer, onEdit }: { answer: FormattedAnswer; onEdit: (quest
 }
 
 function RecommendationCard({ recommendation }: { recommendation: CreatorRecommendation }) {
+  const t = useTranslations('review');
   const [open, setOpen] = useState(false);
-  const severity = SEVERITY[recommendation.severity];
+  const severity = SEVERITY_CONFIG[recommendation.severity];
+  const severityLabel = t.severity[recommendation.severity];
   const hasDetail =
     recommendation.evidence.length > 0 ||
     recommendation.benefits.length > 0 ||
@@ -267,7 +277,7 @@ function RecommendationCard({ recommendation }: { recommendation: CreatorRecomme
           <span className="text-sm font-medium text-zinc-100">{recommendation.title}</span>
         </span>
         <span className={glassPill(`shrink-0 py-0.5 text-[10px] uppercase ${severity.className}`)}>
-          {severity.label}
+          {severityLabel}
         </span>
       </div>
 
@@ -282,15 +292,15 @@ function RecommendationCard({ recommendation }: { recommendation: CreatorRecomme
             className="inline-flex w-fit items-center gap-1 text-xs text-zinc-500 transition-colors hover:text-zinc-200"
           >
             <LuChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
-            {open ? 'Ocultar detalle' : 'Evidencia, beneficios y trade-offs'}
+            {open ? t.recommendation.hideDetail : t.recommendation.showDetail}
           </button>
 
           {open && (
             <div className="flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-black/20 p-3">
-              <DetailList title="Evidencia usada" items={recommendation.evidence} />
-              <DetailList title="Beneficios" items={recommendation.benefits} />
-              <DetailList title="Trade-offs" items={recommendation.tradeoffs} />
-              <DetailList title="Alternativas" items={recommendation.alternatives} />
+              <DetailList title={t.recommendation.evidence} items={recommendation.evidence} />
+              <DetailList title={t.recommendation.benefits} items={recommendation.benefits} />
+              <DetailList title={t.recommendation.tradeoffs} items={recommendation.tradeoffs} />
+              <DetailList title={t.recommendation.alternatives} items={recommendation.alternatives} />
             </div>
           )}
         </>

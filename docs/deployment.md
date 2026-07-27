@@ -74,11 +74,11 @@ All environment variables are defined in `.env.example`. Variables are grouped b
 
 The Creator is stateless, but `/api/v1/creator/evaluate|preview|generate` are protected when auth is enabled.
 
-| Variable            | Required                            | Default | Description                                                                           |
-| ------------------- | ----------------------------------- | ------- | ------------------------------------------------------------------------------------- |
-| `AUTH_REQUIRED`     | No                                  | `false` | When `true`, protected routes require an API key. Fails closed if keys are missing.   |
-| `ARTEMISA_API_KEYS` | **Yes** (when `AUTH_REQUIRED=true`) | —       | Comma-separated valid API keys. Sent via `Authorization: Bearer` or `X-API-Key`.      |
-| `BYPASS_SECRET`     | No                                  | —       | Emergency override of auth checks (auto-redacted from logs, auto-generated on Render) |
+| Variable            | Required                            | Default | Description                                                                         |
+| ------------------- | ----------------------------------- | ------- | ----------------------------------------------------------------------------------- |
+| `AUTH_REQUIRED`     | No                                  | `false` | When `true`, protected routes require an API key. Fails closed if keys are missing. |
+| `ARTEMISA_API_KEYS` | **Yes** (when `AUTH_REQUIRED=true`) | —       | Comma-separated valid API keys. Sent via `Authorization: Bearer` or `X-API-Key`.    |
+| `BYPASS_SECRET`     | No                                  | —       | Emergency override of auth checks (auto-redacted from logs)                         |
 
 ### Rate Limiting (requests per minute)
 
@@ -98,28 +98,18 @@ Defaults per environment:
 
 - **Docker Compose**: `http://backend:3001` (set in `docker/docker-compose.yml` build args)
 - **Local dev**: `http://localhost:3001`
-- **Render / production**: your backend deployment URL
+- **DigitalOcean / production**: your backend deployment URL
 
 > `NEXT_PUBLIC_API_URL` is consumed at **build time** by Next.js and baked into the JS bundle. Changing it requires a rebuild.
-
-### Agent Creator (Vite)
-
-| Variable             | Required | Default                 | Description                           |
-| -------------------- | -------- | ----------------------- | ------------------------------------- |
-| `VITE_API_URL`       | No       | `http://localhost:3001` | Backend API URL for the Vite dev tool |
-| `VITE_DASHBOARD_URL` | No       | `http://localhost:3000` | Dashboard URL link                    |
-
-> The `agent-creator/` Vite app is legacy (superseded by `frontend/agents/new`, issue #390). It remains in the workspace but is not the active Creator UI.
 
 ---
 
 ## 4. Service Ports
 
-| Service                  | Container Port | Host Port | Notes                             |
-| ------------------------ | -------------- | --------- | --------------------------------- |
-| **Backend** (Express)    | `3001`         | `3001`    | JSON API                          |
-| **Frontend** (Next.js)   | `3000`         | `3000`    | Dashboard UI                      |
-| **Agent Creator** (Vite) | `5173`         | `5173`    | Dev tool (optional in production) |
+| Service                | Container Port | Host Port | Notes                |
+| ---------------------- | -------------- | --------- | -------------------- |
+| **Backend** (Express)  | `3001`         | `3001`    | JSON API             |
+| **Frontend** (Next.js) | `3000`         | `3000`    | Landing + Creator UI |
 
 All services share the `artemisa-network` bridge network.
 
@@ -136,52 +126,24 @@ docker build -f docker/Dockerfile.frontend \
   --build-arg NEXT_PUBLIC_API_URL=http://localhost:3001 \
   -t artemisa-frontend .
 
-# Agent Creator (optional)
-docker build -f docker/Dockerfile.agent-creator -t artemisa-agent-creator .
 ```
 
 > The backend Docker image no longer requires `python3 make g++` or a `better-sqlite3` native rebuild: the build is a pure `npm ci` + `tsc` + `npm prune`.
 
 ---
 
-## 6. Render.com Deployment
+## 6. DigitalOcean App Platform
 
-The `render.yaml` at the project root deploys the **backend only** as a Docker web service.
-
-```yaml
-# render.yaml — key settings
-services:
-  - type: web
-    name: artemisa-backend
-    plan: starter
-    runtime: docker
-    dockerfilePath: ./docker/Dockerfile.backend
-    healthCheckPath: /api/health
-    envVars:
-      - key: PORT
-        value: 3001
-      - key: NODE_ENV
-        value: production
-      - key: AUTH_REQUIRED
-        value: 'true'
-      - key: ARTEMISA_API_KEYS
-        generateValue: true
-      - key: CORS_ALLOWED_ORIGINS
-        value: 'https://artemisa.vercel.app'
-      - key: BYPASS_SECRET
-        generateValue: true
-      - key: METRICS_SECRET
-        generateValue: true
-```
+The `.do/app.yaml` at the project root deploys the **backend only** as a Docker web service on DigitalOcean App Platform.
 
 ### Steps
 
-1. Connect your GitHub repo to Render.
-2. Render auto-detects `render.yaml` → create a **Blueprint**.
-3. `ARTEMISA_API_KEYS`, `BYPASS_SECRET` and `METRICS_SECRET` are auto-generated by Render.
-4. Copy the generated `ARTEMISA_API_KEYS` value to your Vercel project as `NEXT_PUBLIC_API_KEY`. The frontend uses this key when calling protected Creator routes (`/evaluate`, `/preview`, `/generate`).
-5. In Vercel, set `NEXT_PUBLIC_API_URL` to the deployed Render service URL (e.g. `https://artemisa-backend.onrender.com`).
-6. Deploy. The `plan: starter` line keeps the instance always on, eliminating the cold-start delay described in #663.
+1. Connect your GitHub repo (`VECTORG99/Artemisa`) to DigitalOcean App Platform.
+2. App Platform auto-detects `.do/app.yaml` and configures the service.
+3. Set `ARTEMISA_API_KEYS`, `BYPASS_SECRET` and `METRICS_SECRET` manually in the DigitalOcean dashboard (App → Settings → Environment Variables).
+4. Copy the `ARTEMISA_API_KEYS` value to your Vercel project as `NEXT_PUBLIC_API_KEY`. The frontend uses this key when calling protected Creator routes (`/evaluate`, `/preview`, `/generate`).
+5. In Vercel, set `NEXT_PUBLIC_API_URL` to the deployed DigitalOcean service URL (e.g. `https://artemisa-backend-xxxxx.ondigitalocean.app`).
+6. Deploy. Subsequent pushes to `master` trigger automatic deploys.
 
 > No persistent disk is required: the Creator is stateless and writes nothing to the filesystem. No `OPENAI_API_KEY` or other LLM credentials are needed.
 
@@ -190,7 +152,7 @@ services:
 ## 7. Local Development
 
 ```bash
-# Install all dependencies (root + frontend + agent-creator via workspaces)
+# Install all dependencies (root + frontend via workspaces)
 make install
 
 # Or manually from the repo root ONLY (npm workspaces hoists shared deps):
@@ -199,10 +161,9 @@ npm ci
 # Start development servers (each in its own terminal):
 npm run dev              # Backend (tsx watch, port 3001)
 cd frontend && npm run dev  # Frontend (Next.js, port 3000)
-cd agent-creator && npm run dev  # Agent Creator (Vite, port 5173)
 ```
 
-> **Do not** run `npm ci` inside `frontend/` or `agent-creator/` — the repo uses npm workspaces (ADR-0007) and the authoritative lockfile lives at the root. Per-app lockfiles are not maintained.
+> **Do not** run `npm ci` inside `frontend/` or any other workspace subdirectory — the repo uses npm workspaces (ADR-0007) and the authoritative lockfile lives at the root. Per-app lockfiles are not maintained.
 
 ---
 
@@ -210,7 +171,7 @@ cd agent-creator && npm run dev  # Agent Creator (Vite, port 5173)
 
 ### Secrets Management
 
-- **`ARTEMISA_API_KEYS`**, **`BYPASS_SECRET`** and **`METRICS_SECRET`** should never be committed. Use `.env` (gitignored) for local dev, or Render's secret env vars for production.
+- **`ARTEMISA_API_KEYS`**, **`BYPASS_SECRET`** and **`METRICS_SECRET`** should never be committed. Use `.env` (gitignored) for local dev, or DigitalOcean's secret env vars for production.
 - The backend redacts `BYPASS_SECRET` from logs automatically.
 
 ### Health Checks

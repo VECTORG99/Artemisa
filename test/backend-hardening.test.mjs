@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 
 describe('Backend Hardening (issue #16)', () => {
   it('Content-Type check rejects non-JSON POST', () => {
-    const req = { method: 'POST', path: '/api/agent/execute', is: (type) => type === 'text/plain' };
+    const req = { method: 'POST', path: '/api/v1/creator/evaluate', is: (type) => type === 'text/plain' };
     const shouldReject = ['POST', 'PUT', 'PATCH'].includes(req.method) && !req.is('application/json');
     assert.equal(shouldReject, true);
   });
 
   it('Content-Type check allows JSON POST', () => {
-    const req = { method: 'POST', path: '/api/agent/execute', is: (type) => type === 'application/json' };
+    const req = { method: 'POST', path: '/api/v1/creator/evaluate', is: (type) => type === 'application/json' };
     const shouldReject = ['POST', 'PUT', 'PATCH'].includes(req.method) && !req.is('application/json');
     assert.equal(shouldReject, false);
   });

@@ -4,15 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { LuCheck, LuCircleAlert, LuLoaderCircle, LuSearch } from 'react-icons/lu';
 import { creator } from '@/lib/api';
 import { glassFilterChip, glassInput, glassNotice, glassOptionCard, glassPill } from '@/lib/glass';
+import { useTranslations } from '@/i18n';
 import type { SkillCatalogItem } from '@artemisa/types';
-
-const FOCUS_LABELS: Record<string, string> = {
-  development: 'Desarrollo',
-  security: 'Seguridad',
-  'data-ai': 'Datos e IA',
-  operations: 'Operaciones',
-  documentation: 'Documentación',
-};
 
 interface SkillsBrowserProps {
   /** Currently selected skill ids. */
@@ -35,6 +28,7 @@ interface SkillsBrowserProps {
  * and behind the "Personalizado" skills_focus option in automated mode.
  */
 export function SkillsBrowser({ selected, onChange, initialFocus, allowedIds }: SkillsBrowserProps) {
+  const t = useTranslations('creator');
   const [items, setItems] = useState<SkillCatalogItem[]>([]);
   const [query, setQuery] = useState('');
   const [focus, setFocus] = useState(initialFocus && initialFocus !== 'custom' ? initialFocus : '');
@@ -86,15 +80,15 @@ export function SkillsBrowser({ selected, onChange, initialFocus, allowedIds }: 
           type="text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Buscar skills por nombre, descripción o tag…"
-          aria-label="Buscar skills"
+          placeholder={t.skills.searchPlaceholder}
+          aria-label={t.skills.searchAriaLabel}
           className={glassInput('py-2.5 pl-9 text-sm')}
         />
       </div>
 
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => setFocus('')} className={glassFilterChip(focus === '')}>
-          Todas
+          {t.skills.all}
         </button>
         {focusOptions.map((option) => (
           <button
@@ -103,7 +97,7 @@ export function SkillsBrowser({ selected, onChange, initialFocus, allowedIds }: 
             onClick={() => setFocus(option)}
             className={glassFilterChip(focus === option)}
           >
-            {FOCUS_LABELS[option] ?? option}
+            {(t.skills.focusLabels[option as keyof typeof t.skills.focusLabels] as string | undefined) ?? option}
           </button>
         ))}
       </div>
@@ -111,7 +105,7 @@ export function SkillsBrowser({ selected, onChange, initialFocus, allowedIds }: 
       {loading && (
         <p className="flex items-center gap-2 text-sm text-zinc-500">
           <LuLoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-          Cargando catálogo de skills…
+          {t.skills.loading}
         </p>
       )}
       {error && (
@@ -125,6 +119,9 @@ export function SkillsBrowser({ selected, onChange, initialFocus, allowedIds }: 
         <div className="creator-scroll grid max-h-[42vh] gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
           {filtered.map((item) => {
             const isSelected = selected.includes(item.id);
+            const focusLabel =
+              (t.skills.focusLabels[item.focus as keyof typeof t.skills.focusLabels] as string | undefined) ??
+              item.focus;
             return (
               <button
                 key={item.id}
@@ -141,7 +138,7 @@ export function SkillsBrowser({ selected, onChange, initialFocus, allowedIds }: 
                 <p className="text-xs leading-relaxed text-zinc-400">{item.description}</p>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <span className={glassPill('py-0.5 text-[10px] uppercase tracking-wide text-zinc-500')}>
-                    {FOCUS_LABELS[item.focus] ?? item.focus}
+                    {focusLabel}
                   </span>
                   <a
                     href={item.sourceUrl}
@@ -150,15 +147,13 @@ export function SkillsBrowser({ selected, onChange, initialFocus, allowedIds }: 
                     onClick={(event) => event.stopPropagation()}
                     className="text-[11px] text-zinc-500 underline-offset-2 hover:text-zinc-300 hover:underline"
                   >
-                    Ver fuente ({item.sourceName})
+                    {t.skills.source.replace('{sourceName}', item.sourceName)}
                   </a>
                 </div>
               </button>
             );
           })}
-          {filtered.length === 0 && (
-            <p className="col-span-full py-4 text-sm text-zinc-500">Ninguna skill coincide con esa búsqueda.</p>
-          )}
+          {filtered.length === 0 && <p className="col-span-full py-4 text-sm text-zinc-500">{t.skills.noResults}</p>}
         </div>
       )}
     </div>

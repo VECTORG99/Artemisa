@@ -17,10 +17,6 @@ describe('Rate Limiting Configuration (issues #28, #39)', () => {
     assert.equal(defaultFor('RATE_LIMIT_GLOBAL', '100'), 100);
   });
 
-  it('execute limit defaults to 5 req/min (LLM protection)', () => {
-    assert.equal(defaultFor('RATE_LIMIT_EXECUTE', '5'), 5);
-  });
-
   it('creator limit defaults to 120 req/min (a full Auto-largo run is ~35 requests)', () => {
     assert.equal(defaultFor('RATE_LIMIT_CREATOR', '120'), 120);
   });

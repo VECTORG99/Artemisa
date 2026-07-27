@@ -1,6 +1,6 @@
 # @artemisa/frontend
 
-Dashboard administrativo construido con Next.js 16.
+Frontend de Artemisa construido con Next.js 16.
 
 ## Desarrollo
 

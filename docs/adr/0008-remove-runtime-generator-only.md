@@ -9,7 +9,7 @@ Accepted
 - The product scope settled on one job: turn a decision tree into a reproducible bundle of configuration files (Markdown + JSON) with a manifest, hashes and an explanation of why it was built that way.
 - The runtime (`src/engine/*`, `/api/agent/execute`, `/api/agents`, `/api/history`, `/api/roles`, `/api/rag/*`, `/api/tools`, `/api/memory`, `/api/pipeline`, `/api/configs`, `/api/hooks/commit-approval/*`, `/api/mcp/status`) executed tasks with a ReAct loop, LLM providers, MCP connections, RAG indexing and SQLite persistence.
 - Executing agents safely requires per-agent sandboxing, workload identity, tool allowlists, quotas, auditing and authorization — none of which were implemented, and all of which are out of scope for a generator.
-- The runtime carried the entire operational surface of the project: a native SQLite dependency, LLM/MCP SDKs, API keys, migrations, a persistent disk on Render, and roughly half of the test suite.
+- The runtime carried the entire operational surface of the project: a native SQLite dependency, LLM/MCP SDKs, API keys, migrations, a persistent disk on the hosting platform, and roughly half of the test suite.
 - The Creator was already stateless and never depended on `Store`, the engine, or any network call.
 
 ## Decision
@@ -28,7 +28,7 @@ Accepted
 
 ## Consequences
 
-- Deployment needs no API keys, no persistent disk and no native build step; the Docker image and `render.yaml` shrink accordingly.
+- Deployment needs no API keys, no persistent disk and no native build step; the Docker image and app spec shrink accordingly.
 - Runtime routes now return 404 and are absent from `/api/openapi.json`.
 - Ephemeral agent registration disappears from the Creator UI (`/api/agents` no longer exists), so the bundle download is the only output.
 - ADR-0001 through ADR-0006 were superseded by this decision and have been deleted; their rationale is preserved in git history if someone builds an execution layer elsewhere.

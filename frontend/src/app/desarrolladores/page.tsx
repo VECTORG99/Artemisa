@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { LuArrowLeft, LuGithub, LuLinkedin } from 'react-icons/lu';
+import { useTranslations } from '@/i18n';
 
 const SpaceSimulation = dynamic(
   () => import('@/features/landing/components/space-simulation').then((m) => m.SpaceSimulation),
@@ -54,6 +55,9 @@ const glassCard: React.CSSProperties = {
 };
 
 export default function DevelopersPage() {
+  const t = useTranslations('developers');
+  const common = useTranslations('common');
+
   return (
     <div className="relative min-h-screen bg-black text-zinc-100">
       {/* Space background */}
@@ -70,15 +74,13 @@ export default function DevelopersPage() {
             className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-400 backdrop-blur-md transition-colors hover:border-white/20 hover:text-white"
           >
             <LuArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-            Volver
+            {common.back}
           </Link>
         </div>
 
         {/* Title */}
-        <h1 className="mb-3 text-4xl font-bold text-white sm:text-5xl">Desarrolladores</h1>
-        <p className="mb-12 max-w-md text-center text-zinc-400">
-          El equipo detrás de Artemisa — Hackathon Kiro × Código Facilito 2026
-        </p>
+        <h1 className="mb-3 text-4xl font-bold text-white sm:text-5xl">{t.title}</h1>
+        <p className="mb-12 max-w-md text-center text-zinc-400">{t.subtitle}</p>
 
         {/* Developer cards */}
         <div className="grid w-full max-w-4xl gap-8 sm:grid-cols-3">
@@ -108,7 +110,7 @@ export default function DevelopersPage() {
                   href={dev.github}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`GitHub de ${dev.name}`}
+                  aria-label={t.githubAria.replace('{name}', dev.name)}
                   className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/10 bg-white/[0.03] px-3 text-xs text-zinc-300 transition-colors hover:border-white/20 hover:text-white"
                 >
                   <LuGithub className="h-3.5 w-3.5" aria-hidden="true" />
@@ -118,11 +120,11 @@ export default function DevelopersPage() {
                   href={dev.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`LinkedIn de ${dev.name}`}
+                  aria-label={t.linkedinAria.replace('{name}', dev.name)}
                   className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/10 bg-white/[0.03] px-3 text-xs text-zinc-300 transition-colors hover:border-blue-400/30 hover:text-blue-300"
                 >
                   <LuLinkedin className="h-3.5 w-3.5" aria-hidden="true" />
-                  LinkedIn
+                  {t.linkedinLabel}
                 </a>
               </div>
             </div>

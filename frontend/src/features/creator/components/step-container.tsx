@@ -1,6 +1,7 @@
 'use client';
 
 import { glassPanel } from '@/lib/glass';
+import { useTranslations } from '@/i18n';
 
 interface StepContainerProps {
   children: React.ReactNode;
@@ -36,6 +37,7 @@ export function StepContainer({
   size = 'default',
   fill = false,
 }: StepContainerProps) {
+  const common = useTranslations('common');
   const maxWidth = size === 'wide' ? 'max-w-6xl' : 'max-w-5xl';
   const heightClass = fill ? '' : 'creator-scroll max-h-[78vh] overflow-y-auto';
 
@@ -57,7 +59,7 @@ export function StepContainer({
             aria-valuenow={progress}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label={progressLabel ? `Progreso: ${progressLabel}` : 'Progreso'}
+            aria-label={progressLabel ? common.progressWithLabel.replace('{label}', progressLabel) : common.progress}
           >
             <div
               className="h-full rounded-full bg-accent shadow-[0_0_10px_rgba(249,115,22,0.45)] transition-[width] duration-500 ease-out"

@@ -84,9 +84,6 @@
         "project": [
           "src/**/*.ts"
         ],
-        "ignore": [
-          "src/engine/migrations/**"
-        ],
         "ignoreDependencies": [
           "pino-pretty"
         ]
