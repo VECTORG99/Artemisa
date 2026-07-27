@@ -927,7 +927,7 @@ export default function NewAgentPage() {
 
             {/* Action bar — only during the guided question flow */}
             {status === 'ready' && showQuestionPanel && (
-              <div className="absolute inset-x-0 bottom-6 z-20 flex items-center justify-center gap-3">
+              <div className="fixed inset-x-0 bottom-6 z-30 flex items-center justify-center gap-3">
                 <button
                   type="button"
                   onClick={returnToReview ? cancelEdit : goBackOneQuestion}
