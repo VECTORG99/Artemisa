@@ -84,7 +84,7 @@ export function glassButton(className?: string) {
     'transition-colors duration-200',
     'hover:text-white hover:bg-white/[0.035]',
     'active:scale-[0.98]',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
     className,
   );
 }
@@ -129,8 +129,7 @@ export function glassPill(className?: string) {
 export function glassOptionCard(selected: boolean, blocked = false, className?: string) {
   const base = 'flex flex-col gap-1 rounded-2xl border p-3.5 text-left transition-colors';
   if (blocked) return cn(base, 'cursor-not-allowed border-white/[0.05] bg-white/[0.01] opacity-40', className);
-  if (selected)
-    return cn(base, 'border-accent/60 bg-accent-deep/20 shadow-[0_0_0_1px_rgba(245,11,11,0.15)]', className);
+  if (selected) return cn(base, 'border-accent/60 bg-accent-deep/20 ring-1 ring-accent/15', className);
   return cn(base, 'border-white/[0.08] bg-white/[0.02] hover:border-white/[0.16] hover:bg-white/[0.04]', className);
 }
 

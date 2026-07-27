@@ -956,7 +956,7 @@ export default function NewAgentPage() {
                   setDraftNotice(null);
                   resetDraft();
                 }}
-                className="text-xs font-medium text-red-400 transition-colors hover:text-red-300"
+                className="text-xs font-medium text-accent transition-colors hover:text-accent-hover"
               >
                 Reiniciar
               </button>
