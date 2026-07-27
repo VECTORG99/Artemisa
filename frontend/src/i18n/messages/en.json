@@ -11,7 +11,7 @@
     "close": "Close"
   },
   "creator": {
-    "title": "Huascar Creator",
+    "title": "Artemisa Creator",
     "preparing": "Preparing the creator",
     "loadingCatalog": "Loading catalog and decision tree...",
     "evaluating": "Evaluating answers...",
@@ -23,7 +23,7 @@
     "skip": "Skip tutorial"
   },
   "landing": {
-    "heroTitle": "Huascar",
+    "heroTitle": "Artemisa",
     "heroCta": "Generate configuration",
     "heroDescription": "Configure development agents compatible with 6+ platforms in minutes. An explainable decision tree generates reproducible files ready to apply, no black box.",
     "ctaTitle": "Ready to configure your agent?",

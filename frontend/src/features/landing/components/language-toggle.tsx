@@ -6,7 +6,7 @@ import { useLocale, type Locale } from '@/i18n';
 /**
  * Floating language toggle (bottom-left, to the right of AnimationToggle).
  * Switches between Spanish (ES) and English (EN).
- * Persists via useLocale → localStorage 'huascar-locale'.
+ * Persists via useLocale → localStorage 'artemisa-locale'.
  */
 export function LanguageToggle() {
   const { locale, setLocale } = useLocale();

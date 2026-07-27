@@ -25,7 +25,7 @@ export default function StepContainer({ children }) {
       <header className="border-b border-zinc-800 bg-zinc-950/90 px-5 py-4 backdrop-blur sm:px-8">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-emerald-400">Huascar Creator</h1>
+            <h1 className="text-xl font-bold text-emerald-400">Artemisa Creator</h1>
             <p className="text-xs text-zinc-500">Workflow dinámico · {evaluation?.workflowVersion || 'cargando'}</p>
           </div>
           <div className="text-right">

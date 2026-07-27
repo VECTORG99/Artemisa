@@ -21,7 +21,7 @@ const allMessages: Record<Locale, Messages> = {
 
 // ─── Locale Context ─────────────────────────────────────────────────────────
 
-const STORAGE_KEY = 'huascar-locale';
+const STORAGE_KEY = 'artemisa-locale';
 const DEFAULT_LOCALE: Locale = 'es';
 
 interface LocaleContextValue {
@@ -33,7 +33,7 @@ const LocaleContext = createContext<LocaleContextValue | null>(null);
 
 /**
  * Provides locale state to the entire app.
- * Persists user preference to localStorage under 'huascar-locale'.
+ * Persists user preference to localStorage under 'artemisa-locale'.
  */
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);

@@ -18,7 +18,7 @@ export default function CompletionScreen() {
 
   const downloadBundle = () => {
     download(
-      `${bundle.blueprint.identity.slug}-huascar-bundle.json`,
+      `${bundle.blueprint.identity.slug}-artemisa-bundle.json`,
       JSON.stringify(bundle, null, 2),
       'application/json',
     );
