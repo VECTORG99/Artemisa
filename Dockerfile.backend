@@ -15,12 +15,12 @@ RUN --mount=type=cache,target=/root/.npm \
 # Stage 2: Runner — production image (no build tools)
 FROM node:22-alpine AS runner
 ENV NODE_ENV=production
-RUN addgroup -S huascar && adduser -S huascar -G huascar
+RUN addgroup -S artemisa && adduser -S artemisa -G artemisa
 WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./
-USER huascar
+USER artemisa
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD node -e "const h=require('http');h.get('http://localhost:3001/api/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"

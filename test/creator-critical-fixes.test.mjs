@@ -4,10 +4,10 @@ import { generateAgentBundle } from '../src/creator/generator.js';
 import { developmentAnswers, productionAnswers } from './creatorFixture.mjs';
 
 describe('Creator multi-format generator bug fixes (#488)', () => {
-  it('does not generate huascar/ artifacts', () => {
+  it('does not generate artemisa/ artifacts', () => {
     const bundle = generateAgentBundle(developmentAnswers);
-    const huascar = bundle.artifacts.filter((a) => a.path.startsWith('huascar/'));
-    assert.deepEqual(huascar, []);
+    const artemisa = bundle.artifacts.filter((a) => a.path.startsWith('artemisa/'));
+    assert.deepEqual(artemisa, []);
   });
 
   it('generates a blueprint.json manifest and docs for every bundle', () => {

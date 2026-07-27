@@ -9,13 +9,13 @@ import {
 } from '../src/creator/agentProtocol.js';
 import { developmentAnswers } from './creatorFixture.mjs';
 
-const baseUrl = 'https://huascar.vercel.app/api/v1/creator';
+const baseUrl = 'https://artemisa.vercel.app/api/v1/creator';
 
 describe('getAgentProtocol', () => {
   it('devuelve protocolo con version 1.0.0', () => {
     const protocol = getAgentProtocol(baseUrl);
     assert.equal(protocol.version, '1.0.0');
-    assert.equal(protocol.protocol, 'huascar-agent-onboarding');
+    assert.equal(protocol.protocol, 'artemisa-agent-onboarding');
   });
 
   it('available_targets refleja el catálogo actual', () => {
@@ -130,7 +130,7 @@ describe('getStartupDocument', () => {
   it('devuelve string Markdown no vacío', () => {
     const doc = getStartupDocument(baseUrl);
     assert.ok(doc.length > 0);
-    assert.ok(doc.startsWith('# Huascar Startup'));
+    assert.ok(doc.startsWith('# Artemisa Startup'));
   });
 
   it('contiene las URLs con baseUrl interpolada', () => {

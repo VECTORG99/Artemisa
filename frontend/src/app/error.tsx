@@ -22,7 +22,7 @@ export default function ErrorBoundary({ error, reset }: ErrorBoundaryProps) {
     // Frontend runtime errors are surfaced to the browser console so the
     // team can reproduce from devtools without a backend logger round-trip.
     // eslint-disable-next-line no-console
-    console.error('[Huascar] runtime error boundary:', error);
+    console.error('[Artemisa] runtime error boundary:', error);
   }, [error]);
 
   return (

@@ -233,7 +233,7 @@ function TechStackSection() {
         <span className="text-xs font-semibold uppercase tracking-wider text-white/80">Stack real del proyecto</span>
         <h2 className="mt-2 text-3xl font-bold text-white">Tecnología que usamos</h2>
         <p className="mx-auto mt-2 max-w-xl text-sm text-white/80">
-          Huascar es open source. Este es el stack exacto con el que está construido.
+          Artemisa es open source. Este es el stack exacto con el que está construido.
         </p>
         <div className="mt-8 grid gap-6 text-center sm:grid-cols-2">
           {techGroups.map((group) => (
@@ -363,9 +363,9 @@ function LegalModalContent() {
       <h2 className="mt-2 text-3xl font-bold text-white">Licencia y uso</h2>
       <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-white/80">
         <p>
-          Huascar se distribuye bajo la{' '}
+          Artemisa se distribuye bajo la{' '}
           <a
-            href="https://github.com/VECTORG99/Huascar/blob/development/LICENSE"
+            href="https://github.com/VECTORG99/Artemisa/blob/development/LICENSE"
             target="_blank"
             rel="noopener noreferrer"
             className="text-white/90 underline underline-offset-2 hover:text-white"
@@ -378,18 +378,18 @@ function LegalModalContent() {
         </p>
         <p>
           El creador no ejecuta código, no realiza llamadas de red ni usa credenciales durante la generación de
-          configuración: es una compilación pura, determinista y auditable. Huascar sólo genera archivos de
+          configuración: es una compilación pura, determinista y auditable. Artemisa sólo genera archivos de
           configuración; aplicarlos y ejecutar el agente queda siempre del lado del usuario.
         </p>
         <p className="text-white/70">
           Código fuente completo, historial de cambios, autores y reporte de issues disponibles en{' '}
           <a
-            href="https://github.com/VECTORG99/Huascar"
+            href="https://github.com/VECTORG99/Artemisa"
             target="_blank"
             rel="noopener noreferrer"
             className="text-white/80 underline underline-offset-2 hover:text-white"
           >
-            github.com/VECTORG99/Huascar
+            github.com/VECTORG99/Artemisa
           </a>
           .
         </p>

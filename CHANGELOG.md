@@ -45,7 +45,7 @@ All notable changes to this project are documented here.
 
 ### Bug Fixes
 
-- emit schema-valid huascar/* artifacts so applied bundles work (#381) (creator) (bf7e1b1)
+- emit schema-valid artemisa/* artifacts so applied bundles work (#381) (creator) (bf7e1b1)
 - integration test supports problem+json error format (#347) (test) (3d9e024)
 - final quality batch — stack-specific docs, VPS rec, problem+json, compact evaluate (#344) (creator) (0072780)
 - quality enhancements — personalized steering, dynamic security, architecture recommendations (#343) (creator) (5b216ad)
@@ -104,21 +104,21 @@ All notable changes to this project are documented here.
 - docs: corregir instrucciones rotas y anotar CHANGELOG post-Runtime (#573, #578)
 - docs: rescatar steering.json, security-policy.json y hooks.ts como artefactos de referencia (#583)
 - ADR-0007: Adopt npm workspaces for shared types package
-- ADR-0008: Remove the runtime; Huascar only generates configuration files
+- ADR-0008: Remove the runtime; Artemisa only generates configuration files
 
 ### Refactor
 
 - cleanup: remove the Runtime from the backend (#584) — ADR-0008
-- meta: reposicionar Huascar como generador de archivos (#582)
+- meta: reposicionar Artemisa como generador de archivos (#582)
 
 ### Chores
 
-- rename project to Huascar (81660d5)
+- rename project to Artemisa (81660d5)
 - cleanup: remove emojis from source files (4c640d8)
 - Initial commit: Dev Productivity Agent Builder platform (62d34bf)
 
 > **Note (post-1.0 pivot):** Several features listed above were removed in #584
-> (ADR-0008) when Huascar pivoted to being a configuration file generator only.
+> (ADR-0008) when Artemisa pivoted to being a configuration file generator only.
 > The Runtime — ReAct engine, LLM providers, RAG, MCP pool, SQLite persistence,
 > audit log, policy engine, agent sessions, ephemeral agent registry, commit
 > approvals — is no longer part of the product. Entries referencing those

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import type { Catalog, CreatorRecommendation, Workflow } from '@huascar/types';
+import type { Catalog, CreatorRecommendation, Workflow } from '@artemisa/types';
 import { ReviewScreen } from './review-screen';
 
 const catalog: Catalog = {

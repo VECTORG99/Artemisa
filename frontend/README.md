@@ -1,4 +1,4 @@
-# @huascar/frontend
+# @artemisa/frontend
 
 Dashboard administrativo construido con Next.js 16.
 

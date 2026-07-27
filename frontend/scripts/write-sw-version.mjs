@@ -11,4 +11,4 @@ const version =
 const normalized = version.replace(/[^a-zA-Z0-9._-]/g, '-');
 const target = path.resolve('public', 'sw-version.js');
 
-fs.writeFileSync(target, `self.HUASCAR_SW_VERSION = ${JSON.stringify(normalized)};\n`);
+fs.writeFileSync(target, `self.ARTEMISA_SW_VERSION = ${JSON.stringify(normalized)};\n`);

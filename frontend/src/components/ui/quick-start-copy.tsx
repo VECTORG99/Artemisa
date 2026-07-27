@@ -11,7 +11,7 @@ interface QuickStartCopyProps {
 
 export function QuickStartCopy({ url, size = 'md' }: QuickStartCopyProps) {
   const [copied, setCopied] = useState(false);
-  const copyText = `Configura mi agente de desarrollo con Huascar usando la configuración de este endpoint: ${url}`;
+  const copyText = `Configura mi agente de desarrollo con Artemisa usando la configuración de este endpoint: ${url}`;
 
   const handleCopy = async () => {
     try {

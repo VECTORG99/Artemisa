@@ -1,4 +1,4 @@
-# Huascar Agent Creator
+# Artemisa Agent Creator
 
 Frontend Vite + React que renderiza el árbol de decisiones del Creator Backend v1.
 
@@ -20,7 +20,7 @@ Antes de generar el bundle, el Creator muestra las respuestas acumuladas y las r
 
 ### 3. Bundle generado
 
-El bundle es un conjunto de artefactos deterministas con SHA-256 por archivo. Huascar no escribe los archivos automáticamente — el usuario los revisa y los copia al proyecto destino.
+El bundle es un conjunto de artefactos deterministas con SHA-256 por archivo. Artemisa no escribe los archivos automáticamente — el usuario los revisa y los copia al proyecto destino.
 
 ![Bundle generado con artefactos](../docs/images/creator-bundle.svg)
 

@@ -25,7 +25,7 @@ import type {
   DecisionQuestion,
   QuestionCondition,
   Workflow,
-} from '@huascar/types';
+} from '@artemisa/types';
 import { glassInput, glassNotice, glassPanel, glassPill, glassPrimaryButton } from '@/lib/glass';
 import { Switch } from './switch';
 import { SkillsBrowser } from './skills-browser';

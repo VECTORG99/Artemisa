@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { LuCheck, LuCircleAlert, LuLoaderCircle, LuSearch } from 'react-icons/lu';
 import { creator } from '@/lib/api';
 import { glassFilterChip, glassInput, glassNotice, glassOptionCard, glassPill } from '@/lib/glass';
-import type { McpCatalogItem } from '@huascar/types';
+import type { McpCatalogItem } from '@artemisa/types';
 
 const CATEGORY_LABELS: Record<string, string> = {
   development: 'Desarrollo',

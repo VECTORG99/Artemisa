@@ -9,7 +9,7 @@ function envInt(key: string, fallback: number): number {
 
 /**
  * Backend configuration (#584).
- * Huascar only generates configuration files: there is no database, LLM
+ * Artemisa only generates configuration files: there is no database, LLM
  * provider, MCP pool or RAG index left to configure. Auth env is read by
  * `src/middleware/auth.ts`; rate limits are read in `src/app.ts`.
  */

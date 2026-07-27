@@ -10,8 +10,8 @@ describe('Render deployment security (issue #286)', () => {
     assert.match(renderYaml, /AUTH_REQUIRED[\s\S]*value:\s*["']?true["']?/);
   });
 
-  it('render.yaml generates HUASCAR_API_KEYS', () => {
-    assert.match(renderYaml, /HUASCAR_API_KEYS[\s\S]*generateValue:\s*true/);
+  it('render.yaml generates ARTEMISA_API_KEYS', () => {
+    assert.match(renderYaml, /ARTEMISA_API_KEYS[\s\S]*generateValue:\s*true/);
   });
 
   it('render.yaml sets NODE_ENV=production', () => {
@@ -25,7 +25,7 @@ describe('Render deployment security (issue #286)', () => {
   it('frontend api.ts does NOT hardcode a production URL', () => {
     const apiTs = fs.readFileSync(path.resolve('frontend/src/lib/api.ts'), 'utf8');
     assert.doesNotMatch(apiTs, /onrender\.com/);
-    assert.doesNotMatch(apiTs, /https:\/\/huascar\./);
+    assert.doesNotMatch(apiTs, /https:\/\/artemisa\./);
   });
 
   it('frontend api.ts falls back to localhost (safe default)', () => {

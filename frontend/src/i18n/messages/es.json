@@ -11,7 +11,7 @@
     "close": "Cerrar"
   },
   "creator": {
-    "title": "Huascar Creador",
+    "title": "Artemisa Creador",
     "preparing": "Preparando el creador",
     "loadingCatalog": "Cargando catálogo y árbol de decisiones...",
     "evaluating": "Evaluando respuestas...",
@@ -23,7 +23,7 @@
     "skip": "Saltar tutorial"
   },
   "landing": {
-    "heroTitle": "Huascar",
+    "heroTitle": "Artemisa",
     "heroCta": "Generar configuración",
     "heroDescription": "Configura agentes de desarrollo compatibles con 6+ plataformas en minutos. Un árbol de decisiones explicable genera archivos reproducibles listos para aplicar, sin caja negra.",
     "ctaTitle": "¿Listo para configurar tu agente?",

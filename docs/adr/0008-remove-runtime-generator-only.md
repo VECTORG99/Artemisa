@@ -1,4 +1,4 @@
-# ADR-0008: Remove the runtime; Huascar only generates configuration files
+# ADR-0008: Remove the runtime; Artemisa only generates configuration files
 
 ## Status
 

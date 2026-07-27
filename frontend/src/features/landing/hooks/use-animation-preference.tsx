@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
-const STORAGE_KEY = 'huascar:animations-enabled';
+const STORAGE_KEY = 'artemisa:animations-enabled';
 
 interface AnimationPreferenceContextValue {
   animationsEnabled: boolean;

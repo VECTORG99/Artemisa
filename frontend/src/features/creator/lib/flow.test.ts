@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { DecisionEvaluation, DecisionQuestion } from '@huascar/types';
+import type { DecisionEvaluation, DecisionQuestion } from '@artemisa/types';
 import {
   canAdvance,
   defaultAnswer,

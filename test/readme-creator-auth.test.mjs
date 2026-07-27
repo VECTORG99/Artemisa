@@ -9,7 +9,7 @@ describe('README Creator auth documentation (#574)', () => {
     assert.match(readme, /^### Autenticacion del Creator$/m);
     assert.match(readme, /AUTH_REQUIRED=true/);
     assert.match(readme, /AUTH_REQUIRED=false/);
-    assert.match(readme, /HUASCAR_API_KEYS/);
+    assert.match(readme, /ARTEMISA_API_KEYS/);
     assert.match(readme, /Authorization: Bearer/);
     assert.match(readme, /X-API-Key/);
   });

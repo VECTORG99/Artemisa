@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
-      '@huascar/types': resolve(__dirname, '../packages/types/src/index.ts'),
+      '@artemisa/types': resolve(__dirname, '../packages/types/src/index.ts'),
     },
   },
   test: {

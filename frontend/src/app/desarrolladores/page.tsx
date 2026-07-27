@@ -77,7 +77,7 @@ export default function DevelopersPage() {
         {/* Title */}
         <h1 className="mb-3 text-4xl font-bold text-white sm:text-5xl">Desarrolladores</h1>
         <p className="mb-12 max-w-md text-center text-zinc-400">
-          El equipo detrás de Huascar — Hackathon Kiro × Código Facilito 2026
+          El equipo detrás de Artemisa — Hackathon Kiro × Código Facilito 2026
         </p>
 
         {/* Developer cards */}

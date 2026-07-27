@@ -22,21 +22,21 @@ RUN --mount=type=cache,target=/root/.npm \
 RUN --mount=type=cache,target=/root/.npm \
     npm install --no-save lightningcss-linux-x64-musl @tailwindcss/oxide-linux-x64-musl
 
-# Stage 2: Build @huascar/types, then the Next.js app
+# Stage 2: Build @artemisa/types, then the Next.js app
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY packages/types ./packages/types
 COPY frontend ./frontend
-RUN npm run build --workspace=@huascar/types
+RUN npm run build --workspace=@artemisa/types
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-RUN npm run build --workspace=@huascar/frontend
+RUN npm run build --workspace=@artemisa/frontend
 
 # Stage 3: Production runner — Next.js standalone
 FROM node:22-alpine AS runner
-RUN addgroup -S huascar && adduser -S huascar -G huascar
+RUN addgroup -S artemisa && adduser -S artemisa -G artemisa
 WORKDIR /app
 ENV NODE_ENV=production
 
@@ -48,7 +48,7 @@ COPY --from=builder /app/frontend/.next/static ./.next/static
 # Copy public assets
 COPY --from=builder /app/frontend/public ./public
 
-USER huascar
+USER artemisa
 EXPOSE 3000
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000

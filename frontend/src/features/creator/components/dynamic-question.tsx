@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from 'react';
 import { LuCheck, LuCircleAlert, LuX } from 'react-icons/lu';
 import { glassInput, glassNotice, glassOptionCard, glassPill } from '@/lib/glass';
-import type { AnswerIssue, CatalogItem, DecisionQuestion, QuestionOption } from '@huascar/types';
+import type { AnswerIssue, CatalogItem, DecisionQuestion, QuestionOption } from '@artemisa/types';
 import { OptionPicker, type PickerOption } from './option-picker';
 import { SkillsBrowser } from './skills-browser';
 import { McpBrowser } from './mcp-browser';

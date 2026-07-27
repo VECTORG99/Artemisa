@@ -1,10 +1,10 @@
 # Guía: aplicar `security-policy.json`
 
-El Creator genera `huascar/security-policy.json` cuando el bundle tiene target Huascar. El archivo declara qué puede hacer el agente; **no** lo impide por sí solo. Quien ejecuta el agente debe leer la política y bloquear todo lo que no esté permitido.
+El Creator genera `artemisa/security-policy.json` cuando el bundle tiene target Artemisa. El archivo declara qué puede hacer el agente; **no** lo impide por sí solo. Quien ejecuta el agente debe leer la política y bloquear todo lo que no esté permitido.
 
 Referencias en este directorio:
 
-- [`security-policy.example.json`](security-policy.example.json): política real que usó el runtime de Huascar.
+- [`security-policy.example.json`](security-policy.example.json): política real que usó el runtime de Artemisa.
 - [`hooks-implementation.ts`](hooks-implementation.ts): implementación de referencia del hook `before_action`.
 
 ## 1. Qué es una política allowlist

@@ -4,10 +4,10 @@ import crypto from 'node:crypto';
 
 // Simulate the fixed isValidToken logic
 function isValidToken(provided, apiKeys) {
-  const providedHash = crypto.createHmac('sha256', 'huascar-auth').update(provided).digest();
+  const providedHash = crypto.createHmac('sha256', 'artemisa-auth').update(provided).digest();
   let valid = false;
   for (const key of apiKeys) {
-    const keyHash = crypto.createHmac('sha256', 'huascar-auth').update(key).digest();
+    const keyHash = crypto.createHmac('sha256', 'artemisa-auth').update(key).digest();
     if (crypto.timingSafeEqual(providedHash, keyHash)) {
       valid = true;
     }
@@ -42,11 +42,11 @@ describe('Timing-safe auth token validation (issue #265)', () => {
   it('iterates ALL keys without early return (constant-time)', () => {
     // Even with a match on first key, all keys are checked
     let iterations = 0;
-    const providedHash = crypto.createHmac('sha256', 'huascar-auth').update('short-key').digest();
+    const providedHash = crypto.createHmac('sha256', 'artemisa-auth').update('short-key').digest();
     let valid = false;
     for (const key of keys) {
       iterations++;
-      const keyHash = crypto.createHmac('sha256', 'huascar-auth').update(key).digest();
+      const keyHash = crypto.createHmac('sha256', 'artemisa-auth').update(key).digest();
       if (crypto.timingSafeEqual(providedHash, keyHash)) valid = true;
     }
     assert.equal(valid, true);
@@ -55,8 +55,8 @@ describe('Timing-safe auth token validation (issue #265)', () => {
 
   it('uses HMAC for fixed-length comparison (no length oracle)', () => {
     // All HMAC outputs are 32 bytes regardless of input length
-    const h1 = crypto.createHmac('sha256', 'huascar-auth').update('x').digest();
-    const h2 = crypto.createHmac('sha256', 'huascar-auth').update('x'.repeat(1000)).digest();
+    const h1 = crypto.createHmac('sha256', 'artemisa-auth').update('x').digest();
+    const h2 = crypto.createHmac('sha256', 'artemisa-auth').update('x'.repeat(1000)).digest();
     assert.equal(h1.length, 32);
     assert.equal(h2.length, 32);
   });

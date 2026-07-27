@@ -19,7 +19,7 @@ export const SHORT_FLOW_QUESTION_IDS: string[] = [
   'agent_targets',
 ];
 
-import type { CreatorAnswers, CreatorAnswerValue } from '@huascar/types';
+import type { CreatorAnswers, CreatorAnswerValue } from '@artemisa/types';
 
 /**
  * Applied only for keys the user hasn't already answered. Chosen to be the

@@ -1,6 +1,6 @@
 # Artefactos de referencia
 
-Huascar genera archivos de configuración; no ejecuta agentes. Este directorio conserva los artefactos que usaba el runtime eliminado en el issue #584 como **referencia curada** para los bundles que produce el Creator.
+Artemisa genera archivos de configuración; no ejecuta agentes. Este directorio conserva los artefactos que usaba el runtime eliminado en el issue #584 como **referencia curada** para los bundles que produce el Creator.
 
 Ninguno de estos archivos se carga en tiempo de ejecución. Son ejemplos versionados y documentados.
 

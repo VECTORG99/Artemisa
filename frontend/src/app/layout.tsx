@@ -11,10 +11,10 @@ const inter = Inter({
   variable: '--font-inter',
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://huascar.vercel.app';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://artemisa.vercel.app';
 
 export const metadata: Metadata = {
-  title: 'Huascar — Generador de Configuración de Agentes',
+  title: 'Artemisa — Generador de Configuración de Agentes',
   description:
     'Genera archivos de configuración para agentes de desarrollo y operación mediante un árbol de decisiones explicables. Sin ejecutar, sin desplegar, sin caja negra.',
   icons: {
@@ -28,24 +28,24 @@ export const metadata: Metadata = {
     canonical: siteUrl,
   },
   openGraph: {
-    title: 'Huascar — Generador de Configuración de Agentes',
+    title: 'Artemisa — Generador de Configuración de Agentes',
     description:
       'Genera archivos de configuración para agentes de desarrollo y operación mediante un árbol de decisiones explicables. Sin ejecutar, sin desplegar, sin caja negra.',
     type: 'website',
     url: siteUrl,
-    siteName: 'Huascar',
+    siteName: 'Artemisa',
     images: [
       {
         url: `${siteUrl}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: 'Huascar — Generador de Configuración de Agentes',
+        alt: 'Artemisa — Generador de Configuración de Agentes',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Huascar — Generador de Configuración de Agentes',
+    title: 'Artemisa — Generador de Configuración de Agentes',
     description:
       'Genera archivos de configuración para agentes de desarrollo y operación mediante un árbol de decisiones explicables. Sin ejecutar, sin desplegar, sin caja negra.',
     images: [`${siteUrl}/og-image.png`],

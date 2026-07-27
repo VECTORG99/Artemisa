@@ -1,4 +1,4 @@
-# @huascar/types
+# @artemisa/types
 
 Tipos TypeScript compartidos entre los paquetes del monorepo.
 

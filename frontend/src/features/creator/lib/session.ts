@@ -1,4 +1,4 @@
-import type { CreatorAnswers } from '@huascar/types';
+import type { CreatorAnswers } from '@artemisa/types';
 
 /**
  * Draft persistence for the Creator.
@@ -15,7 +15,7 @@ import type { CreatorAnswers } from '@huascar/types';
  * that may no longer exist.
  */
 
-const STORAGE_KEY = 'huascar.creator.draft.v1';
+const STORAGE_KEY = 'artemisa.creator.draft.v1';
 
 export type PersistedMode = 'auto-corto' | 'auto-largo' | 'presets' | 'avanzado';
 

@@ -22,7 +22,7 @@ async function assertJson(method, path, body, expectedStatus, expectedKey) {
   return data;
 }
 
-console.log('=== Huascar API Integration Tests ===\n');
+console.log('=== Artemisa API Integration Tests ===\n');
 
 const proc = spawn('npx', ['tsx', 'src/server.ts'], {
   env: {
@@ -70,7 +70,7 @@ try {
 
   // --- Agent Protocol endpoints ---
   const protocol = await assertJson('GET', '/api/v1/creator/agent', null, 200, 'protocol');
-  if (protocol.protocol !== 'huascar-agent-onboarding') throw new Error('Agent protocol mismatch');
+  if (protocol.protocol !== 'artemisa-agent-onboarding') throw new Error('Agent protocol mismatch');
 
   const start = await assertJson('GET', '/api/v1/creator/agent/start', null, 200, 'first_question');
   if (start.first_question.id !== 'agent_name') throw new Error('Agent start did not begin with agent_name');
