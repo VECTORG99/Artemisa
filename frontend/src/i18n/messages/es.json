@@ -28,6 +28,8 @@
     "heroDescription": "Configura agentes de desarrollo compatibles con 6+ plataformas en minutos. Un árbol de decisiones explicable genera archivos reproducibles listos para aplicar, sin caja negra.",
     "ctaTitle": "¿Listo para configurar tu agente?",
     "ctaDescription": "Responde 32 preguntas guiadas y obtén un bundle listo para Cursor, Devin, CodeRabbit, Kiro y más.",
-    "ctaButton": "Iniciar creador →"
+    "ctaButton": "Iniciar creador →",
+    "disableAnimations": "Desactivar animaciones",
+    "enableAnimations": "Activar animaciones"
   }
 }
