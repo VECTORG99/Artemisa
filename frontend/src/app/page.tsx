@@ -49,7 +49,7 @@ export default function HomePage() {
       {/* Scrollable content with unified space simulation as background */}
       <div
         id="space-scroll-container"
-        className="relative h-screen snap-y snap-mandatory overflow-x-hidden overflow-y-auto scroll-smooth"
+        className="relative h-screen h-dvh snap-y snap-proximity overflow-x-hidden overflow-y-auto scroll-smooth sm:snap-mandatory"
       >
         {animationsEnabled && <SpaceSimulation showBlackHole maxMeteors={undefined} meteorSpawnRate={1} />}
         <HeroSection />

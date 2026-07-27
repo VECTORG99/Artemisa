@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import dynamicImport from 'next/dynamic';
 import {
   LuArrowLeft,
@@ -41,8 +42,9 @@ import {
 } from '@/features/creator/lib/flow';
 import { clearDraft, loadDraft, saveDraft } from '@/features/creator/lib/session';
 import { GlassBackButton, GlassIconButton } from '@/components/ui/glass-icon-button';
+import { QuickStartCopy } from '@/components/ui/quick-start-copy';
 import { glassButton, glassNotice, glassPrimaryButton, glassStyle } from '@/lib/glass';
-import { ApiError, creator } from '@/lib/api';
+import { ApiError, apiUrl, creator } from '@/lib/api';
 import { useAnimationPreference } from '@/features/landing/hooks/use-animation-preference';
 import type {
   Catalog,
@@ -60,6 +62,8 @@ const SpaceSimulation = dynamicImport(
   () => import('@/features/landing/components/space-simulation').then((m) => m.SpaceSimulation),
   { ssr: false },
 );
+
+const STARTUP_URL = `${apiUrl}/api/v1/creator/startup`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -755,16 +759,25 @@ export default function NewAgentPage() {
 
   return (
     <>
-      {/* Mobile fallback (issue #385): the Creator needs a wide viewport for the
-          catalog grids and the generated bundle, so it is not rendered below md. */}
-      <div className="flex min-h-screen flex-col items-center justify-center bg-black px-6 text-center md:hidden">
-        <LuMonitor className="mb-6 h-10 w-10 text-zinc-500" aria-hidden="true" />
-        <h1 className="text-xl font-semibold text-zinc-100">Usa un computador para configurar tu agente</h1>
-        <p className="mt-3 max-w-xs text-sm leading-relaxed text-zinc-400">
+      {/* The dense editor remains desktop-only, but mobile visitors can still
+           copy the agent prompt or open the documentation instead of hitting a
+           dead end. Landscape may also provide enough room on larger devices. */}
+      <div className="flex h-screen h-dvh flex-col items-center overflow-y-auto bg-black px-4 py-8 text-center md:hidden">
+        <LuMonitor className="mb-4 h-9 w-9 shrink-0 text-zinc-500" aria-hidden="true" />
+        <h1 className="text-xl font-semibold text-zinc-100">El editor necesita una pantalla más amplia</h1>
+        <p className="mt-3 max-w-sm text-sm leading-relaxed text-zinc-400">
           El creador muestra el catálogo completo de tecnologías y el bundle generado archivo por archivo. Necesita una
-          pantalla más amplia.
+          pantalla más amplia. Gira el dispositivo a horizontal o continúa desde un computador.
         </p>
-        <GlassBackButton href="/" label="Volver al inicio" className="mt-8" />
+        <div className="mt-6 w-full max-w-md rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+          <QuickStartCopy url={STARTUP_URL} size="sm" />
+        </div>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+          <Link href="/docs" className={glassButton('px-4 py-2 text-sm')}>
+            Leer documentación
+          </Link>
+          <GlassBackButton href="/" label="Volver al inicio" />
+        </div>
       </div>
 
       {/* Desktop Creator */}

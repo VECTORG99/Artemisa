@@ -39,19 +39,19 @@ export function HeroSection() {
   return (
     <section
       id="contenido-principal"
-      className="flex h-screen snap-start snap-always flex-col items-center justify-center px-6"
+      className="flex min-h-screen min-h-dvh snap-start flex-col items-center justify-center px-4 py-24 sm:px-6"
     >
       <div className="relative z-10 max-w-3xl text-center">
-        <h1 className="text-5xl font-bold tracking-tight text-white text-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-6xl lg:text-7xl xl:text-8xl">
+        <h1 className="text-4xl font-bold tracking-tight text-white text-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-6xl lg:text-7xl xl:text-8xl">
           {t.heroTitle}
         </h1>
 
-        <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white text-shadow-[0_2px_4px_rgba(0,0,0,0.85)] sm:text-lg">
+        <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white text-shadow-[0_2px_4px_rgba(0,0,0,0.85)] sm:mt-6 sm:text-lg">
           {t.heroDescription}
         </p>
 
-        <div className="mt-8 max-w-lg mx-auto">
-          <div className={glassCard('rounded-3xl p-5')}>
+        <div className="mx-auto mt-5 max-w-lg sm:mt-8">
+          <div className={glassCard('rounded-3xl p-3 sm:p-5')}>
             <QuickStartCopy url={STARTUP_URL} size="md" />
           </div>
         </div>
@@ -69,7 +69,7 @@ export function HeroSection() {
       </div>
 
       {/* Scroll hint */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+      <div className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 animate-bounce sm:block">
         <div className="h-8 w-[1px] bg-gradient-to-b from-white/20 to-transparent" />
       </div>
     </section>
@@ -130,13 +130,13 @@ function GlassIcon({ src, alt }: { src: string; alt: string; hue: number }) {
 function ValuePropsSection() {
   const ref = useSectionFadeIn<HTMLDivElement>();
   return (
-    <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
+    <section className="flex min-h-screen min-h-dvh snap-start items-center justify-center px-4 py-24 sm:px-6">
       <h2 className="sr-only">Características principales</h2>
-      <div ref={ref} className="section-content relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
+      <div ref={ref} className="section-content relative z-10 grid w-full max-w-5xl gap-4 sm:grid-cols-3 sm:gap-6">
         {valueProps.map((prop) => (
           <div
             key={prop.title}
-            className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
+            className="group relative overflow-hidden rounded-3xl p-5 text-center transition-transform duration-300 hover:-translate-y-1 sm:p-7"
             style={glassStyle}
           >
             <GlassIcon src={prop.icon} alt={prop.title} hue={prop.hue} />
@@ -206,10 +206,13 @@ const techGroups: { title: string; items: TechItem[] }[] = [
 function TechStackSection() {
   const ref = useSectionFadeIn<HTMLDivElement>();
   return (
-    <section id="tecnologia" className="flex h-screen snap-start snap-always items-center justify-center px-6">
+    <section
+      id="tecnologia"
+      className="flex min-h-screen min-h-dvh snap-start items-center justify-center px-4 py-24 sm:px-6"
+    >
       <div
         ref={ref}
-        className="section-content relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10"
+        className="section-content relative z-10 w-full max-w-3xl rounded-3xl p-5 text-center sm:p-10"
         style={glassStyle}
       >
         <span className="text-xs font-semibold uppercase tracking-wider text-white/80">Stack real del proyecto</span>
@@ -217,7 +220,7 @@ function TechStackSection() {
         <p className="mx-auto mt-2 max-w-xl text-sm text-white/80">
           Huascar es open source. Este es el stack exacto con el que está construido.
         </p>
-        <div className="mt-8 grid gap-6 text-center sm:grid-cols-2">
+        <div className="mt-6 grid gap-4 text-center sm:mt-8 sm:grid-cols-2 sm:gap-6">
           {techGroups.map((group) => (
             <div key={group.title}>
               <h3 className="text-center text-sm font-semibold text-white/80">{group.title}</h3>
@@ -256,10 +259,10 @@ function FinalCtaSection() {
   const ref = useSectionFadeIn<HTMLDivElement>();
 
   return (
-    <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
+    <section className="flex min-h-screen min-h-dvh snap-start items-center justify-center px-4 py-24 sm:px-6">
       <div
         ref={ref}
-        className="section-content relative z-10 w-full max-w-2xl rounded-3xl p-10 text-center"
+        className="section-content relative z-10 w-full max-w-2xl rounded-3xl p-6 text-center sm:p-10"
         style={glassStyle}
       >
         <h2 className="text-3xl font-bold text-white">{t.ctaTitle}</h2>

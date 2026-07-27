@@ -13,9 +13,9 @@ export function StickyHeader() {
   const { open } = useLandingModal();
 
   return (
-    <header className="fixed inset-x-0 top-3 z-50 flex justify-center px-4">
+    <header className="fixed inset-x-0 top-2 z-50 flex justify-center px-3 sm:top-3 sm:px-4">
       <nav
-        className="pointer-events-auto flex w-full max-w-3xl flex-wrap items-center justify-center gap-5 rounded-full px-6 py-3 text-center text-xs font-medium text-white shadow-[0_8px_32px_rgba(0,0,0,0.35)] sm:py-2.5"
+        className="pointer-events-auto flex w-full max-w-3xl flex-wrap items-center justify-center gap-3 rounded-full px-4 py-2 text-center text-xs font-medium text-white shadow-[0_8px_32px_rgba(0,0,0,0.35)] sm:gap-5 sm:px-6 sm:py-2.5"
         style={glassStyle}
         aria-label="Navegación principal"
       >
@@ -118,9 +118,9 @@ export function StickyFooter() {
   const { open } = useLandingModal();
 
   return (
-    <footer className="fixed inset-x-0 bottom-3 z-50 flex justify-center px-4">
+    <footer className="fixed inset-x-0 bottom-2 z-50 flex justify-center px-3 sm:bottom-3 sm:px-4">
       <div
-        className="pointer-events-auto w-full max-w-3xl rounded-3xl px-6 py-4 text-center shadow-[0_8px_32px_rgba(0,0,0,0.35)] sm:px-8"
+        className="pointer-events-auto w-full max-w-3xl rounded-3xl px-4 py-2.5 text-center shadow-[0_8px_32px_rgba(0,0,0,0.35)] sm:px-8 sm:py-4"
         style={glassStyle}
         aria-label="Pie de página"
       >
@@ -128,7 +128,10 @@ export function StickyFooter() {
           {footerLinks.map((link) => {
             const Icon = link.icon;
             return (
-              <li key={link.label}>
+              <li
+                key={link.label}
+                className={['Tecnología', 'Casos de uso', 'Legal'].includes(link.label) ? 'hidden sm:list-item' : ''}
+              >
                 {link.modal ? (
                   <button
                     type="button"
@@ -173,7 +176,7 @@ export function StickyFooter() {
             );
           })}
         </ul>
-        <p className="mt-3 border-t border-white/[0.06] pt-3 text-[11px] text-white/80">
+        <p className="mt-3 hidden border-t border-white/[0.06] pt-3 text-[11px] text-white/80 sm:block">
           © {new Date().getFullYear()} Huascar y sus contribuidores · MPL-2.0
         </p>
       </div>
