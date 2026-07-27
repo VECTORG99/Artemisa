@@ -18,7 +18,7 @@ interface AllowedCommandEntry {
   allowed_args: string[];
 }
 
-function stableValue(value: unknown): unknown {
+export function stableValue(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stableValue);
   if (value && typeof value === 'object') {
     return Object.fromEntries(
@@ -38,7 +38,7 @@ function sha256(content: string): string {
   return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
 }
 
-function slugify(value: string): string {
+export function slugify(value: string): string {
   const slug = value
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -253,7 +253,7 @@ function buildBlueprint(answers: CreatorAnswers, evaluation: ReturnType<typeof e
   };
 }
 
-function inferCloudProvider(target: string): string | null {
+export function inferCloudProvider(target: string): string | null {
   if (target.startsWith('aws-')) return 'aws';
   if (target.startsWith('azure-')) return 'azure';
   if (target.startsWith('gcp-')) return 'gcp';
@@ -294,7 +294,11 @@ function buildSystemPrompt(blueprint: AgentBlueprint): string {
  * stay narrow (read-only or quality-gate commands) so the generated policy is
  * safe to apply before review.
  */
-function buildAllowedCommands(capabilities: string[], languages: string[], testingTools: string[]): AllowedCommandEntry[] {
+function buildAllowedCommands(
+  capabilities: string[],
+  languages: string[],
+  testingTools: string[],
+): AllowedCommandEntry[] {
   const entries = new Map<string, Set<string>>();
   const add = (binary: string, args: string[]) => {
     const existing = entries.get(binary) ?? new Set<string>();
@@ -624,7 +628,14 @@ ${architecture}
 ${blueprint.environments.deploymentTarget ? `- Destino de despliegue: ${describeCatalogSelection(blueprint.environments.deploymentTarget)}.` : ''}
 
 ## Testing & Quality
-${blueprint.testing.tools.length > 0 ? blueprint.testing.tools.map(describeCatalogSelection).map((t) => `- ${t}`).join('\n') : '- Sin herramientas de testing específicas configuradas. Usar los comandos de test del stack.'}
+${
+  blueprint.testing.tools.length > 0
+    ? blueprint.testing.tools
+        .map(describeCatalogSelection)
+        .map((t) => `- ${t}`)
+        .join('\n')
+    : '- Sin herramientas de testing específicas configuradas. Usar los comandos de test del stack.'
+}
 
 ## Conventions
 
@@ -743,7 +754,11 @@ function inferStackGlobs(technologies: string[]): string[] {
 }
 
 function buildAllowedCommandLines(blueprint: AgentBlueprint): string[] {
-  const commands = buildAllowedCommands(blueprint.agent.capabilities, blueprint.project.technologies, blueprint.testing.tools);
+  const commands = buildAllowedCommands(
+    blueprint.agent.capabilities,
+    blueprint.project.technologies,
+    blueprint.testing.tools,
+  );
   return commands.map((entry) => `- ${entry.binary}: ${entry.allowed_args.join(', ')}`);
 }
 
@@ -970,9 +985,11 @@ ${buildSystemPrompt(blueprint)}
       description: m.description,
       filePattern: m.filePattern,
       instructions: buildSystemPrompt(blueprint),
-      allowedCommands: buildAllowedCommands(blueprint.agent.capabilities, blueprint.project.technologies, blueprint.testing.tools).map(
-        (c) => c.binary,
-      ),
+      allowedCommands: buildAllowedCommands(
+        blueprint.agent.capabilities,
+        blueprint.project.technologies,
+        blueprint.testing.tools,
+      ).map((c) => c.binary),
     })),
   };
   return [
