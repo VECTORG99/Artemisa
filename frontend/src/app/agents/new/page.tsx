@@ -41,8 +41,9 @@ import {
 } from '@/features/creator/lib/flow';
 import { clearDraft, loadDraft, saveDraft } from '@/features/creator/lib/session';
 import { GlassBackButton, GlassIconButton } from '@/components/ui/glass-icon-button';
+import { QuickStartCopy } from '@/components/ui/quick-start-copy';
 import { glassButton, glassNotice, glassPrimaryButton, glassStyle } from '@/lib/glass';
-import { ApiError, creator } from '@/lib/api';
+import { ApiError, apiUrl, creator } from '@/lib/api';
 import { useAnimationPreference } from '@/features/landing/hooks/use-animation-preference';
 import type {
   Catalog,
@@ -151,6 +152,14 @@ type Status = 'loading' | 'fatal' | 'ready';
 
 export default function NewAgentPage() {
   const { animationsEnabled, toggle: toggleAnimations } = useAnimationPreference();
+
+  // Detect touch-only devices (phones/tablets) — desktops with small windows still get the Creator
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  useEffect(() => {
+    const isTouch = window.matchMedia('(pointer: coarse)').matches && window.matchMedia('(hover: none)').matches;
+    setIsTouchDevice(isTouch);
+  }, []);
+
   const [status, setStatus] = useState<Status>('loading');
   const [fatalError, setFatalError] = useState('');
   const [retrying, setRetrying] = useState(false);
@@ -755,266 +764,281 @@ export default function NewAgentPage() {
 
   return (
     <>
-      {/* Mobile fallback (issue #385): the Creator needs a wide viewport for the
-          catalog grids and the generated bundle, so it is not rendered below md. */}
-      <div className="flex min-h-screen flex-col items-center justify-center bg-black px-6 text-center md:hidden">
-        <LuMonitor className="mb-6 h-10 w-10 text-zinc-500" aria-hidden="true" />
-        <h1 className="text-xl font-semibold text-zinc-100">Usa un computador para configurar tu agente</h1>
-        <p className="mt-3 max-w-xs text-sm leading-relaxed text-zinc-400">
-          El creador muestra el catálogo completo de tecnologías y el bundle generado archivo por archivo. Necesita una
-          pantalla más amplia.
-        </p>
-        <GlassBackButton href="/" label="Volver al inicio" className="mt-8" />
-      </div>
+      {/* Touch device redirect — only shown on phones/tablets, NOT on desktops with small windows */}
+      {isTouchDevice && (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-black px-6 text-center">
+          <LuMonitor className="mb-6 h-12 w-12 text-zinc-400" aria-hidden="true" />
+          <h1 className="text-xl font-semibold text-zinc-100">Herramienta de escritorio</h1>
+          <p className="mt-3 max-w-xs text-sm leading-relaxed text-zinc-400">
+            El Creator es una herramienta para desarrolladores que funciona en computadoras de escritorio y laptops.
+          </p>
+          <p className="mt-2 max-w-xs text-sm text-zinc-500">Abre este enlace desde tu PC para diseñar tu agente.</p>
+          <div className="mt-6 w-full max-w-xs">
+            <p className="mb-2 text-xs text-zinc-500">Copia el enlace para abrirlo en tu PC:</p>
+            <QuickStartCopy
+              url={typeof window !== 'undefined' ? window.location.href : 'https://huascar.vercel.app/agents/new'}
+              size="sm"
+            />
+          </div>
+          <GlassBackButton href="/" label="Ir al inicio" className="mt-6" />
+        </div>
+      )}
 
       {/* Desktop Creator */}
-      <div className="hidden md:block">
-        {/* Persistent background — renders once, never re-mounts */}
-        <div className="fixed inset-0 z-0">
-          {animationsEnabled && <SpaceSimulation showBlackHole={false} maxMeteors={8} meteorSpawnRate={0.4} />}
-        </div>
+      {!isTouchDevice && (
+        <div>
+          {/* Persistent background — renders once, never re-mounts */}
+          <div className="fixed inset-0 z-0">
+            {animationsEnabled && <SpaceSimulation showBlackHole={false} maxMeteors={8} meteorSpawnRate={0.4} />}
+          </div>
 
-        <main className="relative flex h-screen flex-col items-center justify-center overflow-hidden px-4 py-6 text-zinc-50 sm:px-8">
-          {/* Back control — outside the animated area so it never flickers */}
-          {status === 'ready' && (
-            <div className="absolute left-4 top-6 z-20 sm:left-8">
-              <GlassBackButton href="/" label="Volver al inicio" />
-            </div>
-          )}
+          <main className="relative flex h-screen flex-col items-center justify-center overflow-hidden px-4 py-6 text-zinc-50 sm:px-8">
+            {/* Back control — outside the animated area so it never flickers */}
+            {status === 'ready' && (
+              <div className="absolute left-4 top-6 z-20 sm:left-8">
+                <GlassBackButton href="/" label="Volver al inicio" />
+              </div>
+            )}
 
-          {/* Reset — top right while a draft exists (#564 confirmation) */}
-          {status === 'ready' && mode && (
-            <div className="absolute right-4 top-6 z-20 flex items-center gap-2 sm:right-8">
-              <GlassIconButton onClick={() => setConfirmReset(true)} label="Reiniciar borrador" icon={LuRotateCcw} />
-            </div>
-          )}
+            {/* Reset — top right while a draft exists (#564 confirmation) */}
+            {status === 'ready' && mode && (
+              <div className="absolute right-4 top-6 z-20 flex items-center gap-2 sm:right-8">
+                <GlassIconButton onClick={() => setConfirmReset(true)} label="Reiniciar borrador" icon={LuRotateCcw} />
+              </div>
+            )}
 
-          {/* Utilities — animation toggle + shortcuts, bottom-left like the landing */}
-          {status === 'ready' && (
-            <div className="absolute bottom-5 left-5 z-20 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={toggleAnimations}
-                aria-label={animationsEnabled ? 'Desactivar animaciones' : 'Activar animaciones'}
-                className="flex items-center gap-2 rounded-full px-3 py-2 text-xs text-white/80 transition-colors hover:text-white"
-                style={glassStyle}
-              >
-                {animationsEnabled ? (
-                  <LuSparkles className="h-4 w-4" aria-hidden="true" />
-                ) : (
-                  <LuMoon className="h-4 w-4" aria-hidden="true" />
-                )}
-                <span>{animationsEnabled ? 'Desactivar animaciones' : 'Activar animaciones'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setShortcutsOpen(true)}
-                aria-label="Atajos de teclado"
-                className="flex items-center gap-2 rounded-full px-3 py-2 text-xs text-white/80 transition-colors hover:text-white"
-                style={glassStyle}
-              >
-                <LuKeyboard className="h-4 w-4" aria-hidden="true" />
-                <span>Atajos de teclado</span>
-              </button>
-            </div>
-          )}
-
-          {status === 'loading' && <CreatorLoading />}
-
-          {status === 'fatal' && (
-            <CreatorFatalError message={fatalError} onRetry={retryBootstrap} retrying={retrying} />
-          )}
-
-          {status === 'ready' && (
-            <AnimatedPanel phase={phase}>
-              {!mode && (
-                <StepContainer>
-                  <ModeSelect onSelect={selectMode} />
-                </StepContainer>
-              )}
-
-              {showPresets && (
-                <StepContainer size="wide">
-                  <PresetsGallery onSelect={applyPreset} applying={generating} catalog={catalog} workflow={workflow} />
-                </StepContainer>
-              )}
-
-              {showAdvanced && (
-                <div className="relative z-10 mx-auto w-full max-w-7xl">
-                  <FineTuningDashboard
-                    answers={answers}
-                    onChange={setAnswers}
-                    onGenerate={evaluateAndReview}
-                    generating={generating}
-                    error={error}
-                    issues={evaluation?.issues ?? []}
-                    catalog={catalog}
-                    workflow={workflow}
-                  />
-                </div>
-              )}
-
-              {showQuestionPanel && question && (
-                <StepContainer
-                  progress={progress}
-                  progressLabel={returnToReview ? `Editando · ${question.section}` : question.section}
-                  stepLabel={guidedMode && !returnToReview ? `Paso ${position.step} de ${position.total}` : undefined}
-                  withActionBar
-                >
-                  {error && (
-                    <div className={glassNotice('warn', 'mb-6')} role="status">
-                      <span>{error}</span>
-                    </div>
-                  )}
-                  <DynamicQuestion
-                    question={question}
-                    options={options}
-                    value={value}
-                    onChange={setAnswer}
-                    issues={questionIssues}
-                    allowedIds={allowedIds}
-                  />
-                </StepContainer>
-              )}
-
-              {reviewing && evaluation && (
-                <StepContainer progress={100} progressLabel="Revisión final" size="wide">
-                  <ReviewScreen
-                    answers={answers}
-                    workflow={workflow}
-                    catalog={catalog}
-                    recommendations={evaluation.recommendations}
-                    warnings={evaluation.warnings}
-                    issues={evaluation.issues}
-                    onGenerate={handleGenerate}
-                    onEditAnswer={editAnswer}
-                    generating={generating}
-                    error={error}
-                  />
-                </StepContainer>
-              )}
-
-              {bundle && (
-                <StepContainer progress={100} progressLabel="Bundle generado" size="wide">
-                  <CompletionScreen bundle={bundle} error={error} />
-                </StepContainer>
-              )}
-            </AnimatedPanel>
-          )}
-
-          {/* Action bar — only during the guided question flow */}
-          {status === 'ready' && showQuestionPanel && (
-            <div className="absolute inset-x-0 bottom-6 z-20 flex items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={returnToReview ? cancelEdit : goBackOneQuestion}
-                disabled={busy || (!returnToReview && visited.length === 0)}
-                className={glassButton('w-40 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-30')}
-              >
-                <LuArrowLeft className="h-4 w-4" aria-hidden="true" />
-                {returnToReview ? 'Cancelar' : 'Atrás'}
-              </button>
-
-              {isOptional && !returnToReview && (
+            {/* Utilities — animation toggle + shortcuts, bottom-left like the landing */}
+            {status === 'ready' && (
+              <div className="absolute bottom-5 left-5 z-20 flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={skipQuestion}
-                  disabled={busy}
+                  onClick={toggleAnimations}
+                  aria-label={animationsEnabled ? 'Desactivar animaciones' : 'Activar animaciones'}
+                  className="flex items-center gap-2 rounded-full px-3 py-2 text-xs text-white/80 transition-colors hover:text-white"
+                  style={glassStyle}
+                >
+                  {animationsEnabled ? (
+                    <LuSparkles className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <LuMoon className="h-4 w-4" aria-hidden="true" />
+                  )}
+                  <span>{animationsEnabled ? 'Desactivar animaciones' : 'Activar animaciones'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShortcutsOpen(true)}
+                  aria-label="Atajos de teclado"
+                  className="flex items-center gap-2 rounded-full px-3 py-2 text-xs text-white/80 transition-colors hover:text-white"
+                  style={glassStyle}
+                >
+                  <LuKeyboard className="h-4 w-4" aria-hidden="true" />
+                  <span>Atajos de teclado</span>
+                </button>
+              </div>
+            )}
+
+            {status === 'loading' && <CreatorLoading />}
+
+            {status === 'fatal' && (
+              <CreatorFatalError message={fatalError} onRetry={retryBootstrap} retrying={retrying} />
+            )}
+
+            {status === 'ready' && (
+              <AnimatedPanel phase={phase}>
+                {!mode && (
+                  <StepContainer>
+                    <ModeSelect onSelect={selectMode} />
+                  </StepContainer>
+                )}
+
+                {showPresets && (
+                  <StepContainer size="wide">
+                    <PresetsGallery
+                      onSelect={applyPreset}
+                      applying={generating}
+                      catalog={catalog}
+                      workflow={workflow}
+                    />
+                  </StepContainer>
+                )}
+
+                {showAdvanced && (
+                  <div className="relative z-10 mx-auto w-full max-w-7xl">
+                    <FineTuningDashboard
+                      answers={answers}
+                      onChange={setAnswers}
+                      onGenerate={evaluateAndReview}
+                      generating={generating}
+                      error={error}
+                      issues={evaluation?.issues ?? []}
+                      catalog={catalog}
+                      workflow={workflow}
+                    />
+                  </div>
+                )}
+
+                {showQuestionPanel && question && (
+                  <StepContainer
+                    progress={progress}
+                    progressLabel={returnToReview ? `Editando · ${question.section}` : question.section}
+                    stepLabel={guidedMode && !returnToReview ? `Paso ${position.step} de ${position.total}` : undefined}
+                    withActionBar
+                  >
+                    {error && (
+                      <div className={glassNotice('warn', 'mb-6')} role="status">
+                        <span>{error}</span>
+                      </div>
+                    )}
+                    <DynamicQuestion
+                      question={question}
+                      options={options}
+                      value={value}
+                      onChange={setAnswer}
+                      issues={questionIssues}
+                      allowedIds={allowedIds}
+                    />
+                  </StepContainer>
+                )}
+
+                {reviewing && evaluation && (
+                  <StepContainer progress={100} progressLabel="Revisión final" size="wide">
+                    <ReviewScreen
+                      answers={answers}
+                      workflow={workflow}
+                      catalog={catalog}
+                      recommendations={evaluation.recommendations}
+                      warnings={evaluation.warnings}
+                      issues={evaluation.issues}
+                      onGenerate={handleGenerate}
+                      onEditAnswer={editAnswer}
+                      generating={generating}
+                      error={error}
+                    />
+                  </StepContainer>
+                )}
+
+                {bundle && (
+                  <StepContainer progress={100} progressLabel="Bundle generado" size="wide">
+                    <CompletionScreen bundle={bundle} error={error} />
+                  </StepContainer>
+                )}
+              </AnimatedPanel>
+            )}
+
+            {/* Action bar — only during the guided question flow */}
+            {status === 'ready' && showQuestionPanel && (
+              <div className="absolute inset-x-0 bottom-6 z-20 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={returnToReview ? cancelEdit : goBackOneQuestion}
+                  disabled={busy || (!returnToReview && visited.length === 0)}
                   className={glassButton('w-40 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-30')}
                 >
-                  <LuSkipForward className="h-4 w-4" aria-hidden="true" />
-                  Omitir
+                  <LuArrowLeft className="h-4 w-4" aria-hidden="true" />
+                  {returnToReview ? 'Cancelar' : 'Atrás'}
                 </button>
-              )}
 
-              <button
-                type="button"
-                onClick={submitAnswer}
-                disabled={!advanceAllowed || busy}
-                className={glassPrimaryButton('w-40 py-2.5 text-sm')}
-              >
-                {busy ? 'Evaluando…' : returnToReview ? 'Guardar' : 'Continuar'}
-                <LuArrowRight className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </div>
-          )}
-
-          {/* Draft restored toast (#566) */}
-          {draftNotice && (
-            <div
-              className="fixed bottom-6 left-1/2 z-[80] flex -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-zinc-900/95 px-5 py-2.5 shadow-xl backdrop-blur-md"
-              role="status"
-              aria-live="polite"
-            >
-              <span className="text-sm text-zinc-300">
-                Borrador restaurado: {draftNotice.count} respuesta{draftNotice.count !== 1 ? 's' : ''} recuperada
-                {draftNotice.count !== 1 ? 's' : ''}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setDraftNotice(null);
-                  resetDraft();
-                }}
-                className="text-xs font-medium text-red-400 transition-colors hover:text-red-300"
-              >
-                Reiniciar
-              </button>
-              <button
-                type="button"
-                onClick={() => setDraftNotice(null)}
-                aria-label="Cerrar aviso"
-                className="text-zinc-500 transition-colors hover:text-white"
-              >
-                <LuX className="h-3.5 w-3.5" aria-hidden="true" />
-              </button>
-            </div>
-          )}
-
-          <ShortcutsOverlay open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
-
-          {/* Reset confirmation dialog (#564) */}
-          {confirmReset && (
-            <div
-              className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
-              role="alertdialog"
-              aria-modal="true"
-              aria-labelledby="reset-title"
-              aria-describedby="reset-desc"
-            >
-              <div className="w-full max-w-sm rounded-2xl border border-white/[0.08] bg-zinc-950/95 p-6 shadow-2xl backdrop-blur-xl">
-                <h2 id="reset-title" className="text-lg font-bold text-white">
-                  ¿Reiniciar borrador?
-                </h2>
-                <p id="reset-desc" className="mt-2 text-sm text-zinc-400">
-                  Se eliminarán {Object.keys(answers).length} respuesta{Object.keys(answers).length !== 1 ? 's' : ''}.
-                  Esta acción no se puede deshacer.
-                </p>
-                <div className="mt-5 flex justify-end gap-3">
+                {isOptional && !returnToReview && (
                   <button
                     type="button"
-                    autoFocus
-                    onClick={() => setConfirmReset(false)}
-                    className="rounded-lg border border-white/10 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-white/5"
+                    onClick={skipQuestion}
+                    disabled={busy}
+                    className={glassButton('w-40 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-30')}
                   >
-                    Cancelar
+                    <LuSkipForward className="h-4 w-4" aria-hidden="true" />
+                    Omitir
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setConfirmReset(false);
-                      resetDraft();
-                    }}
-                    className="rounded-lg bg-red-600/80 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
-                  >
-                    Reiniciar
-                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={submitAnswer}
+                  disabled={!advanceAllowed || busy}
+                  className={glassPrimaryButton('w-40 py-2.5 text-sm')}
+                >
+                  {busy ? 'Evaluando…' : returnToReview ? 'Guardar' : 'Continuar'}
+                  <LuArrowRight className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
+            )}
+
+            {/* Draft restored toast (#566) */}
+            {draftNotice && (
+              <div
+                className="fixed bottom-6 left-1/2 z-[80] flex -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-zinc-900/95 px-5 py-2.5 shadow-xl backdrop-blur-md"
+                role="status"
+                aria-live="polite"
+              >
+                <span className="text-sm text-zinc-300">
+                  Borrador restaurado: {draftNotice.count} respuesta{draftNotice.count !== 1 ? 's' : ''} recuperada
+                  {draftNotice.count !== 1 ? 's' : ''}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraftNotice(null);
+                    resetDraft();
+                  }}
+                  className="text-xs font-medium text-red-400 transition-colors hover:text-red-300"
+                >
+                  Reiniciar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDraftNotice(null)}
+                  aria-label="Cerrar aviso"
+                  className="text-zinc-500 transition-colors hover:text-white"
+                >
+                  <LuX className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              </div>
+            )}
+
+            <ShortcutsOverlay open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+
+            {/* Reset confirmation dialog (#564) */}
+            {confirmReset && (
+              <div
+                className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby="reset-title"
+                aria-describedby="reset-desc"
+              >
+                <div className="w-full max-w-sm rounded-2xl border border-white/[0.08] bg-zinc-950/95 p-6 shadow-2xl backdrop-blur-xl">
+                  <h2 id="reset-title" className="text-lg font-bold text-white">
+                    ¿Reiniciar borrador?
+                  </h2>
+                  <p id="reset-desc" className="mt-2 text-sm text-zinc-400">
+                    Se eliminarán {Object.keys(answers).length} respuesta{Object.keys(answers).length !== 1 ? 's' : ''}.
+                    Esta acción no se puede deshacer.
+                  </p>
+                  <div className="mt-5 flex justify-end gap-3">
+                    <button
+                      type="button"
+                      autoFocus
+                      onClick={() => setConfirmReset(false)}
+                      className="rounded-lg border border-white/10 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-white/5"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConfirmReset(false);
+                        resetDraft();
+                      }}
+                      className="rounded-lg bg-red-600/80 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
+                    >
+                      Reiniciar
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </main>
-      </div>
+            )}
+          </main>
+        </div>
+      )}
     </>
   );
 }
