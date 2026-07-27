@@ -152,9 +152,7 @@ export function agentsRouter(store: Store, Engine: EngineClass = HuascarEngine):
 
   router.get('/agents/:id', (req, res) => {
     const agent = store.getAgent(req.params.id);
-    if (!agent) throw new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'agent no encontrado', 404);
-    if (isExpired(agent))
-      throw new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'El agente expiró. Registra uno nuevo.', 410);
+    if (!agent || isExpired(agent)) throw new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'agent no encontrado', 404);
     res.json(publicAgent(agent, true));
   });
 
@@ -169,9 +167,7 @@ export function agentsRouter(store: Store, Engine: EngineClass = HuascarEngine):
   router.post('/agents/:id/execute', async (req, res, next) => {
     try {
       const agent = store.getAgent(req.params.id);
-      if (!agent) throw new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'agent no encontrado', 404);
-      if (isExpired(agent))
-        throw new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'El agente expiró. Registra uno nuevo.', 410);
+      if (!agent || isExpired(agent)) throw new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'agent no encontrado', 404);
       const { task, role, system_prompt, config, session_id, mock_scenario } = executeBody(req.body, agent);
       const sessions = new SessionManager(store);
       const session = sessions.getOrCreate(session_id, `${agent.id}:${role}`);
