@@ -1,15 +1,28 @@
-# Huascar
+<p align="center">
+  <img src="docs/images/hackathon/hero-banner.svg" alt="Hackathon Kiro x CodigoFacilito 2026" width="1200" />
+</p>
 
-[CI](https://github.com/VECTORG99/Huascar/actions/workflows/ci.yml) | [License](LICENSE) | [Homepage](https://huascar.vercel.app)
+<p align="center">
+  <a href="https://github.com/VECTORG99/Huascar/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/VECTORG99/Huascar/ci.yml?branch=master&style=for-the-badge&label=CI&logo=github" alt="CI" />
+  </a>
+  &nbsp;
+  <a href="LICENSE">
+    <img src="https://img.shields.io/github/license/VECTORG99/Huascar?style=for-the-badge" alt="License" />
+  </a>
+  &nbsp;
+  <a href="https://huascar.vercel.app">
+    <img src="https://img.shields.io/badge/Homepage-huascar.vercel.app-8b5cf6?style=for-the-badge" alt="Homepage" />
+  </a>
+</p>
 
-> Construido para el Hackathon Kiro x Código Facilito 2026.
-> Documentación en español. Lectores LLM: leer AGENTS.md y CONTEXT.md para el contexto completo del proyecto.
-
-**Generador open-source de archivos de configuración para agentes de desarrollo y operación. Diseña mediante un árbol de decisiones, genera el bundle y explica por qué fue construido así.**
+**Huascar** es un generador open-source de archivos de configuración para agentes de desarrollo y operación. Diseña mediante un árbol de decisiones, genera el bundle y explica por qué fue construido así.
 
 Huascar **sólo genera archivos de configuración** (Markdown + JSON). No ejecuta, no despliega, no hostea agentes. El Runtime anterior (motor ReAct, LLM, RAG, MCP, SQLite) se eliminó en el issue #584 — ver [ADR-0008](docs/adr/0008-remove-runtime-generator-only.md).
 
 El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no modifica el proyecto del usuario. Sus preguntas, recomendaciones y artefactos son deterministas y auditables.
+
+> Documentación en español. Lectores LLM: leer AGENTS.md y CONTEXT.md para el contexto completo del proyecto.
 
 ![Flujo del Creator — de problema a bundle de configuración reproducible](docs/images/creator-flow.svg)
 
