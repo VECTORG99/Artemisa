@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { LuRocket, LuFlaskConical, LuLayers, LuBookOpen, LuScale, LuGithub, LuUsers } from 'react-icons/lu';
+import { LuRocket, LuFlaskConical, LuBookOpen, LuScale, LuGithub, LuUsers } from 'react-icons/lu';
 import type { IconType } from 'react-icons';
 import { glassStyle, useLandingModal, type LandingModalId } from './landing-modal';
+import { useTranslations } from '@/i18n';
 
 /**
  * Floating, pill-shaped header — always fully opaque so the liquid-glass
@@ -12,88 +13,80 @@ import { glassStyle, useLandingModal, type LandingModalId } from './landing-moda
  */
 export function StickyHeader() {
   const { open } = useLandingModal();
+  const t = useTranslations('landing');
 
   return (
     <header className="fixed inset-x-0 top-3 z-50 flex justify-center px-4">
       <nav
         className="pointer-events-auto flex w-full max-w-3xl flex-wrap items-center justify-center gap-5 rounded-full px-6 py-3 text-center text-xs font-medium text-white shadow-[0_8px_32px_rgba(0,0,0,0.35)] sm:py-2.5"
         style={glassStyle}
-        aria-label="Navegación principal"
+        aria-label={t.nav.ariaLabel}
       >
         <Link
           href="/agents/new"
-          aria-label="Ir al Creador de agentes"
+          aria-label={`${t.nav.creator}`}
           className="flex items-center gap-1.5 transition-colors hover:text-white"
         >
           <LuRocket className="h-3.5 w-3.5" aria-hidden="true" />
-          Creador
+          {t.nav.creator}
         </Link>
         <Link
           href="/docs"
-          aria-label="Ver documentación oficial"
+          aria-label={`${t.nav.docs}`}
           className="flex items-center gap-1.5 transition-colors hover:text-white"
         >
           <LuBookOpen className="h-3.5 w-3.5" aria-hidden="true" />
-          Docs
+          {t.nav.docs}
         </Link>
         <Link
           href="/desarrolladores"
-          aria-label="Ver desarrolladores"
+          aria-label={`${t.nav.team}`}
           className="flex items-center gap-1.5 transition-colors hover:text-white"
         >
           <LuUsers className="h-3.5 w-3.5" aria-hidden="true" />
-          Equipo
+          {t.nav.team}
         </Link>
         <a
           href="#tecnologia"
-          aria-label="Ir a sección Tecnología"
+          aria-label={`${t.nav.technology}`}
           className="hidden items-center gap-1.5 transition-colors hover:text-white sm:inline-flex"
         >
           <LuFlaskConical className="h-3.5 w-3.5" aria-hidden="true" />
-          Tecnología
+          {t.nav.technology}
         </a>
-        <button
-          type="button"
-          aria-label="Ver casos de uso"
-          onClick={() => open('casos-de-uso')}
-          className="hidden items-center gap-1.5 transition-colors hover:text-white sm:inline-flex"
-        >
-          <LuLayers className="h-3.5 w-3.5" aria-hidden="true" />
-          Casos de uso
-        </button>
       </nav>
     </header>
   );
 }
 
 interface FooterLink {
-  label: string;
+  labelKey: 'team' | 'legal' | 'github';
   href?: string;
   external?: boolean;
   modal?: LandingModalId;
   icon: IconType;
-  ariaLabel?: string;
+  ariaLabelKey: 'team' | 'legal' | 'github';
 }
 
-const footerLinks: FooterLink[] = [
+const footerLinksConfig: FooterLink[] = [
   {
-    label: 'Equipo',
+    labelKey: 'team',
     href: '/desarrolladores',
     icon: LuUsers,
-    ariaLabel: 'Ver desarrolladores',
+    ariaLabelKey: 'team',
   },
   {
-    label: 'Legal',
+    labelKey: 'legal',
     modal: 'legal',
     icon: LuScale,
-    ariaLabel: 'Ver información legal',
+    ariaLabelKey: 'legal',
   },
   {
-    label: 'GitHub',
+    labelKey: 'github',
     href: 'https://github.com/VECTORG99/Artemisa',
     external: true,
     icon: LuGithub,
-    ariaLabel: 'GitHub (se abre en nueva pestaña)',
+    ariaLabelKey: 'github',
   },
 ];
 
@@ -104,48 +97,50 @@ const footerLinks: FooterLink[] = [
  */
 export function StickyFooter() {
   const { open } = useLandingModal();
+  const t = useTranslations('landing');
 
   return (
     <footer className="fixed inset-x-0 bottom-3 z-50 flex justify-center px-4">
       <div
         className="pointer-events-auto w-full max-w-3xl rounded-3xl px-6 py-4 text-center shadow-[0_8px_32px_rgba(0,0,0,0.35)] sm:px-8"
         style={glassStyle}
-        aria-label="Pie de página"
+        aria-label={t.footer.ariaLabel}
       >
         <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-white">
-          {footerLinks.map((link) => {
+          {footerLinksConfig.map((link) => {
             const Icon = link.icon;
+            const label = t.footer[link.labelKey];
             return (
-              <li key={link.label}>
+              <li key={link.labelKey}>
                 {link.modal ? (
                   <button
                     type="button"
                     onClick={() => open(link.modal!)}
-                    aria-label={link.ariaLabel}
+                    aria-label={label}
                     className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
                   >
                     <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                    {link.label}
+                    {label}
                   </button>
                 ) : link.external ? (
                   <a
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={link.ariaLabel}
+                    aria-label={label}
                     className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
                   >
                     <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                    {link.label}
+                    {label}
                   </a>
                 ) : (
                   <Link
                     href={link.href!}
-                    aria-label={link.ariaLabel}
+                    aria-label={label}
                     className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
                   >
                     <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                    {link.label}
+                    {label}
                   </Link>
                 )}
               </li>
@@ -153,7 +148,7 @@ export function StickyFooter() {
           })}
         </ul>
         <p className="mt-3 border-t border-white/[0.06] pt-3 text-[11px] text-white/80">
-          © {new Date().getFullYear()} Artemisa y sus contribuidores · MPL-2.0
+          {t.footer.copyright.replace('{year}', String(new Date().getFullYear()))}
         </p>
       </div>
     </footer>

@@ -26,6 +26,7 @@ import type {
   Workflow,
 } from '@artemisa/types';
 import { glassInput, glassNotice, glassPanel, glassPill, glassPrimaryButton } from '@/lib/glass';
+import { useTranslations } from '@/i18n';
 import { Switch } from './switch';
 import { SkillsBrowser } from './skills-browser';
 import { McpBrowser } from './mcp-browser';
@@ -41,8 +42,6 @@ type SectionId = 'identity' | 'project' | 'environments' | 'devops' | 'permissio
 
 interface Section {
   id: SectionId;
-  label: string;
-  description: string;
   Icon: React.ComponentType<{ className?: string }>;
   questionIds: string[];
 }
@@ -50,50 +49,36 @@ interface Section {
 const SECTIONS: Section[] = [
   {
     id: 'identity',
-    label: 'Identidad',
-    description: 'Qué es el agente y para qué existe.',
     Icon: LuTarget,
     questionIds: ['agent_name', 'purpose', 'objective', 'success_criteria', 'agent_persona'],
   },
   {
     id: 'project',
-    label: 'Proyecto y stack',
-    description: 'Estado del proyecto, tecnologías, arquitectura y repositorio.',
     Icon: LuFolderGit2,
     questionIds: ['project_stage', 'technologies', 'architecture', 'repository_provider'],
   },
   {
     id: 'environments',
-    label: 'Entornos',
-    description: 'Contexto de trabajo y destino de despliegue declarados en la configuración.',
     Icon: LuServer,
     questionIds: ['environment', 'development_setup', 'testing_tools', 'deployment_target', 'container_platforms'],
   },
   {
     id: 'devops',
-    label: 'DevOps y seguridad',
-    description: 'CI/CD, infraestructura, observabilidad y controles de seguridad.',
     Icon: LuWrench,
     questionIds: ['ci_cd', 'infrastructure', 'observability', 'security_controls'],
   },
   {
     id: 'permissions',
-    label: 'Permisos',
-    description: 'Capacidades, autonomía y aprobación humana. Concede sólo lo necesario.',
     Icon: LuKeyRound,
     questionIds: ['capabilities', 'autonomy', 'human_approval'],
   },
   {
     id: 'knowledge',
-    label: 'Conocimiento y PR',
-    description: 'RAG, fuentes documentadas y revisión de pull requests.',
     Icon: LuDatabase,
     questionIds: ['knowledge_enabled', 'knowledge_sources', 'pr_review_enabled', 'pr_review_focus'],
   },
   {
     id: 'output',
-    label: 'Salida',
-    description: 'Targets del bundle, hooks, skills y servidores MCP.',
     Icon: LuLayers,
     questionIds: [
       'agent_targets',
@@ -109,8 +94,6 @@ const SECTIONS: Section[] = [
 
 const ORPHAN_SECTION: Section = {
   id: 'other',
-  label: 'Otros',
-  description: 'Preguntas del workflow que aún no tienen una sección dedicada en este panel.',
   Icon: LuBrainCircuit,
   questionIds: [],
 };
@@ -189,6 +172,8 @@ export function FineTuningDashboard({
   catalog,
   workflow,
 }: FineTuningDashboardProps) {
+  const common = useTranslations('common');
+  const t = useTranslations('creator');
   const [activeSection, setActiveSection] = useState<SectionId>('identity');
   const [search, setSearch] = useState('');
 
@@ -233,7 +218,7 @@ export function FineTuningDashboard({
   const visibleIds = useMemo(() => new Set(visibleQuestions.map((q) => q.id)), [visibleQuestions]);
 
   const orphanQuestions = useMemo(
-    () => visibleQuestions.filter((question) => !MAPPED_IDS.has(question.id)),
+    () => visibleQuestions.filter((question) => !MAPPED_IDS.has(question.id) && question.section !== 'answers'),
     [visibleQuestions],
   );
 
@@ -309,7 +294,7 @@ export function FineTuningDashboard({
       <div className={`flex h-[70vh] items-center justify-center rounded-3xl ${glassPanel()}`} role="status">
         <p className="flex items-center gap-2 text-sm text-zinc-500">
           <LuLoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
-          Cargando contrato del workflow…
+          {t.fineTuning.loading}
         </p>
       </div>
     );
@@ -323,6 +308,10 @@ export function FineTuningDashboard({
           {sectionsToRender.map((section) => {
             const isActive = section.id === activeSection;
             const progress = sectionProgress.get(section.id);
+            const sectionText =
+              section.id === 'other'
+                ? t.fineTuning.orphanSection
+                : t.fineTuning.sections[section.id as Exclude<SectionId, 'other'>];
             const incomplete = (progress?.missing ?? 0) > 0;
             return (
               <button
@@ -340,13 +329,15 @@ export function FineTuningDashboard({
                 }`}
               >
                 <section.Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span className="min-w-0 flex-1 truncate" title={section.label}>
-                  {section.label}
+                <span className="min-w-0 flex-1 truncate" title={sectionText.label}>
+                  {sectionText.label}
                 </span>
                 {progress && progress.required > 0 && (
                   <span
                     className={`shrink-0 text-[10px] tabular-nums ${incomplete ? 'text-warn' : 'text-zinc-500'}`}
-                    title={`${progress.answered} de ${progress.required} obligatorias`}
+                    title={t.fineTuning.requiredCounter
+                      .replace('{answered}', String(progress.answered))
+                      .replace('{required}', String(progress.required))}
                   >
                     {incomplete ? `${progress.answered}/${progress.required}` : '✓'}
                   </span>
@@ -366,16 +357,16 @@ export function FineTuningDashboard({
             {generating ? (
               <>
                 <LuLoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
-                Evaluando…
+                {common.loading}
               </>
             ) : (
-              'Revisar y generar'
+              t.fineTuning.generateButton
             )}
           </button>
           <p className="mt-2 text-center text-[11px] leading-relaxed text-zinc-600">
             {readyToGenerate
-              ? 'Árbol completo — se abrirá la revisión.'
-              : `Faltan ${missingRequired.length} respuesta${missingRequired.length === 1 ? '' : 's'} obligatoria${missingRequired.length === 1 ? '' : 's'}.`}
+              ? t.fineTuning.treeComplete
+              : t.fineTuning.missingRequired.replace('{count}', String(missingRequired.length))}
           </p>
         </div>
       </aside>
@@ -389,12 +380,18 @@ export function FineTuningDashboard({
             </span>
             <div className="min-w-0 flex-1">
               <h2 className="text-lg font-semibold text-white">
-                {searchResults ? `Resultados para «${search.trim()}»` : active.label}
+                {searchResults
+                  ? t.fineTuning.searchResultsTitle.replace('{query}', search.trim())
+                  : active.id === 'other'
+                    ? t.fineTuning.orphanSection.label
+                    : t.fineTuning.sections[active.id as Exclude<SectionId, 'other'>].label}
               </h2>
               <p className="mt-0.5 text-sm text-zinc-500">
                 {searchResults
-                  ? `${searchResults.length} pregunta${searchResults.length === 1 ? '' : 's'} en todas las secciones`
-                  : active.description}
+                  ? t.fineTuning.searchResults.replace('{count}', String(searchResults.length))
+                  : active.id === 'other'
+                    ? t.fineTuning.orphanSection.description
+                    : t.fineTuning.sections[active.id as Exclude<SectionId, 'other'>].description}
               </p>
             </div>
           </div>
@@ -408,15 +405,15 @@ export function FineTuningDashboard({
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar una pregunta en todo el árbol…"
-              aria-label="Buscar preguntas"
+              placeholder={t.fineTuning.searchPlaceholder}
+              aria-label={t.fineTuning.searchAriaLabel}
               className={glassInput('py-2 pl-9 text-sm')}
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch('')}
-                aria-label="Limpiar búsqueda"
+                aria-label={common.close}
                 className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-500 transition-colors hover:text-white"
               >
                 <LuX className="h-3.5 w-3.5" aria-hidden="true" />
@@ -436,9 +433,7 @@ export function FineTuningDashboard({
           <div className="flex flex-col gap-6">
             {(searchResults ?? activeQuestions).length === 0 && (
               <p className="py-8 text-center text-sm text-zinc-500">
-                {searchResults
-                  ? 'Ninguna pregunta visible coincide con esa búsqueda.'
-                  : 'Esta sección no aplica con las respuestas actuales.'}
+                {searchResults ? t.fineTuning.noSearchResults : t.fineTuning.noActiveQuestions}
               </p>
             )}
 
@@ -483,6 +478,7 @@ function toPickerOptions(items: CatalogItem[]): PickerOption[] {
 }
 
 function QuestionControl({ question, value, onChange, catalogItems, issues, showSection }: QuestionControlProps) {
+  const common = useTranslations('common');
   const selectedArray = Array.isArray(value) ? value : [];
 
   const body = (() => {
@@ -609,7 +605,7 @@ function QuestionControl({ question, value, onChange, catalogItems, issues, show
             {question.required && <RequiredMark />}
           </span>
         )}
-        {!question.required && <span className={glassPill('py-0 text-[10px] text-zinc-600')}>Opcional</span>}
+        {!question.required && <span className={glassPill('py-0 text-[10px] text-zinc-600')}>{common.optional}</span>}
       </div>
       {question.description && <p className="-mt-1 text-xs leading-relaxed text-zinc-500">{question.description}</p>}
       {body}
@@ -619,8 +615,9 @@ function QuestionControl({ question, value, onChange, catalogItems, issues, show
 }
 
 function RequiredMark() {
+  const common = useTranslations('common');
   return (
-    <span className="ml-1 text-red-500" title="Obligatoria" aria-label="obligatoria">
+    <span className="ml-1 text-red-500" title={common.required} aria-label={common.requiredAria}>
       *
     </span>
   );

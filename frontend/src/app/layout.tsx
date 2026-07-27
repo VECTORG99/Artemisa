@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import { ServiceWorkerRegister } from '@/components/service-worker-register';
 import { AnimationPreferenceProvider } from '@/features/landing/hooks/use-animation-preference';
+import { LanguageToggle } from '@/features/landing/components/language-toggle';
 import { LocaleProvider } from '@/i18n';
 
 const inter = Inter({
@@ -58,7 +59,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" className={`dark ${inter.variable}`}>
       <body className="font-sans bg-zinc-950 text-zinc-100 antialiased">
         <LocaleProvider>
-          <AnimationPreferenceProvider>{children}</AnimationPreferenceProvider>
+          <AnimationPreferenceProvider>
+            {children}
+            <LanguageToggle />
+          </AnimationPreferenceProvider>
         </LocaleProvider>
         <ServiceWorkerRegister />
       </body>

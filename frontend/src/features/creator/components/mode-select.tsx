@@ -5,6 +5,7 @@ import { glassCardInteractive, glassPill } from '@/lib/glass';
 import { apiUrl } from '@/lib/api';
 import { QuickStartCopy } from '@/components/ui/quick-start-copy';
 import { TechIcon } from '@/features/creator/lib/tech-icons';
+import { useTranslations } from '@/i18n';
 
 /**
  * The 7 agent-platform targets the backend can generate for
@@ -36,41 +37,11 @@ interface ModeSelectProps {
   onSelect: (mode: CreatorMode) => void;
 }
 
-const MODES: {
-  id: CreatorMode;
-  label: string;
-  tagline: string;
-  description: string;
-  Icon: React.ComponentType<{ className?: string }>;
-}[] = [
-  {
-    id: 'auto-corto',
-    label: 'Auto-corto',
-    tagline: '8 preguntas',
-    description: 'Responde lo esencial y nosotros completamos el resto con valores seguros.',
-    Icon: LuGauge,
-  },
-  {
-    id: 'auto-largo',
-    label: 'Auto-largo',
-    tagline: '32 preguntas',
-    description: 'Decide tú cada detalle, pregunta por pregunta.',
-    Icon: LuCompass,
-  },
-  {
-    id: 'presets',
-    label: 'Presets',
-    tagline: '8 presets',
-    description: 'Elige una configuración lista y ajústala a tu gusto.',
-    Icon: LuLayoutGrid,
-  },
-  {
-    id: 'avanzado',
-    label: 'Avanzado',
-    tagline: 'Máximo control',
-    description: 'Todo en un solo panel, sin recorrido guiado.',
-    Icon: LuSlidersHorizontal,
-  },
+const MODES: { id: CreatorMode; Icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: 'auto-corto', Icon: LuGauge },
+  { id: 'auto-largo', Icon: LuCompass },
+  { id: 'presets', Icon: LuLayoutGrid },
+  { id: 'avanzado', Icon: LuSlidersHorizontal },
 ];
 
 /**
@@ -80,18 +51,17 @@ const MODES: {
  * answer can still be changed.
  */
 export function ModeSelect({ onSelect }: ModeSelectProps) {
+  const t = useTranslations('modeSelect');
+
   return (
     <div className="flex flex-col items-center gap-6 text-center">
       <div>
-        <h1 className="text-3xl font-semibold text-white sm:text-4xl">¿Cómo quieres configurar tu agente?</h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-400">
-          Los cuatro modos generan el mismo tipo de bundle y terminan en la misma revisión. Puedes cambiar de modo en
-          cualquier momento sin perder lo que ya respondiste.
-        </p>
+        <h1 className="text-3xl font-semibold text-white sm:text-4xl">{t.title}</h1>
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-400">{t.subtitle}</p>
       </div>
 
       <div className="flex flex-col items-center gap-2">
-        <span className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">Genera configuración para</span>
+        <span className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">{t.platformLabel}</span>
         <ul className="flex flex-wrap items-center justify-center gap-1.5">
           {SUPPORTED_PLATFORMS.map((platform) => (
             <li key={platform.id}>
@@ -111,29 +81,32 @@ export function ModeSelect({ onSelect }: ModeSelectProps) {
 
       <div className="w-full max-w-3xl space-y-6">
         <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
-          {MODES.map((mode) => (
-            <button
-              key={mode.id}
-              type="button"
-              onClick={() => onSelect(mode.id)}
-              className={glassCardInteractive(
-                'flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center hover:border-accent/40',
-              )}
-            >
-              <mode.Icon
-                className="h-6 w-6 text-zinc-400 transition-colors group-hover:text-accent"
-                aria-hidden="true"
-              />
-              <span className="text-sm font-medium text-white">{mode.label}</span>
-              <p className="text-[11px] leading-tight text-zinc-400">{mode.description}</p>
-              <span className={glassPill('mt-0.5 py-0.5 text-[10px] text-zinc-400')}>{mode.tagline}</span>
-            </button>
-          ))}
+          {MODES.map((mode) => {
+            const modeText = t.modes[mode.id];
+            return (
+              <button
+                key={mode.id}
+                type="button"
+                onClick={() => onSelect(mode.id)}
+                className={glassCardInteractive(
+                  'flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center hover:border-accent/40',
+                )}
+              >
+                <mode.Icon
+                  className="h-6 w-6 text-zinc-400 transition-colors group-hover:text-accent"
+                  aria-hidden="true"
+                />
+                <span className="text-sm font-medium text-white">{modeText.label}</span>
+                <p className="text-[11px] leading-tight text-zinc-400">{modeText.description}</p>
+                <span className={glassPill('mt-0.5 py-0.5 text-[10px] text-zinc-400')}>{modeText.tagline}</span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="flex items-center gap-4">
           <div className="flex-1 h-px bg-white/10" />
-          <span className="text-sm text-zinc-500">o pega un prompt en tu chat de IA</span>
+          <span className="text-sm text-zinc-500">{t.divider}</span>
           <div className="flex-1 h-px bg-white/10" />
         </div>
 

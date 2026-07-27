@@ -7,10 +7,10 @@ import {
   LuArrowRight,
   LuKeyboard,
   LuMonitor,
+  LuMoon,
   LuRotateCcw,
   LuSkipForward,
   LuSparkles,
-  LuMoon,
   LuX,
 } from 'react-icons/lu';
 
@@ -45,6 +45,7 @@ import { QuickStartCopy } from '@/components/ui/quick-start-copy';
 import { glassButton, glassNotice, glassPrimaryButton, glassStyle } from '@/lib/glass';
 import { ApiError, apiUrl, creator } from '@/lib/api';
 import { useAnimationPreference } from '@/features/landing/hooks/use-animation-preference';
+import { useTranslations } from '@/i18n';
 import type {
   Catalog,
   CatalogItem,
@@ -63,25 +64,6 @@ const SpaceSimulation = dynamicImport(
 );
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/**
- * Turns a failure into something the user can act on. `ApiError` carries the
- * HTTP status, and the three the Creator can realistically hit each need a
- * different instruction — a raw "Too many requests" string tells the user
- * nothing about waiting, and a 409 means their draft is stale, not broken.
- */
-function errorMessage(err: unknown, fallback: string): string {
-  if (err instanceof ApiError) {
-    if (err.status === 429)
-      return 'Demasiadas peticiones seguidas al creador. Espera unos segundos y vuelve a intentarlo; tus respuestas se conservan.';
-    if (err.status === 409)
-      return 'El backend actualizó el árbol de decisiones. Reinicia el borrador para continuar con la versión nueva.';
-    if (err.status === 422)
-      return `El árbol está incompleto o una respuesta no es válida. ${err.problem?.detail ?? ''}`.trim();
-    if (err.problem?.detail) return err.problem.detail;
-  }
-  return err instanceof Error && err.message ? err.message : fallback;
-}
 
 // ─── Transition wrapper ───────────────────────────────────────────────────────
 
@@ -152,6 +134,25 @@ type Status = 'loading' | 'fatal' | 'ready';
 
 export default function NewAgentPage() {
   const { animationsEnabled, toggle: toggleAnimations } = useAnimationPreference();
+  const common = useTranslations('common');
+  const landing = useTranslations('landing');
+  const reviewNs = useTranslations('review');
+  const completionNs = useTranslations('completion');
+  const t = useTranslations('creator');
+
+  const handleError = useCallback(
+    (err: unknown, fallback: string): string => {
+      const labels = t.errors;
+      if (err instanceof ApiError) {
+        if (err.status === 429) return labels.tooManyRequests;
+        if (err.status === 409) return labels.workflowUpdated;
+        if (err.status === 422) return labels.treeIncomplete.replace('{detail}', err.problem?.detail ?? '').trim();
+        if (err.problem?.detail) return err.problem.detail;
+      }
+      return err instanceof Error && err.message ? err.message : fallback;
+    },
+    [t],
+  );
 
   // Detect touch-only devices (phones/tablets) — desktops with small windows still get the Creator
   const [isTouchDevice, setIsTouchDevice] = useState(false);
@@ -219,10 +220,10 @@ export default function NewAgentPage() {
 
       setStatus('ready');
     } catch (err) {
-      setFatalError(errorMessage(err, 'El backend del creador no respondió.'));
+      setFatalError(handleError(err, t.errors.backendDidNotRespond));
       setStatus('fatal');
     }
-  }, []);
+  }, [handleError, t.errors.backendDidNotRespond]);
 
   useEffect(() => {
     void bootstrap();
@@ -391,9 +392,7 @@ export default function NewAgentPage() {
           setEvaluation(completed);
           setAnswers(completed.answers);
           setCurrentQuestionId(completed.nextQuestion?.id ?? null);
-          setError(
-            'La configuración corta necesita una decisión adicional antes de generar. Respóndela para continuar.',
-          );
+          setError(t.errors.shortFlowNeedsMore);
           setPhase('enter');
           enter();
         }
@@ -419,7 +418,7 @@ export default function NewAgentPage() {
       }
       openReview(evaluated);
     } catch (err) {
-      setError(errorMessage(err, 'No se pudo evaluar la respuesta.'));
+      setError(handleError(err, t.errors.cannotEvaluateAnswer));
       setPhase('visible');
     } finally {
       setBusy(false);
@@ -461,7 +460,7 @@ export default function NewAgentPage() {
       }
       openReview(evaluated);
     } catch (err) {
-      setError(errorMessage(err, 'No se pudo omitir la pregunta.'));
+      setError(handleError(err, t.errors.cannotSkip));
       setPhase('visible');
     } finally {
       setBusy(false);
@@ -532,7 +531,7 @@ export default function NewAgentPage() {
         setAnswers(evaluated.answers);
         setCurrentQuestionId(evaluated.nextQuestion?.id ?? null);
       })
-      .catch((err: unknown) => setError(errorMessage(err, 'No se pudo reiniciar el borrador.')));
+      .catch((err: unknown) => setError(handleError(err, t.errors.cannotReset)));
   }
 
   /** Leaves a single-answer edit without applying it. */
@@ -598,7 +597,7 @@ export default function NewAgentPage() {
         setReviewing(false);
       });
     } catch (err) {
-      setError(errorMessage(err, 'No se pudo generar la configuración.'));
+      setError(handleError(err, t.errors.cannotGenerate));
     } finally {
       setGenerating(false);
     }
@@ -647,12 +646,10 @@ export default function NewAgentPage() {
           ),
         );
         setCurrentQuestionId(evaluated.nextQuestion?.id ?? null);
-        setError(
-          `El preset «${preset.name}» necesita una decisión adicional con la versión actual del árbol. Complétala para continuar.`,
-        );
+        setError(t.errors.presetNeedsMore.replace('{name}', preset.name));
       });
     } catch (err) {
-      setError(errorMessage(err, 'No se pudo aplicar el preset.'));
+      setError(handleError(err, t.errors.cannotApplyPreset));
     } finally {
       setGenerating(false);
     }
@@ -677,11 +674,13 @@ export default function NewAgentPage() {
       setAnswers(evaluated.answers);
       setError(
         evaluated.issues.length > 0
-          ? `El backend rechazó ${evaluated.issues.length} respuesta(s): ${evaluated.issues.map((issue) => issue.message).join(' ')}`
-          : `Faltan respuestas obligatorias. La primera es «${evaluated.nextQuestion?.prompt ?? 'desconocida'}».`,
+          ? t.errors.rejectedAnswers
+              .replace('{count}', String(evaluated.issues.length))
+              .replace('{issues}', evaluated.issues.map((issue) => issue.message).join(' '))
+          : t.errors.firstMissing.replace('{prompt}', evaluated.nextQuestion?.prompt ?? t.errors.unknownQuestion),
       );
     } catch (err) {
-      setError(errorMessage(err, 'No se pudo evaluar la configuración.'));
+      setError(handleError(err, t.errors.cannotEvaluateConfig));
     } finally {
       setGenerating(false);
     }
@@ -762,25 +761,28 @@ export default function NewAgentPage() {
   const showAdvanced = mode === 'avanzado' && !reviewing && !bundle && !showQuestionPanel;
   const showPresets = mode === 'presets' && !reviewing && !bundle && !showQuestionPanel;
 
+  const stepLabel =
+    guidedMode && !returnToReview && position
+      ? common.step.replace('{step}', String(position.step)).replace('{total}', String(position.total))
+      : undefined;
+
   return (
     <>
       {/* Touch device redirect — only shown on phones/tablets, NOT on desktops with small windows */}
       {isTouchDevice && (
         <div className="flex min-h-screen flex-col items-center justify-center bg-black px-6 text-center">
           <LuMonitor className="mb-6 h-12 w-12 text-zinc-400" aria-hidden="true" />
-          <h1 className="text-xl font-semibold text-zinc-100">Herramienta de escritorio</h1>
-          <p className="mt-3 max-w-xs text-sm leading-relaxed text-zinc-400">
-            El Creator es una herramienta para desarrolladores que funciona en computadoras de escritorio y laptops.
-          </p>
-          <p className="mt-2 max-w-xs text-sm text-zinc-500">Abre este enlace desde tu PC para diseñar tu agente.</p>
+          <h1 className="text-xl font-semibold text-zinc-100">{t.desktopTool.title}</h1>
+          <p className="mt-3 max-w-xs text-sm leading-relaxed text-zinc-400">{t.desktopTool.description}</p>
+          <p className="mt-2 max-w-xs text-sm text-zinc-500">{t.desktopTool.hint}</p>
           <div className="mt-6 w-full max-w-xs">
-            <p className="mb-2 text-xs text-zinc-500">Copia el enlace para abrirlo en tu PC:</p>
+            <p className="mb-2 text-xs text-zinc-500">{t.desktopTool.copyLabel}</p>
             <QuickStartCopy
               url={typeof window !== 'undefined' ? window.location.href : 'https://artemisa.vercel.app/agents/new'}
               size="sm"
             />
           </div>
-          <GlassBackButton href="/" label="Ir al inicio" className="mt-6" />
+          <GlassBackButton href="/" label={t.desktopTool.backHome} className="mt-6" />
         </div>
       )}
 
@@ -796,14 +798,14 @@ export default function NewAgentPage() {
             {/* Back control — outside the animated area so it never flickers */}
             {status === 'ready' && (
               <div className="absolute left-4 top-6 z-20 sm:left-8">
-                <GlassBackButton href="/" label="Volver al inicio" />
+                <GlassBackButton href="/" label={common.backToHome} />
               </div>
             )}
 
             {/* Reset — top right while a draft exists (#564 confirmation) */}
             {status === 'ready' && mode && (
               <div className="absolute right-4 top-6 z-20 flex items-center gap-2 sm:right-8">
-                <GlassIconButton onClick={() => setConfirmReset(true)} label="Reiniciar borrador" icon={LuRotateCcw} />
+                <GlassIconButton onClick={() => setConfirmReset(true)} label={common.reset} icon={LuRotateCcw} />
               </div>
             )}
 
@@ -813,7 +815,7 @@ export default function NewAgentPage() {
                 <button
                   type="button"
                   onClick={toggleAnimations}
-                  aria-label={animationsEnabled ? 'Desactivar animaciones' : 'Activar animaciones'}
+                  aria-label={animationsEnabled ? landing.disableAnimations : landing.enableAnimations}
                   className="flex items-center gap-2 rounded-full px-3 py-2 text-xs text-white/80 transition-colors hover:text-white"
                   style={glassStyle}
                 >
@@ -822,17 +824,17 @@ export default function NewAgentPage() {
                   ) : (
                     <LuMoon className="h-4 w-4" aria-hidden="true" />
                   )}
-                  <span>{animationsEnabled ? 'Desactivar animaciones' : 'Activar animaciones'}</span>
+                  <span>{animationsEnabled ? landing.disableAnimations : landing.enableAnimations}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setShortcutsOpen(true)}
-                  aria-label="Atajos de teclado"
+                  aria-label={t.shortcuts.title}
                   className="flex items-center gap-2 rounded-full px-3 py-2 text-xs text-white/80 transition-colors hover:text-white"
                   style={glassStyle}
                 >
                   <LuKeyboard className="h-4 w-4" aria-hidden="true" />
-                  <span>Atajos de teclado</span>
+                  <span>{t.shortcuts.title}</span>
                 </button>
               </div>
             )}
@@ -875,8 +877,8 @@ export default function NewAgentPage() {
                 {showQuestionPanel && question && (
                   <StepContainer
                     progress={progress}
-                    progressLabel={returnToReview ? `Editando · ${question.section}` : question.section}
-                    stepLabel={guidedMode && !returnToReview ? `Paso ${position.step} de ${position.total}` : undefined}
+                    progressLabel={returnToReview ? `${reviewNs.editTitle} · ${question.section}` : question.section}
+                    stepLabel={stepLabel}
                     withActionBar
                   >
                     {error && (
@@ -896,7 +898,7 @@ export default function NewAgentPage() {
                 )}
 
                 {reviewing && evaluation && (
-                  <StepContainer progress={100} progressLabel="Revisión final" size="wide">
+                  <StepContainer progress={100} progressLabel={reviewNs.progressLabel} size="wide">
                     <ReviewScreen
                       answers={answers}
                       workflow={workflow}
@@ -913,7 +915,7 @@ export default function NewAgentPage() {
                 )}
 
                 {bundle && (
-                  <StepContainer progress={100} progressLabel="Bundle generado" size="wide">
+                  <StepContainer progress={100} progressLabel={completionNs.progressLabel} size="wide">
                     <CompletionScreen bundle={bundle} error={error} />
                   </StepContainer>
                 )}
@@ -930,7 +932,7 @@ export default function NewAgentPage() {
                   className={glassButton('w-40 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-30')}
                 >
                   <LuArrowLeft className="h-4 w-4" aria-hidden="true" />
-                  {returnToReview ? 'Cancelar' : 'Atrás'}
+                  {returnToReview ? common.cancel : t.actionBar.back}
                 </button>
 
                 {isOptional && !returnToReview && (
@@ -941,7 +943,7 @@ export default function NewAgentPage() {
                     className={glassButton('w-40 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-30')}
                   >
                     <LuSkipForward className="h-4 w-4" aria-hidden="true" />
-                    Omitir
+                    {common.skip}
                   </button>
                 )}
 
@@ -951,7 +953,7 @@ export default function NewAgentPage() {
                   disabled={!advanceAllowed || busy}
                   className={glassPrimaryButton('w-40 py-2.5 text-sm')}
                 >
-                  {busy ? 'Evaluando…' : returnToReview ? 'Guardar' : 'Continuar'}
+                  {busy ? common.loading : returnToReview ? common.save : common.continue}
                   <LuArrowRight className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
@@ -965,8 +967,7 @@ export default function NewAgentPage() {
                 aria-live="polite"
               >
                 <span className="text-sm text-zinc-300">
-                  Borrador restaurado: {draftNotice.count} respuesta{draftNotice.count !== 1 ? 's' : ''} recuperada
-                  {draftNotice.count !== 1 ? 's' : ''}
+                  {t.draftRestored.label.replace('{count}', String(draftNotice.count))}
                 </span>
                 <button
                   type="button"
@@ -976,12 +977,12 @@ export default function NewAgentPage() {
                   }}
                   className="text-xs font-medium text-orange-500 transition-colors hover:text-orange-400"
                 >
-                  Reiniciar
+                  {t.draftRestored.reset}
                 </button>
                 <button
                   type="button"
                   onClick={() => setDraftNotice(null)}
-                  aria-label="Cerrar aviso"
+                  aria-label={common.close}
                   className="text-zinc-500 transition-colors hover:text-white"
                 >
                   <LuX className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1002,11 +1003,10 @@ export default function NewAgentPage() {
               >
                 <div className="w-full max-w-sm rounded-2xl border border-white/[0.08] bg-zinc-950/95 p-6 shadow-2xl backdrop-blur-xl">
                   <h2 id="reset-title" className="text-lg font-bold text-white">
-                    ¿Reiniciar borrador?
+                    {t.resetDialog.title}
                   </h2>
                   <p id="reset-desc" className="mt-2 text-sm text-zinc-400">
-                    Se eliminarán {Object.keys(answers).length} respuesta{Object.keys(answers).length !== 1 ? 's' : ''}.
-                    Esta acción no se puede deshacer.
+                    {t.resetDialog.description.replace('{count}', String(Object.keys(answers).length))}
                   </p>
                   <div className="mt-5 flex justify-end gap-3">
                     <button
@@ -1015,7 +1015,7 @@ export default function NewAgentPage() {
                       onClick={() => setConfirmReset(false)}
                       className="rounded-lg border border-white/10 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-white/5"
                     >
-                      Cancelar
+                      {t.resetDialog.cancel}
                     </button>
                     <button
                       type="button"
@@ -1025,7 +1025,7 @@ export default function NewAgentPage() {
                       }}
                       className="rounded-lg bg-red-600/80 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
                     >
-                      Reiniciar
+                      {t.resetDialog.confirm}
                     </button>
                   </div>
                 </div>
