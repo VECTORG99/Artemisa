@@ -16,6 +16,7 @@ import {
 import type { Catalog, CreatorAnswerValue } from '@artemisa/types';
 import { buildLabelLookup } from '@/features/creator/lib/answer-labels';
 import { glassCard, glassPill, glassPrimaryButton } from '@/lib/glass';
+import { useTranslations } from '@/i18n';
 import { CREATOR_PRESETS, type CreatorPreset } from '../presets/presets';
 
 interface PresetsGalleryProps {
@@ -35,21 +36,6 @@ const PURPOSE_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   documentation: LuBookOpen,
 };
 
-const ENVIRONMENT_LABELS: Record<string, string> = {
-  development: 'Desarrollo',
-  production: 'Producción',
-  both: 'Desarrollo + producción',
-  testing: 'Testing / QA',
-  staging: 'Staging / Pre-producción',
-  local: 'Local / Recreativo',
-};
-
-const AUTONOMY_LABELS: Record<string, string> = {
-  advisory: 'Sólo recomienda',
-  assisted: 'Asistido',
-  autonomous: 'Autónomo',
-};
-
 function asArray(value: CreatorAnswerValue | undefined): string[] {
   return Array.isArray(value) ? value : [];
 }
@@ -65,6 +51,8 @@ function asArray(value: CreatorAnswerValue | undefined): string[] {
  * eight cards is a sentence of prose.
  */
 export function PresetsGallery({ onSelect, applying = false, catalog }: PresetsGalleryProps) {
+  const t = useTranslations('creator');
+  const common = useTranslations('common');
   const [pending, setPending] = useState<string | null>(null);
 
   const lookup = useMemo(() => buildLabelLookup({ catalog }), [catalog]);
@@ -77,12 +65,9 @@ export function PresetsGallery({ onSelect, applying = false, catalog }: PresetsG
   return (
     <div className="flex flex-col items-center gap-8">
       <div className="text-center">
-        <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Presets</span>
-        <h1 className="mt-2 text-3xl font-semibold text-white sm:text-4xl">Elige un punto de partida</h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-400">
-          Ocho configuraciones completas y validadas contra el árbol de decisiones. Ninguna se genera todavía: eliges
-          una, la revisas y ajustas cualquier respuesta antes de generar el bundle.
-        </p>
+        <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">{t.presets.eyebrow}</span>
+        <h1 className="mt-2 text-3xl font-semibold text-white sm:text-4xl">{t.presets.title}</h1>
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-400">{t.presets.subtitle}</p>
       </div>
 
       <div className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -112,28 +97,49 @@ export function PresetsGallery({ onSelect, applying = false, catalog }: PresetsG
               <p className="text-sm leading-relaxed text-zinc-400">{preset.description}</p>
 
               <dl className="flex flex-col gap-1.5 border-t border-white/[0.06] pt-3 text-xs">
-                <SummaryRow label="Entorno" value={ENVIRONMENT_LABELS[environment] ?? environment} />
-                <SummaryRow label="Autonomía" value={AUTONOMY_LABELS[autonomy] ?? autonomy} />
-                <SummaryRow label="Destinos" value={targets.map((id) => lookup(id) ?? id).join(', ') || '—'} />
-                <SummaryRow label="Capacidades" value={`${capabilities.length} concedidas`} />
-                <SummaryRow label="Stack" value={technologies.map((id) => lookup(id) ?? id).join(', ') || '—'} />
+                <SummaryRow
+                  label={t.presets.summary.environment}
+                  value={
+                    (t.presets.environmentLabels[environment as keyof typeof t.presets.environmentLabels] as
+                      string | undefined) ?? environment
+                  }
+                />
+                <SummaryRow
+                  label={t.presets.summary.autonomy}
+                  value={
+                    (t.presets.autonomyLabels[autonomy as keyof typeof t.presets.autonomyLabels] as
+                      string | undefined) ?? autonomy
+                  }
+                />
+                <SummaryRow
+                  label={t.presets.summary.targets}
+                  value={targets.map((id) => lookup(id) ?? id).join(', ') || t.presets.summary.empty}
+                />
+                <SummaryRow
+                  label={t.presets.summary.capabilities}
+                  value={t.presets.summary.capabilitiesValue.replace('{count}', String(capabilities.length))}
+                />
+                <SummaryRow
+                  label={t.presets.summary.stack}
+                  value={technologies.map((id) => lookup(id) ?? id).join(', ') || t.presets.summary.empty}
+                />
               </dl>
 
               <div className="flex flex-wrap gap-1.5">
                 {answers.knowledge_enabled === true && (
-                  <span className={glassPill('py-0.5 text-[10px] text-zinc-400')}>RAG</span>
+                  <span className={glassPill('py-0.5 text-[10px] text-zinc-400')}>{t.presets.tags.rag}</span>
                 )}
                 {answers.pr_review_enabled === true && (
-                  <span className={glassPill('py-0.5 text-[10px] text-zinc-400')}>PR review</span>
+                  <span className={glassPill('py-0.5 text-[10px] text-zinc-400')}>{t.presets.tags.prReview}</span>
                 )}
                 {answers.hooks_enabled === true && (
-                  <span className={glassPill('py-0.5 text-[10px] text-zinc-400')}>Hooks</span>
+                  <span className={glassPill('py-0.5 text-[10px] text-zinc-400')}>{t.presets.tags.hooks}</span>
                 )}
                 {answers.skills_enabled === true && (
-                  <span className={glassPill('py-0.5 text-[10px] text-zinc-400')}>Skills</span>
+                  <span className={glassPill('py-0.5 text-[10px] text-zinc-400')}>{t.presets.tags.skills}</span>
                 )}
                 {answers.human_approval === true && (
-                  <span className={glassPill('py-0.5 text-[10px] text-zinc-400')}>Aprobación humana</span>
+                  <span className={glassPill('py-0.5 text-[10px] text-zinc-400')}>{t.presets.tags.humanApproval}</span>
                 )}
               </div>
 
@@ -147,11 +153,11 @@ export function PresetsGallery({ onSelect, applying = false, catalog }: PresetsG
                   {isPending ? (
                     <>
                       <LuLoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-                      Validando…
+                      {common.loading}
                     </>
                   ) : (
                     <>
-                      Usar preset
+                      {t.presets.usePreset}
                       <LuArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                     </>
                   )}
@@ -162,10 +168,7 @@ export function PresetsGallery({ onSelect, applying = false, catalog }: PresetsG
         })}
       </div>
 
-      <p className="text-center text-[11px] leading-relaxed text-zinc-600">
-        Un preset es sólo un conjunto de respuestas prellenadas. No hay presets en el backend: se validan con
-        <code className="mx-1">/evaluate</code> igual que cualquier respuesta manual.
-      </p>
+      <p className="text-center text-[11px] leading-relaxed text-zinc-600">{t.presets.footer}</p>
     </div>
   );
 }

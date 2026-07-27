@@ -193,7 +193,7 @@ describe('FineTuningDashboard', () => {
   it('keeps generate disabled while required questions are unanswered', () => {
     renderDashboard({});
     expect(screen.getByRole('button', { name: /Revisar y generar/i })).toBeDisabled();
-    expect(screen.getByText(/Faltan 4 respuestas obligatorias/i)).toBeInTheDocument();
+    expect(screen.getByText(/Faltan 4 respuesta\(s\) obligatoria\(s\)/i)).toBeInTheDocument();
   });
 
   it('enables generate only when every visible required question is answered', () => {
@@ -217,6 +217,6 @@ describe('FineTuningDashboard', () => {
       agent_targets: ['artemisa'],
     });
     expect(screen.getByRole('button', { name: /Revisar y generar/i })).toBeDisabled();
-    expect(screen.getByText(/Faltan 1 respuesta obligatoria/i)).toBeInTheDocument();
+    expect(screen.getByText(/Faltan 1 respuesta\(s\) obligatoria\(s\)/i)).toBeInTheDocument();
   });
 });

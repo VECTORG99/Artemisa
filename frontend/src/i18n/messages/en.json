@@ -4,11 +4,121 @@
     "error": "Error",
     "retry": "Retry",
     "back": "Back",
+    "backToHome": "Back to home",
+    "openCreator": "Open Creator",
     "next": "Next",
     "continue": "Continue",
     "cancel": "Cancel",
     "download": "Download",
-    "close": "Close"
+    "close": "Close",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copiedFeedback": "Copied!",
+    "yes": "Yes",
+    "no": "No",
+    "optional": "Optional",
+    "required": "Required",
+    "requiredAria": "required",
+    "search": "Search",
+    "reset": "Reset",
+    "generate": "Generate",
+    "review": "Review",
+    "save": "Save",
+    "skip": "Skip",
+    "all": "All",
+    "of": "of",
+    "and": "and",
+    "unknown": "unknown",
+    "progress": "Progress",
+    "progressWithLabel": "Progress: {label}",
+    "step": "Step {step} of {total}",
+    "quickStartTitle": "Quick Start: Paste into your AI chat",
+    "quickStartPrompt": "Configure my development agent with Artemisa using the configuration from this endpoint: {url}",
+    "copyPromptAria": "Copy quick start prompt",
+    "copyAria": "Copy"
+  },
+  "landing": {
+    "heroTitle": "Artemisa",
+    "heroCta": "Generate configuration",
+    "heroDescription": "Configure development agents compatible with 6+ platforms in minutes. An explainable decision tree generates reproducible files ready to apply, no black box.",
+    "ctaTitle": "Ready to configure your agent?",
+    "ctaDescription": "Answer 32 guided questions and get a bundle ready for Cursor, Devin, CodeRabbit, Kiro and more.",
+    "ctaButton": "Start creator →",
+    "disableAnimations": "Disable animations",
+    "enableAnimations": "Enable animations",
+    "skipToContent": "Skip to content",
+    "orConfigureManually": "── or configure manually ──",
+    "valuePropsTitle": "Key features",
+    "valueProps": [
+      {
+        "title": "Deterministic decision tree",
+        "description": "32 guided steps that adapt the configuration to your context: development, production, or both. Reduce hours of tuning to minutes without letting an LLM decide the architecture for you."
+      },
+      {
+        "title": "Evidence-based recommendations",
+        "description": "Every suggestion includes rationale, trade-offs and compared alternatives. Configure with visible criteria and reduce blind decisions."
+      },
+      {
+        "title": "Compatible with 6+ platforms",
+        "description": "One bundle adapts to Cursor, Devin, CodeRabbit, Kilo Code, Kiro and other tools. Apply your agent where you already work, without rewriting configurations."
+      }
+    ],
+    "techStack": {
+      "eyebrow": "Real project stack",
+      "title": "Technology we use",
+      "subtitle": "Artemisa is open source. This is the exact stack it is built with.",
+      "groups": {
+        "backend": { "title": "Backend" },
+        "frontend": { "title": "Frontend" },
+        "quality": { "title": "Quality & CI" },
+        "infrastructure": { "title": "Infrastructure" }
+      }
+    },
+    "useCases": {
+      "eyebrow": "Developer productivity",
+      "title": "Use cases",
+      "subtitle": "Reproducible configurations for agents specialized in development tasks.",
+      "cases": [
+        {
+          "title": "Project scaffolding",
+          "description": "Configure an agent focused on proposing base structures, modules and components according to project conventions."
+        },
+        {
+          "title": "Automated testing",
+          "description": "Configure an agent focused on proposing unit and integration tests based on the code and defined criteria."
+        },
+        {
+          "title": "Pull Request review",
+          "description": "Generate files to configure reviews of changes, risks and evidence-backed findings, without enabling automatic merges."
+        }
+      ]
+    },
+    "legal": {
+      "eyebrow": "Legal information",
+      "title": "License and usage",
+      "p1Before": "Artemisa is distributed under the ",
+      "p1Link": "Mozilla Public License 2.0 (MPL-2.0)",
+      "p1After": ". It is a weak copyleft license: you can use, modify and distribute the software, even combined with proprietary code, but any modified file from this project must remain under MPL-2.0 and keep the original copyright and contributor notice.",
+      "p2": "The creator does not execute code, make network calls or use credentials during configuration generation: it is a pure, deterministic and auditable compilation. Artemisa only generates configuration files; applying and running the agent is always the user's responsibility.",
+      "p3Before": "Full source code, changelog, authors and issue reporting are available at ",
+      "p3Link": "github.com/VECTORG99/Artemisa",
+      "p3After": "."
+    },
+    "nav": {
+      "ariaLabel": "Main navigation",
+      "creator": "Creator",
+      "docs": "Docs",
+      "team": "Team",
+      "technology": "Technology",
+      "useCases": "Use cases"
+    },
+    "footer": {
+      "ariaLabel": "Footer",
+      "team": "Team",
+      "legal": "Legal",
+      "github": "GitHub",
+      "copyright": "© {year} Artemisa and contributors · MPL-2.0"
+    }
   },
   "creator": {
     "title": "Artemisa Creator",
@@ -20,16 +130,453 @@
     "bundleGenerated": "Bundle generated",
     "createAnother": "Create another configuration",
     "generate": "Generate configuration",
-    "skip": "Skip tutorial"
+    "skip": "Skip tutorial",
+    "loading": {
+      "title": "Loading configuration…",
+      "sr": "Loading the catalog and the creator's decision tree."
+    },
+    "fatalError": {
+      "title": "Could not load the creator",
+      "description": "The creator needs the backend catalog and decision tree before showing the first question.",
+      "retry": "Retry",
+      "backHome": "Back to home"
+    },
+    "desktopTool": {
+      "title": "Desktop tool",
+      "description": "The Creator is a developer tool that works on desktop computers and laptops.",
+      "hint": "Open this link from your PC to design your agent.",
+      "copyLabel": "Copy the link to open it on your PC:",
+      "backHome": "Go home"
+    },
+    "actionBar": {
+      "back": "Back",
+      "skip": "Skip",
+      "continue": "Continue",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "draftRestored": {
+      "label": "Draft restored: {count} answer(s) recovered",
+      "reset": "Reset"
+    },
+    "resetDialog": {
+      "title": "Reset draft?",
+      "description": "This will delete {count} answer(s). This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Reset"
+    },
+    "shortcuts": {
+      "title": "Keyboard shortcuts",
+      "close": "Close shortcuts",
+      "hint": "Single-key shortcuts are ignored while you are typing in a text field.",
+      "groups": [
+        {
+          "title": "Question flow",
+          "shortcuts": [
+            { "keys": ["Enter"], "action": "Continue to the next question" },
+            { "keys": ["Ctrl", "Enter"], "action": "Continue from a long text field" },
+            { "keys": ["Alt", "←"], "action": "Go back to the previous question" },
+            { "keys": ["S"], "action": "Answer 'Yes' in yes/no questions" },
+            { "keys": ["N"], "action": "Answer 'No' in yes/no questions" }
+          ]
+        },
+        {
+          "title": "Navigation",
+          "shortcuts": [
+            { "keys": ["Esc"], "action": "Exit the current mode and return to the menu" },
+            { "keys": ["?"], "action": "Show or hide this help" }
+          ]
+        }
+      ]
+    },
+    "fineTuning": {
+      "loading": "Loading workflow contract…",
+      "searchPlaceholder": "Search a question across the whole tree…",
+      "searchAriaLabel": "Search questions",
+      "searchResults": "{count} question(s) across all sections",
+      "searchResultsTitle": "Results for «{query}»",
+      "noSearchResults": "No visible question matches that search.",
+      "noActiveQuestions": "This section does not apply with the current answers.",
+      "generateButton": "Review and generate",
+      "treeComplete": "Tree complete — review will open.",
+      "missingRequired": "{count} required answer(s) missing.",
+      "requiredCounter": "{answered} of {required} required",
+      "orphanSection": {
+        "label": "Other",
+        "description": "Workflow questions that do not yet have a dedicated section in this panel."
+      },
+      "sections": {
+        "identity": {
+          "label": "Identity",
+          "description": "What the agent is and why it exists."
+        },
+        "project": {
+          "label": "Project and stack",
+          "description": "Project state, technologies, architecture and repository."
+        },
+        "environments": {
+          "label": "Environments",
+          "description": "Working context and declared deployment target in the configuration."
+        },
+        "devops": {
+          "label": "DevOps and security",
+          "description": "CI/CD, infrastructure, observability and security controls."
+        },
+        "permissions": {
+          "label": "Permissions",
+          "description": "Capabilities, autonomy and human approval. Grant only what is needed."
+        },
+        "knowledge": {
+          "label": "Knowledge and PR",
+          "description": "RAG, documented sources and pull request review."
+        },
+        "output": {
+          "label": "Output",
+          "description": "Bundle targets, hooks, skills and MCP servers."
+        }
+      }
+    },
+    "presets": {
+      "eyebrow": "Presets",
+      "title": "Choose a starting point",
+      "subtitle": "Eight complete configurations validated against the decision tree. None is generated yet: pick one, review it and adjust any answer before generating the bundle.",
+      "usePreset": "Use preset",
+      "summary": {
+        "environment": "Environment",
+        "autonomy": "Autonomy",
+        "targets": "Targets",
+        "capabilities": "Capabilities",
+        "stack": "Stack",
+        "capabilitiesValue": "{count} granted",
+        "empty": "—"
+      },
+      "tags": {
+        "rag": "RAG",
+        "prReview": "PR review",
+        "hooks": "Hooks",
+        "skills": "Skills",
+        "humanApproval": "Human approval"
+      },
+      "environmentLabels": {
+        "development": "Development",
+        "production": "Production",
+        "both": "Development + production",
+        "testing": "Testing / QA",
+        "staging": "Staging / Pre-production",
+        "local": "Local / Recreational"
+      },
+      "autonomyLabels": {
+        "advisory": "Advisory only",
+        "assisted": "Assisted",
+        "autonomous": "Autonomous"
+      },
+      "footer": "A preset is just a set of pre-filled answers. There are no presets in the backend: they are validated with /evaluate just like any manual answer."
+    },
+    "skills": {
+      "loading": "Loading skills catalog…",
+      "searchPlaceholder": "Search skills by name, description or tag…",
+      "searchAriaLabel": "Search skills",
+      "all": "All",
+      "noResults": "No skill matches that search.",
+      "source": "View source ({sourceName})",
+      "focusLabels": {
+        "development": "Development",
+        "security": "Security",
+        "data-ai": "Data & AI",
+        "operations": "Operations",
+        "documentation": "Documentation"
+      }
+    },
+    "mcps": {
+      "loading": "Loading MCP catalog…",
+      "searchPlaceholder": "Search MCP servers by name, description or tag…",
+      "searchAriaLabel": "Search MCP servers",
+      "all": "All",
+      "noResults": "No MCP server matches that search.",
+      "source": "View source",
+      "official": "Official",
+      "categoryLabels": {
+        "development": "Development",
+        "productivity": "Productivity",
+        "database": "Database",
+        "search": "Search",
+        "web-scraping": "Web scraping",
+        "file-system": "File system",
+        "version-control": "Version control",
+        "communication": "Communication",
+        "cloud-service": "Cloud service",
+        "observability": "Observability",
+        "storage": "Storage"
+      }
+    },
+    "errors": {
+      "backendDidNotRespond": "The creator backend did not respond.",
+      "cannotEvaluateAnswer": "Could not evaluate the answer.",
+      "cannotSkip": "Could not skip the question.",
+      "cannotReset": "Could not reset the draft.",
+      "cannotApplyPreset": "Could not apply the preset.",
+      "cannotEvaluateConfig": "Could not evaluate the configuration.",
+      "cannotGenerate": "Could not generate the configuration.",
+      "tooManyRequests": "Too many requests in a row to the creator. Wait a few seconds and try again; your answers are preserved.",
+      "workflowUpdated": "The backend updated the decision tree. Reset the draft to continue with the new version.",
+      "treeIncomplete": "The tree is incomplete or an answer is invalid. {detail}",
+      "shortFlowNeedsMore": "The short flow needs one more decision before generating. Answer it to continue.",
+      "presetNeedsMore": "The «{name}» preset needs one more decision with the current tree version. Complete it to continue.",
+      "rejectedAnswers": "The backend rejected {count} answer(s): {issues}",
+      "firstMissing": "Required answers are missing. The first one is «{prompt}».",
+      "unknownQuestion": "unknown"
+    }
   },
-  "landing": {
-    "heroTitle": "Artemisa",
-    "heroCta": "Generate configuration",
-    "heroDescription": "Configure development agents compatible with 6+ platforms in minutes. An explainable decision tree generates reproducible files ready to apply, no black box.",
-    "ctaTitle": "Ready to configure your agent?",
-    "ctaDescription": "Answer 32 guided questions and get a bundle ready for Cursor, Devin, CodeRabbit, Kiro and more.",
-    "ctaButton": "Start creator →",
-    "disableAnimations": "Disable animations",
-    "enableAnimations": "Enable animations"
+  "modeSelect": {
+    "title": "How do you want to configure your agent?",
+    "subtitle": "The four modes generate the same kind of bundle and end at the same review. You can switch modes at any time without losing what you already answered.",
+    "platformLabel": "Generate configuration for",
+    "divider": "or paste a prompt into your AI chat",
+    "modes": {
+      "auto-corto": {
+        "label": "Short auto",
+        "tagline": "8 questions",
+        "description": "Answer the essentials and we complete the rest with safe defaults."
+      },
+      "auto-largo": {
+        "label": "Long auto",
+        "tagline": "32 questions",
+        "description": "You decide every detail, question by question."
+      },
+      "presets": {
+        "label": "Presets",
+        "tagline": "8 presets",
+        "description": "Choose a ready-made configuration and adjust it to your taste."
+      },
+      "avanzado": {
+        "label": "Advanced",
+        "tagline": "Maximum control",
+        "description": "Everything in a single panel, no guided walkthrough."
+      }
+    }
+  },
+  "dynamicQuestion": {
+    "optional": "Optional",
+    "booleanAriaLabel": "Yes or no",
+    "textContinue": "Enter to continue",
+    "textareaContinue": "Ctrl + Enter to continue",
+    "characterCount": "{length} / {max}"
+  },
+  "optionPicker": {
+    "searchPlaceholder": "Search among {count} options…",
+    "searchAriaLabel": "Search in {label}",
+    "clearSearch": "Clear search",
+    "removeOption": "Remove {label}",
+    "noOptionsForCategory": "The catalog has no options for this category.",
+    "noResultsForQuery": "No results for «{query}».",
+    "showLess": "Show less",
+    "showMore": "Show {count} more",
+    "selected": "selected",
+    "maxSelected": "Maximum of {max} reached. Remove one option to choose another.",
+    "custom": {
+      "notInList": "Not in the list",
+      "placeholder": "E.g. my-framework (requires manual adapter)",
+      "ariaLabel": "Custom option name",
+      "add": "Add",
+      "cancel": "Cancel custom option",
+      "willBeSaved": "Will be saved as custom:{slug}",
+      "warning": "Custom options require a manual adapter and generate a warning in the bundle.",
+      "chipPrefix": "Custom: ",
+      "description": "Custom option — requires a manual adapter.",
+      "summary": "Custom options are kept in the blueprint and in WHY.md, and generate a pending adapter warning."
+    }
+  },
+  "review": {
+    "progressLabel": "Final review",
+    "title": "Final review",
+    "heading": "Confirm before generating",
+    "description": "Nothing is executed or written yet. When you generate, you get a bundle of files to review and copy to the project yourself.",
+    "answeredCount": "{count} answers",
+    "recommendationsCount": "{count} recommendations",
+    "warningsCount": "{count} warnings",
+    "customCount": "{count} custom",
+    "backendRejected": "The backend rejected some answers",
+    "decisionTreeWarnings": "Decision tree warnings",
+    "whyBundle": "Why the bundle will look like this",
+    "noRecommendations": "The tree produced no recommendations for this combination of answers.",
+    "yourDecisions": "Your decisions",
+    "fallbackSectionName": "Other",
+    "fallbackSectionHint": "(no section in workflow)",
+    "emptyAnswer": "Not answered",
+    "generate": "Generate configuration",
+    "generating": "Generating…",
+    "fixBeforeGenerate": "Fix the rejected answers before generating.",
+    "deterministicInfo": "Generation is deterministic: the same answers produce the same bundle and the same hashes.",
+    "severity": {
+      "warning": "Warning",
+      "recommended": "Recommended",
+      "info": "Info"
+    },
+    "recommendation": {
+      "showDetail": "Evidence, benefits and trade-offs",
+      "hideDetail": "Hide detail",
+      "evidence": "Evidence used",
+      "benefits": "Benefits",
+      "tradeoffs": "Trade-offs",
+      "alternatives": "Alternatives"
+    },
+    "editAria": "Edit: {label}",
+    "editTitle": "Edit this answer"
+  },
+  "completion": {
+    "progressLabel": "Bundle generated",
+    "title": "Bundle generated",
+    "bundleViews": "Bundle views",
+    "generatedAgentFallback": "Generated agent",
+    "artifactCount": "{count} artifacts ready. Artemisa does not write anything to your project: review, download, and copy the files yourself.",
+    "generatorVersion": "Generator {version}",
+    "targets": "Targets: {targets}",
+    "nextSteps": {
+      "title": "What next?",
+      "step1": {
+        "bold": "Review the files",
+        "text": " in the 'Files' tab. Read the blueprint, steering and security policy before copying anything."
+      },
+      "step2": {
+        "bold": "Download the ZIP",
+        "text": " and copy it to your project root, respecting the relative path of each file."
+      },
+      "step3": {
+        "bold": "Validate with",
+        "code": "docs/INSTALL.md",
+        "text": " and confirm the SHA-256 hashes in 'Manifest and hashes' to verify nothing changed."
+      }
+    },
+    "applyStepsTitle": "Application steps",
+    "productionChecklistTitle": "Production checklist",
+    "noProductionChecklist": "This agent does not declare production scope, so the generator did not add an operational checklist.",
+    "promptForAgent": "Prompt for the agent",
+    "promptHelp": "Copy this prompt along with the bundle artifacts to start the agent with full context.",
+    "tabs": {
+      "apply": "How to apply it",
+      "files": "Files",
+      "platforms": "Platforms",
+      "manifest": "Manifest and hashes"
+    },
+    "downloadZip": "Download all (.zip)",
+    "zipGenerating": "Generating ZIP…",
+    "downloadBundleJson": "Download bundle (JSON)",
+    "zipError": "Could not generate the ZIP. Download the files individually or the JSON bundle.",
+    "copyError": "The browser blocked the clipboard. Use Download to get the file.",
+    "warningTitle": "Generator warnings",
+    "manifest": {
+      "title": "{count} files · agent {agent}",
+      "copy": "Copy manifest",
+      "headers": {
+        "file": "File",
+        "type": "Type",
+        "sha256": "SHA-256"
+      },
+      "description": "The same set of answers always produces these hashes. Compare them after copying the files to confirm nothing was altered along the way."
+    },
+    "kindLabels": {
+      "configuration": "Configuration",
+      "documentation": "Documentation",
+      "instruction": "Instructions",
+      "manifest": "Manifest",
+      "agents-md": "AGENTS.md",
+      "cursor-rules": "Cursor",
+      "devin-rules": "Devin Desktop",
+      "coderabbit-config": "CodeRabbit",
+      "kilocode-rules": "Kilo Code"
+    },
+    "platformLabels": {
+      "cursor": "Cursor",
+      "devin-desktop": "Devin Desktop / Windsurf",
+      "coderabbit": "CodeRabbit",
+      "kilo-code": "Kilo Code",
+      "kiro": "Kiro",
+      "portable": "Portable / AGENTS.md"
+    }
+  },
+  "docs": {
+    "title": "Documentation",
+    "back": "Back",
+    "openMenu": "Open documentation menu",
+    "closeMenu": "Close menu",
+    "selectDocument": "Select a document from the menu",
+    "loading": "Loading...",
+    "fetchError": "Error {status}: could not load the document.",
+    "loadError": "Error loading the document.",
+    "viewOnGitHub": "View on GitHub ↗",
+    "sections": [
+      {
+        "id": "project",
+        "title": "Project",
+        "docs": [
+          { "path": "README.md", "label": "README" },
+          { "path": "AGENTS.md", "label": "AGENTS.md" },
+          { "path": "CONTEXT.md", "label": "CONTEXT.md" },
+          { "path": "docs/CONTRIBUTING.md", "label": "CONTRIBUTING.md" },
+          { "path": "docs/CHANGELOG.md", "label": "CHANGELOG.md" }
+        ]
+      },
+      {
+        "id": "architecture",
+        "title": "Architecture & Deploy",
+        "docs": [
+          { "path": "docs/architecture.md", "label": "Architecture" },
+          { "path": "docs/api-reference.md", "label": "API Reference" },
+          { "path": "docs/deployment.md", "label": "Deployment" },
+          { "path": "docs/self-hosting.md", "label": "Self-Hosting" }
+        ]
+      },
+      {
+        "id": "guides",
+        "title": "Guides",
+        "docs": [
+          { "path": "docs/troubleshooting.md", "label": "Troubleshooting" },
+          { "path": "docs/apply-bundle.md", "label": "Apply a Bundle" },
+          { "path": "docs/use_cases.md", "label": "Use Cases" },
+          { "path": "docs/CONVENTIONS.md", "label": "Conventions" }
+        ]
+      },
+      {
+        "id": "adrs",
+        "title": "ADRs",
+        "docs": [
+          { "path": "docs/adr/0007-npm-workspaces-for-shared-types-package.md", "label": "ADR-0007: Workspaces" },
+          { "path": "docs/adr/0008-remove-runtime-generator-only.md", "label": "ADR-0008: Remove Runtime" }
+        ]
+      },
+      {
+        "id": "reference",
+        "title": "Reference",
+        "docs": [
+          { "path": "docs/reference/README.md", "label": "Artifacts" },
+          { "path": "docs/reference/security-policy-guide.md", "label": "Security Policy" },
+          { "path": "docs/reference/steering-roles-guide.md", "label": "Steering Roles" }
+        ]
+      }
+    ]
+  },
+  "developers": {
+    "back": "Back",
+    "title": "Developers",
+    "subtitle": "The team behind Artemisa — Kiro × Código Facilito Hackathon 2026",
+    "githubAria": "GitHub of {name}",
+    "linkedinAria": "LinkedIn of {name}",
+    "linkedinLabel": "LinkedIn"
+  },
+  "notFound": {
+    "code": "Error 404",
+    "title": "Page not found",
+    "description": "The route you are looking for does not exist or was moved. Artemisa generates configuration files, it does not host agents; some previous routes may have disappeared.",
+    "backHome": "Back to home",
+    "openCreator": "Open Creator"
+  },
+  "errorPage": {
+    "label": "Unexpected error",
+    "title": "Something went wrong",
+    "description": "An error occurred while rendering this screen. You can retry or go back to a known route.",
+    "digestLabel": "digest: {digest}",
+    "retry": "Retry",
+    "backHome": "Back to home",
+    "openCreator": "Open Creator"
   }
 }

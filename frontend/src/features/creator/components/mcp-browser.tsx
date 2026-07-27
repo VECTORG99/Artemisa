@@ -4,21 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { LuCheck, LuCircleAlert, LuLoaderCircle, LuSearch } from 'react-icons/lu';
 import { creator } from '@/lib/api';
 import { glassFilterChip, glassInput, glassNotice, glassOptionCard, glassPill } from '@/lib/glass';
+import { useTranslations } from '@/i18n';
 import type { McpCatalogItem } from '@artemisa/types';
-
-const CATEGORY_LABELS: Record<string, string> = {
-  development: 'Desarrollo',
-  productivity: 'Productividad',
-  database: 'Base de datos',
-  search: 'Búsqueda',
-  'web-scraping': 'Web scraping',
-  'file-system': 'Sistema de archivos',
-  'version-control': 'Control de versiones',
-  communication: 'Comunicación',
-  'cloud-service': 'Servicio en la nube',
-  observability: 'Observabilidad',
-  storage: 'Almacenamiento',
-};
 
 interface McpBrowserProps {
   selected: string[];
@@ -38,6 +25,7 @@ interface McpBrowserProps {
  * to hand-pick which MCP tools the generated agent gets.
  */
 export function McpBrowser({ selected, onChange, allowedIds }: McpBrowserProps) {
+  const t = useTranslations('creator');
   const [items, setItems] = useState<McpCatalogItem[]>([]);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('');
@@ -89,15 +77,15 @@ export function McpBrowser({ selected, onChange, allowedIds }: McpBrowserProps) 
           type="text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Buscar servidores MCP por nombre, descripción o tag…"
-          aria-label="Buscar servidores MCP"
+          placeholder={t.mcps.searchPlaceholder}
+          aria-label={t.mcps.searchAriaLabel}
           className={glassInput('py-2.5 pl-9 text-sm')}
         />
       </div>
 
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => setCategory('')} className={glassFilterChip(category === '')}>
-          Todas
+          {t.mcps.all}
         </button>
         {categoryOptions.map((option) => (
           <button
@@ -106,7 +94,7 @@ export function McpBrowser({ selected, onChange, allowedIds }: McpBrowserProps) 
             onClick={() => setCategory(option)}
             className={glassFilterChip(category === option)}
           >
-            {CATEGORY_LABELS[option] ?? option}
+            {(t.mcps.categoryLabels[option as keyof typeof t.mcps.categoryLabels] as string | undefined) ?? option}
           </button>
         ))}
       </div>
@@ -114,7 +102,7 @@ export function McpBrowser({ selected, onChange, allowedIds }: McpBrowserProps) 
       {loading && (
         <p className="flex items-center gap-2 text-sm text-zinc-500">
           <LuLoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-          Cargando catálogo de MCPs…
+          {t.mcps.loading}
         </p>
       )}
       {error && (
@@ -128,6 +116,9 @@ export function McpBrowser({ selected, onChange, allowedIds }: McpBrowserProps) 
         <div className="creator-scroll grid max-h-[42vh] gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
           {filtered.map((item) => {
             const isSelected = selected.includes(item.id);
+            const categoryLabel =
+              (t.mcps.categoryLabels[item.category as keyof typeof t.mcps.categoryLabels] as string | undefined) ??
+              item.category;
             return (
               <button
                 key={item.id}
@@ -144,11 +135,11 @@ export function McpBrowser({ selected, onChange, allowedIds }: McpBrowserProps) 
                 <p className="text-xs leading-relaxed text-zinc-400">{item.description}</p>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <span className={glassPill('py-0.5 text-[10px] uppercase tracking-wide text-zinc-500')}>
-                    {CATEGORY_LABELS[item.category] ?? item.category}
+                    {categoryLabel}
                   </span>
                   {item.official && (
                     <span className={glassPill('py-0.5 text-[10px] uppercase tracking-wide text-zinc-300')}>
-                      Oficial
+                      {t.mcps.official}
                     </span>
                   )}
                   <a
@@ -158,15 +149,13 @@ export function McpBrowser({ selected, onChange, allowedIds }: McpBrowserProps) 
                     onClick={(event) => event.stopPropagation()}
                     className="text-[11px] text-zinc-500 underline-offset-2 hover:text-zinc-300 hover:underline"
                   >
-                    Ver fuente
+                    {t.mcps.source}
                   </a>
                 </div>
               </button>
             );
           })}
-          {filtered.length === 0 && (
-            <p className="col-span-full py-4 text-sm text-zinc-500">Ningún servidor MCP coincide con esa búsqueda.</p>
-          )}
+          {filtered.length === 0 && <p className="col-span-full py-4 text-sm text-zinc-500">{t.mcps.noResults}</p>}
         </div>
       )}
     </div>

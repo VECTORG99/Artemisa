@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -15,6 +15,7 @@ import {
   LuMenu,
   LuX,
 } from 'react-icons/lu';
+import { useLocale, useTranslations, type Locale } from '@/i18n';
 
 interface DocLink {
   path: string;
@@ -22,6 +23,7 @@ interface DocLink {
 }
 
 interface DocSection {
+  id: string;
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   docs: DocLink[];
@@ -29,58 +31,31 @@ interface DocSection {
 
 const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/VECTORG99/Artemisa/development';
 
-const sections: DocSection[] = [
-  {
-    title: 'Proyecto',
-    icon: LuFileText,
-    docs: [
-      { path: 'README.md', label: 'README' },
-      { path: 'AGENTS.md', label: 'AGENTS.md' },
-      { path: 'CONTEXT.md', label: 'CONTEXT.md' },
-      { path: 'docs/CONTRIBUTING.md', label: 'CONTRIBUTING.md' },
-      { path: 'docs/CHANGELOG.md', label: 'CHANGELOG.md' },
-    ],
-  },
-  {
-    title: 'Arquitectura y Deploy',
-    icon: LuServer,
-    docs: [
-      { path: 'docs/architecture.md', label: 'Arquitectura' },
-      { path: 'docs/api-reference.md', label: 'API Reference' },
-      { path: 'docs/deployment.md', label: 'Deployment' },
-      { path: 'docs/self-hosting.md', label: 'Self-Hosting' },
-    ],
-  },
-  {
-    title: 'Guías',
-    icon: LuBookOpen,
-    docs: [
-      { path: 'docs/troubleshooting.md', label: 'Troubleshooting' },
-      { path: 'docs/apply-bundle.md', label: 'Aplicar un Bundle' },
-      { path: 'docs/use_cases.md', label: 'Casos de Uso' },
-      { path: 'docs/CONVENTIONS.md', label: 'Convenciones' },
-    ],
-  },
-  {
-    title: 'ADRs',
-    icon: LuLayers,
-    docs: [
-      { path: 'docs/adr/0007-npm-workspaces-for-shared-types-package.md', label: 'ADR-0007: Workspaces' },
-      { path: 'docs/adr/0008-remove-runtime-generator-only.md', label: 'ADR-0008: Remove Runtime' },
-    ],
-  },
-  {
-    title: 'Referencia',
-    icon: LuScale,
-    docs: [
-      { path: 'docs/reference/README.md', label: 'Artefactos' },
-      { path: 'docs/reference/security-policy-guide.md', label: 'Security Policy' },
-      { path: 'docs/reference/steering-roles-guide.md', label: 'Steering Roles' },
-    ],
-  },
-];
+const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  project: LuFileText,
+  architecture: LuServer,
+  guides: LuBookOpen,
+  adrs: LuLayers,
+  reference: LuScale,
+};
+
+function localizeDocPath(path: string, locale: Locale): string {
+  if (locale === 'es') return path;
+  return path.replace(/\.md$/, '.en.md');
+}
 
 export default function DocsPage() {
+  const { locale } = useLocale();
+  const t = useTranslations('docs');
+  const sections = useMemo<DocSection[]>(
+    () =>
+      t.sections.map((section) => ({
+        ...section,
+        icon: SECTION_ICONS[section.id] ?? LuFileText,
+      })),
+    [t],
+  );
+
   const [activePath, setActivePath] = useState<string | null>(null);
   const [activeLabel, setActiveLabel] = useState<string>('');
   const [content, setContent] = useState<string>('');
@@ -88,29 +63,34 @@ export default function DocsPage() {
   const [error, setError] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const fetchDoc = useCallback(async (path: string, label: string) => {
-    setActivePath(path);
-    setActiveLabel(label);
-    setLoading(true);
-    setError('');
-    setContent('');
-    setSidebarOpen(false);
-    try {
-      const res = await fetch(`${GITHUB_RAW_BASE}/${path}`);
-      if (!res.ok) throw new Error(`Error ${res.status}: no se pudo cargar el documento.`);
-      const text = await res.text();
-      setContent(text);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cargar el documento.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const fetchDoc = useCallback(
+    async (path: string, label: string) => {
+      const localizedPath = localizeDocPath(path, locale);
+      setActivePath(localizedPath);
+      setActiveLabel(label);
+      setLoading(true);
+      setError('');
+      setContent('');
+      setSidebarOpen(false);
+      try {
+        const res = await fetch(`${GITHUB_RAW_BASE}/${localizedPath}`);
+        if (!res.ok) throw new Error(t.fetchError.replace('{status}', String(res.status)));
+        const text = await res.text();
+        setContent(text);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : t.loadError);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [locale, t],
+  );
 
   // Load README by default
   useEffect(() => {
-    fetchDoc('README.md', 'README');
-  }, [fetchDoc]);
+    const readme = t.sections[0]?.docs[0];
+    if (readme) fetchDoc(readme.path, readme.label);
+  }, [fetchDoc, t]);
 
   const sidebar = (
     <nav className="flex-1 overflow-y-auto px-3 py-4">
@@ -129,15 +109,15 @@ export default function DocsPage() {
                     type="button"
                     onClick={() => fetchDoc(doc.path, doc.label)}
                     className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm transition-colors ${
-                      activePath === doc.path
+                      activePath === localizeDocPath(doc.path, locale)
                         ? 'bg-white/[0.08] font-medium text-white'
                         : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200'
                     }`}
                   >
-                    {activePath === doc.path && (
+                    {activePath === localizeDocPath(doc.path, locale) && (
                       <LuChevronRight className="h-3 w-3 shrink-0 text-red-400" aria-hidden="true" />
                     )}
-                    <span className={activePath === doc.path ? '' : 'pl-5'}>{doc.label}</span>
+                    <span className={activePath === localizeDocPath(doc.path, locale) ? '' : 'pl-5'}>{doc.label}</span>
                   </button>
                 </li>
               ))}
@@ -158,9 +138,9 @@ export default function DocsPage() {
             className="inline-flex items-center gap-2 text-sm text-zinc-400 transition-colors hover:text-white"
           >
             <LuArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-            Volver
+            {t.back}
           </Link>
-          <h1 className="mt-3 text-lg font-bold text-white">Documentación</h1>
+          <h1 className="mt-3 text-lg font-bold text-white">{t.title}</h1>
         </div>
         {sidebar}
       </aside>
@@ -171,10 +151,10 @@ export default function DocsPage() {
           <div className="absolute inset-0 bg-black/60" onClick={() => setSidebarOpen(false)} />
           <aside className="relative flex h-full w-72 flex-col border-r border-white/[0.08] bg-zinc-950 shadow-2xl">
             <div className="flex shrink-0 items-center justify-between border-b border-white/[0.08] px-5 py-4">
-              <h1 className="text-lg font-bold text-white">Documentación</h1>
+              <h1 className="text-lg font-bold text-white">{t.title}</h1>
               <button
                 onClick={() => setSidebarOpen(false)}
-                aria-label="Cerrar menú"
+                aria-label={t.closeMenu}
                 className="rounded-full p-1.5 text-zinc-500 transition-colors hover:text-white"
               >
                 <LuX className="h-4 w-4" aria-hidden="true" />
@@ -192,7 +172,7 @@ export default function DocsPage() {
           {/* Mobile menu button */}
           <button
             onClick={() => setSidebarOpen(true)}
-            aria-label="Abrir menú de documentación"
+            aria-label={t.openMenu}
             className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-white lg:hidden"
           >
             <LuMenu className="h-5 w-5" aria-hidden="true" />
@@ -214,7 +194,7 @@ export default function DocsPage() {
               rel="noopener noreferrer"
               className="text-xs text-zinc-500 transition-colors hover:text-zinc-300"
             >
-              Ver en GitHub ↗
+              {t.viewOnGitHub}
             </a>
           )}
         </div>
@@ -225,7 +205,7 @@ export default function DocsPage() {
             {loading && (
               <div className="flex items-center justify-center py-20">
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-white" />
-                <span className="ml-3 text-sm text-zinc-500">Cargando...</span>
+                <span className="ml-3 text-sm text-zinc-500">{t.loading}</span>
               </div>
             )}
 
@@ -242,7 +222,7 @@ export default function DocsPage() {
             {!content && !loading && !error && (
               <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
                 <LuFileText className="mb-3 h-10 w-10" aria-hidden="true" />
-                <p className="text-sm">Selecciona un documento del menú</p>
+                <p className="text-sm">{t.selectDocument}</p>
               </div>
             )}
           </div>

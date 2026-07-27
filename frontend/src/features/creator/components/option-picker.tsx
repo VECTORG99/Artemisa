@@ -5,6 +5,7 @@ import { LuCheck, LuChevronDown, LuChevronUp, LuPlus, LuSearch, LuTriangleAlert,
 import { TechIcon } from '@/features/creator/lib/tech-icons';
 import { glassFilterChip, glassInput, glassOptionCard, glassPill } from '@/lib/glass';
 import { slugify } from '@/lib/utils';
+import { useTranslations } from '@/i18n';
 
 export interface PickerOption {
   id: string;
@@ -62,6 +63,7 @@ export function OptionPicker({
   collapsible = false,
   collapseThreshold = 8,
 }: OptionPickerProps) {
+  const t = useTranslations('optionPicker');
   const [query, setQuery] = useState('');
   const [customDraft, setCustomDraft] = useState('');
   const [customOpen, setCustomOpen] = useState(false);
@@ -88,11 +90,11 @@ export function OptionPicker({
       .filter((id) => !known.has(id))
       .map<PickerOption>((id) => ({
         id,
-        label: id.startsWith('custom:') ? `Personalizado: ${id.slice(7).replace(/[-_]+/g, ' ')}` : id,
-        description: id.startsWith('custom:') ? 'Opción personalizada — requiere un adaptador manual.' : undefined,
+        label: id.startsWith('custom:') ? `${t.custom.chipPrefix}${id.slice(7).replace(/[-_]+/g, ' ')}` : id,
+        description: id.startsWith('custom:') ? t.custom.description : undefined,
       }));
     return [...options, ...extras];
-  }, [options, selected]);
+  }, [options, selected, t]);
 
   const normalized = query.trim().toLowerCase();
   const filtered = useMemo(() => {
@@ -165,15 +167,15 @@ export function OptionPicker({
             type="text"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={`Buscar entre ${allOptions.length} opciones…`}
-            aria-label={`Buscar en ${ariaLabel}`}
+            placeholder={t.searchPlaceholder.replace('{count}', String(allOptions.length))}
+            aria-label={t.searchAriaLabel.replace('{label}', ariaLabel)}
             className={glassInput('py-2.5 pl-9 text-sm')}
           />
           {query && (
             <button
               type="button"
               onClick={() => setQuery('')}
-              aria-label="Limpiar búsqueda"
+              aria-label={t.clearSearch}
               className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-500 transition-colors hover:text-white"
             >
               <LuX className="h-3.5 w-3.5" aria-hidden="true" />
@@ -192,7 +194,7 @@ export function OptionPicker({
                 type="button"
                 onClick={() => toggle(id)}
                 className={glassFilterChip(true, 'text-[11px]')}
-                aria-label={`Quitar ${option?.label ?? id}`}
+                aria-label={t.removeOption.replace('{label}', option?.label ?? id)}
               >
                 {option?.label ?? id}
                 <LuX className="h-3 w-3 text-zinc-400" aria-hidden="true" />
@@ -243,9 +245,7 @@ export function OptionPicker({
 
         {filtered.length === 0 && (
           <p className="col-span-full py-6 text-center text-sm text-zinc-500">
-            {allOptions.length === 0
-              ? 'El catálogo no tiene opciones para esta categoría.'
-              : `Sin resultados para «${query}».`}
+            {allOptions.length === 0 ? t.noOptionsForCategory : t.noResultsForQuery.replace('{query}', query)}
           </p>
         )}
       </div>
@@ -261,12 +261,12 @@ export function OptionPicker({
           {expanded ? (
             <>
               <LuChevronUp className="h-3 w-3" aria-hidden="true" />
-              Mostrar menos
+              {t.showLess}
             </>
           ) : (
             <>
               <LuChevronDown className="h-3 w-3" aria-hidden="true" />
-              Mostrar {filtered.length - collapseThreshold} más
+              {t.showMore.replace('{count}', String(filtered.length - collapseThreshold))}
             </>
           )}
         </button>
@@ -275,7 +275,7 @@ export function OptionPicker({
       <div className="flex flex-wrap items-center justify-between gap-2">
         {multiple && max !== undefined && (
           <span className={`text-[11px] tabular-nums ${atMax ? 'text-warn' : 'text-zinc-600'}`}>
-            {selected.length} / {max} seleccionadas
+            {selected.length} / {max} {t.selected}
           </span>
         )}
 
@@ -296,8 +296,8 @@ export function OptionPicker({
                       }
                       if (event.key === 'Escape') setCustomOpen(false);
                     }}
-                    placeholder="Ej: mi-framework (requiere adaptador manual)"
-                    aria-label="Nombre de la opción personalizada"
+                    placeholder={t.custom.placeholder}
+                    aria-label={t.custom.ariaLabel}
                     className={glassInput('w-64 py-1.5 text-xs')}
                   />
                   <button
@@ -306,12 +306,12 @@ export function OptionPicker({
                     disabled={!slugify(customDraft) || atMax}
                     className={glassFilterChip(false, 'text-[11px] disabled:cursor-not-allowed disabled:opacity-40')}
                   >
-                    Añadir
+                    {t.custom.add}
                   </button>
                   <button
                     type="button"
                     onClick={() => setCustomOpen(false)}
-                    aria-label="Cancelar opción personalizada"
+                    aria-label={t.custom.cancel}
                     className="rounded-full p-1 text-zinc-500 transition-colors hover:text-white"
                   >
                     <LuX className="h-3.5 w-3.5" aria-hidden="true" />
@@ -319,12 +319,12 @@ export function OptionPicker({
                 </div>
                 {slugify(customDraft) && (
                   <span className="text-[11px] text-zinc-500">
-                    Se guardará como <code className="text-zinc-400">custom:{slugify(customDraft)}</code>
+                    {t.custom.willBeSaved.replace('{slug}', slugify(customDraft))}
                   </span>
                 )}
                 <p className="flex items-center gap-1.5 text-[11px] text-amber-400/80">
                   <LuTriangleAlert className="h-3 w-3 shrink-0" aria-hidden="true" />
-                  Las opciones custom requieren un adaptador manual y generan una advertencia en el bundle.
+                  {t.custom.warning}
                 </p>
               </div>
             ) : (
@@ -337,7 +337,7 @@ export function OptionPicker({
                 )}
               >
                 <LuPlus className="h-3 w-3" aria-hidden="true" />
-                No está en la lista
+                {t.custom.notInList}
               </button>
             )}
           </div>
@@ -347,15 +347,12 @@ export function OptionPicker({
       {atMax && (
         <p className="flex items-center gap-1.5 text-[11px] text-warn">
           <LuTriangleAlert className="h-3 w-3 shrink-0" aria-hidden="true" />
-          Máximo de {max} alcanzado. Quita una opción para elegir otra.
+          {t.maxSelected.replace('{max}', String(max))}
         </p>
       )}
 
       {allowCustom && selected.some((id) => id.startsWith('custom:')) && (
-        <p className="text-[11px] leading-relaxed text-zinc-600">
-          Las opciones personalizadas se conservan en el blueprint y en <code>WHY.md</code>, y generan una advertencia
-          de adaptador pendiente.
-        </p>
+        <p className="text-[11px] leading-relaxed text-zinc-600">{t.custom.summary}</p>
       )}
     </div>
   );

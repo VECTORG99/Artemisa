@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import JSZip from 'jszip';
 import {
   LuBraces,
@@ -19,6 +19,7 @@ import {
 import { glassButton, glassCard, glassNotice, glassPill, glassPrimaryButton } from '@/lib/glass';
 import { downloadFile } from '@/lib/utils';
 import { detectArtifactLanguage, highlightArtifact } from '@/features/creator/lib/artifact-highlight';
+import { useTranslations } from '@/i18n';
 import type { ArtifactKind, GeneratedAgentBundle, GeneratedArtifact } from '@artemisa/types';
 
 interface CompletionScreenProps {
@@ -41,18 +42,6 @@ const KIND_ICONS: Record<ArtifactKind, React.ComponentType<{ className?: string 
   'kilocode-rules': LuFileCode2,
 };
 
-const KIND_LABELS: Record<ArtifactKind, string> = {
-  configuration: 'Configuración',
-  documentation: 'Documentación',
-  instruction: 'Instrucciones',
-  manifest: 'Manifest',
-  'agents-md': 'AGENTS.md',
-  'cursor-rules': 'Cursor',
-  'devin-rules': 'Devin Desktop',
-  'coderabbit-config': 'CodeRabbit',
-  'kilocode-rules': 'Kilo Code',
-};
-
 function getArtifactPlatform(path: string): PlatformKey {
   if (path === '.cursorrules' || path.startsWith('.cursor/')) return 'cursor';
   if (path === '.windsurfrules' || path.startsWith('.windsurf/')) return 'devin-desktop';
@@ -61,15 +50,6 @@ function getArtifactPlatform(path: string): PlatformKey {
   if (path.startsWith('.kiro/')) return 'kiro';
   return 'portable';
 }
-
-const PLATFORM_LABELS: Record<PlatformKey, string> = {
-  cursor: 'Cursor',
-  'devin-desktop': 'Devin Desktop / Windsurf',
-  coderabbit: 'CodeRabbit',
-  'kilo-code': 'Kilo Code',
-  kiro: 'Kiro',
-  portable: 'Portátil / AGENTS.md',
-};
 
 const PLATFORM_ORDER: PlatformKey[] = ['cursor', 'devin-desktop', 'coderabbit', 'kilo-code', 'kiro', 'portable'];
 
@@ -114,6 +94,8 @@ async function downloadBundleZip(bundle: GeneratedAgentBundle) {
  * output, so the first thing the user should see is what to do with it.
  */
 export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
+  const common = useTranslations('common');
+  const t = useTranslations('completion');
   const [tab, setTab] = useState<Tab>('apply');
   const [activePath, setActivePath] = useState(bundle.artifacts[0]?.path ?? '');
   const [showSuccessRing, setShowSuccessRing] = useState(true);
@@ -149,6 +131,17 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
     });
   }, [bundle.artifacts]);
 
+  const kindLabel = useCallback(
+    (kind: ArtifactKind) => (t.kindLabels[kind as keyof typeof t.kindLabels] as string | undefined) ?? kind,
+    [t],
+  );
+
+  const platformLabel = useCallback(
+    (platform: PlatformKey) =>
+      (t.platformLabels[platform as keyof typeof t.platformLabels] as string | undefined) ?? platform,
+    [t],
+  );
+
   useEffect(() => {
     const timer = window.setTimeout(() => setShowSuccessRing(false), 900);
     return () => window.clearTimeout(timer);
@@ -167,7 +160,7 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
       setCopied(key);
     } catch {
       // Clipboard access is denied over plain HTTP and in some browsers.
-      setCopyError('El navegador bloqueó el portapapeles. Usa «Descargar» para obtener el archivo.');
+      setCopyError(t.copyError);
     }
   }
 
@@ -177,7 +170,7 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
     try {
       await downloadBundleZip(bundle);
     } catch {
-      setZipError('No se pudo generar el ZIP. Descarga los archivos individualmente o el bundle JSON.');
+      setZipError(t.zipError);
     } finally {
       setZipping(false);
     }
@@ -199,12 +192,12 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
             {copied === activeArtifact.path ? (
               <>
                 <LuCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                Copiado
+                {common.copied}
               </>
             ) : (
               <>
                 <LuClipboard className="h-3.5 w-3.5" aria-hidden="true" />
-                Copiar
+                {common.copy}
               </>
             )}
           </button>
@@ -214,7 +207,7 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
             className={glassButton('px-3 py-1.5 text-xs')}
           >
             <LuDownload className="h-3.5 w-3.5" aria-hidden="true" />
-            Descargar
+            {common.download}
           </button>
         </div>
       </div>
@@ -222,10 +215,6 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
       <pre className="creator-scroll max-h-[42vh] overflow-auto rounded-2xl border border-white/[0.06] bg-black/30 p-3 text-xs leading-relaxed text-zinc-300">
         {highlightArtifact(activeArtifact.content, detectArtifactLanguage(activeArtifact.path))}
       </pre>
-
-      <p className="truncate font-mono text-[10px] text-zinc-600" title={activeArtifact.sha256}>
-        sha256 {activeArtifact.sha256}
-      </p>
     </div>
   );
 
@@ -233,13 +222,13 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
     <nav className="creator-scroll flex max-h-[52vh] flex-col gap-3 overflow-y-auto pr-1">
       {groups.map(([group, artifacts]) => {
         const Icon = groupLabel === 'platform' ? LuLayers : (KIND_ICONS[group as ArtifactKind] ?? LuFileCode2);
+        const label =
+          groupLabel === 'platform' ? platformLabel(group as PlatformKey) : kindLabel(group as ArtifactKind);
         return (
           <div key={group} className="flex flex-col gap-1">
             <span className="flex items-center gap-1.5 px-1 text-[10px] font-medium uppercase tracking-wide text-zinc-600">
               <Icon className="h-3 w-3" aria-hidden="true" />
-              {groupLabel === 'platform'
-                ? PLATFORM_LABELS[group as PlatformKey]
-                : (KIND_LABELS[group as ArtifactKind] ?? group)}
+              {label}
             </span>
             {artifacts.map((artifact) => (
               <button
@@ -276,18 +265,19 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
       </div>
 
       <div className="text-center">
-        <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">Bundle generado</span>
+        <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">{t.title}</span>
         <h2 className="mt-3 text-2xl font-semibold text-white">
-          {bundle.blueprint?.identity?.name ?? 'Agente generado'}
+          {bundle.blueprint?.identity?.name ?? t.generatedAgentFallback}
         </h2>
         <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-zinc-400">
-          {bundle.artifacts.length} artefactos listos. Artemisa no escribe nada en tu proyecto: revisa, descarga y copia
-          los archivos tú mismo.
+          {t.artifactCount.replace('{count}', String(bundle.artifacts.length))}
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-          <span className={glassPill('py-0.5 text-[11px] text-zinc-400')}>Generador {bundle.generatorVersion}</span>
           <span className={glassPill('py-0.5 text-[11px] text-zinc-400')}>
-            Destinos: {bundle.manifest.targets.join(', ') || '—'}
+            {t.generatorVersion.replace('{version}', bundle.generatorVersion)}
+          </span>
+          <span className={glassPill('py-0.5 text-[11px] text-zinc-400')}>
+            {t.targets.replace('{targets}', bundle.manifest.targets.join(', ') || '—')}
           </span>
         </div>
       </div>
@@ -296,15 +286,15 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
           El bundle es el único output del producto, por lo que el siguiente
           paso debe estar siempre visible, no escondido detrás de una pestaña. */}
       <div className={glassCard('flex flex-col gap-3 rounded-2xl p-5')}>
-        <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">¿Qué sigue?</span>
+        <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">{t.nextSteps.title}</span>
         <ol className="flex flex-col gap-2.5">
           <li className="flex gap-3 text-sm leading-relaxed text-zinc-300">
             <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent-deep/20 text-xs tabular-nums text-zinc-200">
               1
             </span>
             <span>
-              <strong className="font-medium text-zinc-100">Revisa los archivos</strong> en la pestaña «Archivos». Lee
-              el blueprint, el steering y la política de seguridad antes de copiar nada.
+              <strong className="font-medium text-zinc-100">{t.nextSteps.step1.bold}</strong>
+              {t.nextSteps.step1.text}
             </span>
           </li>
           <li className="flex gap-3 text-sm leading-relaxed text-zinc-300">
@@ -312,8 +302,8 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
               2
             </span>
             <span>
-              <strong className="font-medium text-zinc-100">Descarga el ZIP</strong> y cópialo en la raíz de tu
-              proyecto, respetando las rutas relativas de cada archivo.
+              <strong className="font-medium text-zinc-100">{t.nextSteps.step2.bold}</strong>
+              {t.nextSteps.step2.text}
             </span>
           </li>
           <li className="flex gap-3 text-sm leading-relaxed text-zinc-300">
@@ -322,10 +312,12 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
             </span>
             <span>
               <strong className="font-medium text-zinc-100">
-                Valida con{' '}
-                <code className="rounded bg-white/[0.06] px-1.5 py-0.5 text-xs text-white/80">docs/INSTALL.md</code>
+                {t.nextSteps.step3.bold}{' '}
+                <code className="rounded bg-white/[0.06] px-1.5 py-0.5 text-xs text-white/80">
+                  {t.nextSteps.step3.code}
+                </code>
               </strong>{' '}
-              y confirma los hashes SHA-256 en «Manifest y hashes» para verificar que nada cambió.
+              {t.nextSteps.step3.text}
             </span>
           </li>
         </ol>
@@ -335,7 +327,7 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
         <div className={glassNotice('warn', 'flex-col')}>
           <span className="flex items-center gap-2 font-medium">
             <LuTriangleAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
-            Advertencias del generador
+            {t.warningTitle}
           </span>
           <ul className="ml-6 list-disc space-y-1 text-amber-100/90">
             {bundle.warnings.map((warning, index) => (
@@ -356,11 +348,11 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
           className={glassPrimaryButton('text-sm')}
         >
           <LuPackage className="h-4 w-4" aria-hidden="true" />
-          {zipping ? 'Generando ZIP…' : 'Descargar todo (.zip)'}
+          {zipping ? t.zipGenerating : t.downloadZip}
         </button>
         <button type="button" onClick={() => downloadBundleJson(bundle)} className={glassButton('text-sm')}>
           <LuDownload className="h-4 w-4" aria-hidden="true" />
-          Descargar bundle (JSON)
+          {t.downloadBundleJson}
         </button>
       </div>
 
@@ -371,12 +363,12 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
         </p>
       )}
 
-      <nav className="flex flex-wrap items-center justify-center gap-2" aria-label="Vistas del bundle">
+      <nav className="flex flex-wrap items-center justify-center gap-2" aria-label={t.bundleViews}>
         {[
-          { id: 'apply' as Tab, label: 'Cómo aplicarlo', Icon: LuListChecks },
-          { id: 'files' as Tab, label: 'Archivos', Icon: LuFileCode2 },
-          { id: 'platforms' as Tab, label: 'Plataformas', Icon: LuLayers },
-          { id: 'manifest' as Tab, label: 'Manifest y hashes', Icon: LuBraces },
+          { id: 'apply' as Tab, label: t.tabs.apply, Icon: LuListChecks },
+          { id: 'files' as Tab, label: t.tabs.files, Icon: LuFileCode2 },
+          { id: 'platforms' as Tab, label: t.tabs.platforms, Icon: LuLayers },
+          { id: 'manifest' as Tab, label: t.tabs.manifest, Icon: LuBraces },
         ].map((item) => (
           <button
             key={item.id}
@@ -413,7 +405,7 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
         <div className="flex flex-col gap-4">
           <div className="grid gap-4 lg:grid-cols-2">
             <div className={glassCard('flex flex-col gap-3 rounded-2xl p-5')}>
-              <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Pasos de aplicación</span>
+              <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">{t.applyStepsTitle}</span>
               <p className="text-sm leading-relaxed text-zinc-400">{bundle.applicationGuide.summary}</p>
               <ol className="flex flex-col gap-2">
                 {bundle.applicationGuide.steps.map((step, index) => (
@@ -428,11 +420,11 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
             </div>
 
             <div className={glassCard('flex flex-col gap-3 rounded-2xl p-5')}>
-              <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Checklist de producción</span>
+              <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                {t.productionChecklistTitle}
+              </span>
               {bundle.applicationGuide.productionChecklist.length === 0 ? (
-                <p className="text-sm text-zinc-500">
-                  Este agente no declara alcance de producción, así que el generador no añadió checklist operacional.
-                </p>
+                <p className="text-sm text-zinc-500">{t.noProductionChecklist}</p>
               ) : (
                 <ul className="flex flex-col gap-2">
                   {bundle.applicationGuide.productionChecklist.map((item, index) => (
@@ -449,7 +441,7 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
           {promptArtifact && (
             <div className={glassCard('flex flex-col gap-3 rounded-2xl p-5')}>
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Prompt para el agente</span>
+                <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">{t.promptForAgent}</span>
                 <button
                   type="button"
                   onClick={() => copy('prompt', promptArtifact.content)}
@@ -458,12 +450,12 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
                   {copied === 'prompt' ? (
                     <>
                       <LuCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                      Copiado
+                      {common.copied}
                     </>
                   ) : (
                     <>
                       <LuClipboard className="h-3.5 w-3.5" aria-hidden="true" />
-                      Copiar prompt
+                      {common.copy}
                     </>
                   )}
                 </button>
@@ -471,9 +463,7 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
               <pre className="creator-scroll max-h-[40vh] overflow-auto rounded-2xl border border-white/[0.06] bg-black/30 p-3 text-xs leading-relaxed text-zinc-300">
                 {highlightArtifact(promptArtifact.content, detectArtifactLanguage(promptArtifact.path))}
               </pre>
-              <p className="text-xs text-zinc-500">
-                Copia este prompt junto con los artefactos del bundle para iniciar al agente con el contexto completo.
-              </p>
+              <p className="text-xs text-zinc-500">{t.promptHelp}</p>
             </div>
           )}
         </div>
@@ -483,7 +473,9 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
         <div className={glassCard('flex flex-col gap-3 rounded-2xl p-5')}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-              {bundle.manifest.artifactCount} archivos · agente {bundle.manifest.agent}
+              {t.manifest.title
+                .replace('{count}', String(bundle.manifest.artifactCount))
+                .replace('{agent}', bundle.manifest.agent)}
             </span>
             <button
               type="button"
@@ -493,32 +485,29 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
               {copied === 'manifest' ? (
                 <>
                   <LuCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                  Copiado
+                  {common.copied}
                 </>
               ) : (
                 <>
                   <LuClipboard className="h-3.5 w-3.5" aria-hidden="true" />
-                  Copiar manifest
+                  {t.manifest.copy}
                 </>
               )}
             </button>
           </div>
-          <p className="text-xs leading-relaxed text-zinc-500">
-            El mismo conjunto de respuestas produce siempre estos hashes. Compáralos después de copiar los archivos para
-            confirmar que nada se alteró en el camino.
-          </p>
+          <p className="text-xs leading-relaxed text-zinc-500">{t.manifest.description}</p>
           <div className="creator-scroll max-h-[46vh] overflow-y-auto">
             <table className="w-full text-left text-xs">
               <thead className="sticky top-0 bg-black/40 backdrop-blur">
                 <tr className="text-[10px] uppercase tracking-wide text-zinc-600">
                   <th scope="col" className="px-2 py-2 font-medium">
-                    Archivo
+                    {t.manifest.headers.file}
                   </th>
                   <th scope="col" className="px-2 py-2 font-medium">
-                    Tipo
+                    {t.manifest.headers.type}
                   </th>
                   <th scope="col" className="px-2 py-2 font-medium">
-                    SHA-256
+                    {t.manifest.headers.sha256}
                   </th>
                 </tr>
               </thead>
@@ -528,7 +517,7 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
                     <td className="max-w-[16rem] truncate px-2 py-2 text-zinc-300" title={file.path}>
                       {file.path}
                     </td>
-                    <td className="px-2 py-2 text-zinc-500">{KIND_LABELS[file.kind] ?? file.kind}</td>
+                    <td className="px-2 py-2 text-zinc-500">{kindLabel(file.kind)}</td>
                     <td className="truncate px-2 py-2 font-mono text-[10px] text-zinc-600" title={file.sha256}>
                       {file.sha256.slice(0, 16)}…
                     </td>

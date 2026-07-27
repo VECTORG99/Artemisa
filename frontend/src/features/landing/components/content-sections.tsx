@@ -58,7 +58,7 @@ export function HeroSection() {
         </div>
 
         <p className="mx-auto mt-4 block w-fit text-sm text-white text-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
-          ── o configura manualmente ──
+          {t.orConfigureManually}
         </p>
 
         <Link
@@ -81,35 +81,15 @@ export function HeroSection() {
 // Three, not four — consolidated onto a single screen instead of one
 // full-viewport scroll-snap section per item.
 
-interface ValueProp {
-  title: string;
-  description: string;
+interface ValuePropMeta {
   hue: number;
   icon: IconType;
 }
 
-const valueProps: ValueProp[] = [
-  {
-    title: 'Árbol de decisiones determinista',
-    description:
-      '32 pasos guiados que adaptan la configuración a tu contexto: desarrollo, producción o ambos. Reduce horas de ajuste a minutos sin dejar que un LLM decida la arquitectura por ti.',
-    hue: 205,
-    icon: LuGitBranch,
-  },
-  {
-    title: 'Recomendaciones con evidencia',
-    description:
-      'Cada sugerencia incluye motivo, trade-offs y alternativas comparadas. Configura con criterio visible y reduce decisiones ciegas.',
-    hue: 280,
-    icon: LuScale,
-  },
-  {
-    title: 'Compatible con 6+ plataformas',
-    description:
-      'Un mismo bundle se adapta a Cursor, Devin, CodeRabbit, Kilo Code, Kiro y otras herramientas. Aplica tu agente donde ya trabajas, sin reescribir configuraciones.',
-    hue: 160,
-    icon: LuLayers,
-  },
+const VALUE_PROPS: ValuePropMeta[] = [
+  { hue: 205, icon: LuGitBranch },
+  { hue: 280, icon: LuScale },
+  { hue: 160, icon: LuLayers },
 ];
 
 function ValueIconBox({ icon: Icon, hue }: { icon: IconType; hue: number }) {
@@ -127,24 +107,29 @@ function ValueIconBox({ icon: Icon, hue }: { icon: IconType; hue: number }) {
 }
 
 function ValuePropsSection() {
+  const t = useTranslations('landing');
   const ref = useSectionFadeIn<HTMLDivElement>();
   return (
     <section className="flex min-h-screen sm:h-screen snap-start snap-always items-center justify-center px-6">
-      <h2 className="sr-only">Características principales</h2>
+      <h2 className="sr-only">{t.valuePropsTitle}</h2>
       <div ref={ref} className="section-content relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
-        {valueProps.map((prop) => (
-          <div
-            key={prop.title}
-            className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
-            style={glassStyle}
-          >
-            <ValueIconBox icon={prop.icon} hue={prop.hue} />
-            <h3 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
-              {prop.title}
-            </h3>
-            <p className="relative mt-2 text-sm leading-relaxed text-white/90">{prop.description}</p>
-          </div>
-        ))}
+        {VALUE_PROPS.map((prop, index) => {
+          const copy = t.valueProps[index];
+          if (!copy) return null;
+          return (
+            <div
+              key={copy.title}
+              className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
+              style={glassStyle}
+            >
+              <ValueIconBox icon={prop.icon} hue={prop.hue} />
+              <h3 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
+                {copy.title}
+              </h3>
+              <p className="relative mt-2 text-sm leading-relaxed text-white/90">{copy.description}</p>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
@@ -163,9 +148,14 @@ interface TechItem {
   color: string;
 }
 
-const techGroups: { title: string; items: TechItem[] }[] = [
+interface TechGroupMeta {
+  key: 'backend' | 'frontend' | 'quality' | 'infrastructure';
+  items: TechItem[];
+}
+
+const TECH_GROUPS: TechGroupMeta[] = [
   {
-    title: 'Backend',
+    key: 'backend',
     items: [
       { label: 'Node.js', url: 'https://nodejs.org', Icon: SiNodedotjs, color: 'rgb(83,175,43)' },
       { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript, color: 'rgb(49,120,198)' },
@@ -173,7 +163,7 @@ const techGroups: { title: string; items: TechItem[] }[] = [
     ],
   },
   {
-    title: 'Frontend',
+    key: 'frontend',
     items: [
       { label: 'Next.js 16', url: 'https://nextjs.org', Icon: SiNextdotjs, color: 'rgb(255,255,255)' },
       { label: 'React 19', url: 'https://react.dev', Icon: SiReact, color: 'rgb(97,219,251)' },
@@ -183,7 +173,7 @@ const techGroups: { title: string; items: TechItem[] }[] = [
     ],
   },
   {
-    title: 'Calidad y CI',
+    key: 'quality',
     items: [
       {
         label: 'Node test runner',
@@ -203,7 +193,7 @@ const techGroups: { title: string; items: TechItem[] }[] = [
     ],
   },
   {
-    title: 'Infraestructura',
+    key: 'infrastructure',
     items: [
       { label: 'Docker', url: 'https://www.docker.com', Icon: SiDocker, color: 'rgb(36,150,237)' },
       { label: 'Docker Compose', url: 'https://docs.docker.com/compose/', Icon: SiDocker, color: 'rgb(36,150,237)' },
@@ -219,6 +209,7 @@ const techGroups: { title: string; items: TechItem[] }[] = [
 ];
 
 function TechStackSection() {
+  const t = useTranslations('landing');
   const ref = useSectionFadeIn<HTMLDivElement>();
   return (
     <section
@@ -230,38 +221,39 @@ function TechStackSection() {
         className="section-content relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10"
         style={glassStyle}
       >
-        <span className="text-xs font-semibold uppercase tracking-wider text-white/80">Stack real del proyecto</span>
-        <h2 className="mt-2 text-3xl font-bold text-white">Tecnología que usamos</h2>
-        <p className="mx-auto mt-2 max-w-xl text-sm text-white/80">
-          Artemisa es open source. Este es el stack exacto con el que está construido.
-        </p>
+        <span className="text-xs font-semibold uppercase tracking-wider text-white/80">{t.techStack.eyebrow}</span>
+        <h2 className="mt-2 text-3xl font-bold text-white">{t.techStack.title}</h2>
+        <p className="mx-auto mt-2 max-w-xl text-sm text-white/80">{t.techStack.subtitle}</p>
         <div className="mt-8 grid gap-6 text-center sm:grid-cols-2">
-          {techGroups.map((group) => (
-            <div key={group.title}>
-              <h3 className="text-center text-sm font-semibold text-white/80">{group.title}</h3>
-              <ul className="mt-2 flex flex-wrap justify-center gap-2">
-                {group.items.map((item) => (
-                  <li key={item.label}>
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs transition-colors"
-                      style={{
-                        backdropFilter: 'blur(6px)',
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        color: item.color,
-                      }}
-                    >
-                      {item.Icon && <item.Icon className="h-3.5 w-3.5" aria-hidden="true" />}
-                      {item.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {TECH_GROUPS.map((group) => {
+            const groupTitle = t.techStack.groups[group.key].title;
+            return (
+              <div key={group.key}>
+                <h3 className="text-center text-sm font-semibold text-white/80">{groupTitle}</h3>
+                <ul className="mt-2 flex flex-wrap justify-center gap-2">
+                  {group.items.map((item) => (
+                    <li key={item.label}>
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs transition-colors"
+                        style={{
+                          backdropFilter: 'blur(6px)',
+                          background: 'rgba(255,255,255,0.03)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          color: item.color,
+                        }}
+                      >
+                        {item.Icon && <item.Icon className="h-3.5 w-3.5" aria-hidden="true" />}
+                        {item.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -311,41 +303,15 @@ export function ContentSections() {
 // would clutter a first-glance landing page. They only render when the
 // user explicitly clicks a nav/footer link — never part of the scroll.
 
-interface UseCase {
-  title: string;
-  description: string;
-}
-
-const useCases: UseCase[] = [
-  {
-    title: 'Scaffolding de proyectos',
-    description:
-      'Configura un agente orientado a proponer estructuras base, módulos y componentes según las convenciones del proyecto.',
-  },
-  {
-    title: 'Pruebas automáticas',
-    description:
-      'Configura un agente orientado a proponer pruebas unitarias y de integración según el código y los criterios definidos.',
-  },
-  {
-    title: 'Revisión de Pull Requests',
-    description:
-      'Genera archivos para configurar revisiones de cambios, riesgos y hallazgos con evidencia, sin habilitar merges automáticos.',
-  },
-];
-
 function UseCasesModalContent() {
+  const t = useTranslations('landing');
   return (
     <>
-      <span className="text-xs font-semibold uppercase tracking-wider text-white/80">
-        Productividad del desarrollador
-      </span>
-      <h2 className="mt-2 text-3xl font-bold text-white">Casos de uso</h2>
-      <p className="mt-2 max-w-xl text-sm text-white/80">
-        Configuraciones reproducibles para agentes especializados en tareas de desarrollo.
-      </p>
+      <span className="text-xs font-semibold uppercase tracking-wider text-white/80">{t.useCases.eyebrow}</span>
+      <h2 className="mt-2 text-3xl font-bold text-white">{t.useCases.title}</h2>
+      <p className="mt-2 max-w-xl text-sm text-white/80">{t.useCases.subtitle}</p>
       <div className="mt-8 flex flex-col gap-4">
-        {useCases.map((useCase) => (
+        {t.useCases.cases.map((useCase) => (
           <div key={useCase.title} className="rounded-xl p-5" style={glassStyle}>
             <h3 className="text-base font-semibold text-white">{useCase.title}</h3>
             <p className="mt-1.5 text-sm leading-relaxed text-white/80">{useCase.description}</p>
@@ -357,41 +323,36 @@ function UseCasesModalContent() {
 }
 
 function LegalModalContent() {
+  const t = useTranslations('landing');
   return (
     <>
-      <span className="text-xs font-semibold uppercase tracking-wider text-white/70">Información legal</span>
-      <h2 className="mt-2 text-3xl font-bold text-white">Licencia y uso</h2>
+      <span className="text-xs font-semibold uppercase tracking-wider text-white/70">{t.legal.eyebrow}</span>
+      <h2 className="mt-2 text-3xl font-bold text-white">{t.legal.title}</h2>
       <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-white/80">
         <p>
-          Artemisa se distribuye bajo la{' '}
+          {t.legal.p1Before}
           <a
             href="https://github.com/VECTORG99/Artemisa/blob/development/LICENSE"
             target="_blank"
             rel="noopener noreferrer"
             className="text-white/90 underline underline-offset-2 hover:text-white"
           >
-            Mozilla Public License 2.0 (MPL-2.0)
+            {t.legal.p1Link}
           </a>
-          . Es una licencia de copyleft débil: puedes usar, modificar y distribuir el software, incluso combinado con
-          código propietario, pero cualquier archivo modificado de este proyecto debe conservarse bajo MPL-2.0 y
-          mantener el aviso de copyright y contribuidores originales.
+          {t.legal.p1After}
         </p>
-        <p>
-          El creador no ejecuta código, no realiza llamadas de red ni usa credenciales durante la generación de
-          configuración: es una compilación pura, determinista y auditable. Artemisa sólo genera archivos de
-          configuración; aplicarlos y ejecutar el agente queda siempre del lado del usuario.
-        </p>
+        <p>{t.legal.p2}</p>
         <p className="text-white/70">
-          Código fuente completo, historial de cambios, autores y reporte de issues disponibles en{' '}
+          {t.legal.p3Before}
           <a
             href="https://github.com/VECTORG99/Artemisa"
             target="_blank"
             rel="noopener noreferrer"
             className="text-white/80 underline underline-offset-2 hover:text-white"
           >
-            github.com/VECTORG99/Artemisa
+            {t.legal.p3Link}
           </a>
-          .
+          {t.legal.p3After}
         </p>
       </div>
     </>
@@ -400,12 +361,13 @@ function LegalModalContent() {
 
 function LandingModals() {
   const { openModal, close } = useLandingModal();
+  const t = useTranslations('landing');
   return (
     <>
-      <Modal open={openModal === 'casos-de-uso'} onClose={close} title="Casos de uso">
+      <Modal open={openModal === 'casos-de-uso'} onClose={close} title={t.useCases.title}>
         <UseCasesModalContent />
       </Modal>
-      <Modal open={openModal === 'legal'} onClose={close} title="Información legal">
+      <Modal open={openModal === 'legal'} onClose={close} title={t.legal.title}>
         <LegalModalContent />
       </Modal>
     </>

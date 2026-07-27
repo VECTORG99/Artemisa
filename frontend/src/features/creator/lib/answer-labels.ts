@@ -18,6 +18,20 @@ import type { Catalog, CreatorAnswers, CreatorAnswerValue, DecisionQuestion, Wor
 /** Section used for answers that have no matching question in the workflow. */
 export const FALLBACK_SECTION = 'Otros';
 
+interface AnswerLabels {
+  yesLabel: string;
+  noLabel: string;
+  customPrefix: string;
+  fallbackSection: string;
+}
+
+const DEFAULT_LABELS: AnswerLabels = {
+  yesLabel: 'Sí',
+  noLabel: 'No',
+  customPrefix: 'Personalizado: ',
+  fallbackSection: FALLBACK_SECTION,
+};
+
 /** Prefix the backend uses for user-provided catalog entries. */
 const CUSTOM_PREFIX = 'custom:';
 
@@ -98,9 +112,14 @@ function isEmptyValue(value: CreatorAnswerValue): boolean {
 }
 
 /** Resolve one id through the question options, then the catalog lookup. */
-function resolveId(question: DecisionQuestion | undefined, id: string, lookup: LabelLookup): string {
+function resolveId(
+  question: DecisionQuestion | undefined,
+  id: string,
+  lookup: LabelLookup,
+  customPrefix: string,
+): string {
   if (id.startsWith(CUSTOM_PREFIX)) {
-    return `Personalizado: ${humanizeSlug(id.slice(CUSTOM_PREFIX.length))}`;
+    return `${customPrefix}${humanizeSlug(id.slice(CUSTOM_PREFIX.length))}`;
   }
 
   const option = question?.options?.find((candidate) => candidate.id === id);
@@ -120,14 +139,21 @@ export function formatAnswerValue(
   question: DecisionQuestion | undefined,
   value: CreatorAnswerValue,
   lookup: LabelLookup,
+  labels: Partial<AnswerLabels> = {},
 ): string[] {
-  if (typeof value === 'boolean') return [value ? 'Sí' : 'No'];
+  const {
+    yesLabel = DEFAULT_LABELS.yesLabel,
+    noLabel = DEFAULT_LABELS.noLabel,
+    customPrefix = DEFAULT_LABELS.customPrefix,
+  } = labels;
+
+  if (typeof value === 'boolean') return [value ? yesLabel : noLabel];
 
   if (Array.isArray(value)) {
     return value
       .map((entry) => entry.trim())
       .filter((entry) => entry.length > 0)
-      .map((entry) => resolveId(question, entry, lookup));
+      .map((entry) => resolveId(question, entry, lookup, customPrefix));
   }
 
   const text = value.trim();
@@ -136,7 +162,7 @@ export function formatAnswerValue(
   // Free text passes through untouched; everything else is an id to resolve.
   if (question?.type === 'text' || question?.type === 'textarea') return [text];
 
-  return [resolveId(question, text, lookup)];
+  return [resolveId(question, text, lookup, customPrefix)];
 }
 
 /** Format a single answer, using the question metadata when available. */
@@ -145,12 +171,13 @@ export function formatAnswer(
   value: CreatorAnswerValue,
   question: DecisionQuestion | undefined,
   lookup: LabelLookup,
+  labels: Partial<AnswerLabels> = {},
 ): FormattedAnswer {
   return {
     questionId,
-    section: question?.section ?? FALLBACK_SECTION,
+    section: question?.section ?? labels.fallbackSection ?? DEFAULT_LABELS.fallbackSection,
     label: question?.prompt ?? questionId,
-    values: formatAnswerValue(question, value, lookup),
+    values: formatAnswerValue(question, value, lookup, labels),
     raw: value,
     empty: isEmptyValue(value),
     custom: hasCustomEntry(value),
@@ -167,6 +194,7 @@ export function groupAnswersBySection(
   answers: CreatorAnswers,
   workflow: Workflow | null,
   lookup: LabelLookup,
+  labels: Partial<AnswerLabels> = {},
 ): AnswerSection[] {
   const questions = new Map<string, DecisionQuestion>();
   for (const question of workflow?.questions ?? []) {
@@ -179,13 +207,13 @@ export function groupAnswersBySection(
   for (const question of workflow?.questions ?? []) {
     if (!(question.id in answers)) continue;
     seen.add(question.id);
-    ordered.push(formatAnswer(question.id, answers[question.id], question, lookup));
+    ordered.push(formatAnswer(question.id, answers[question.id], question, lookup, labels));
   }
 
   // Unknown ids keep their insertion order and come after the workflow ones.
   for (const [questionId, value] of Object.entries(answers)) {
     if (seen.has(questionId)) continue;
-    ordered.push(formatAnswer(questionId, value, questions.get(questionId), lookup));
+    ordered.push(formatAnswer(questionId, value, questions.get(questionId), lookup, labels));
   }
 
   const sections: AnswerSection[] = [];
