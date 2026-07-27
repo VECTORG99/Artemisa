@@ -14,9 +14,7 @@
  * neutral white check, warnings are amber, failures use `danger`.
  */
 
-// Single implementation lives in lib/utils.ts; re-exported here so glass
-// consumers don't need a second import (issue #485 flagged the duplicate).
-export { cn } from './utils';
+// cn() lives in lib/utils.ts — imported here for internal use by glass helpers.
 import { cn } from './utils';
 
 /** Inline style object — identical to the landing's `glassStyle` constant. */
