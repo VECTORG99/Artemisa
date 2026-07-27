@@ -1,0 +1,23 @@
+graph TD
+    subgraph "page.tsx (NewAgentPage)"
+        M["ModeSelect"]
+        P["PresetsGallery"]
+        Q["DynamicQuestion"]
+        D["FineTuningDashboard"]
+        R["ReviewScreen"]
+        C["CompletionScreen"]
+    end
+
+    Q --> OP["OptionPicker"]
+    D --> OP
+    D --> MB["McpBrowser"]
+    D --> SB["SkillsBrowser"]
+    C --> AH["artifact-highlight.tsx"]
+    
+    subgraph "Shared UI"
+        SC["StepContainer"]
+        GB["glass.ts (Styles)"]
+    end
+    
+    M & P & Q & D & R & C -.-> SC
+    M & P & Q & D & R & C -.-> GB

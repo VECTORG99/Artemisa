@@ -1,0 +1,33 @@
+sequenceDiagram
+    participant A as "AI Agent"
+    participant R as "src/creator/router.ts"
+    participant P as "src/creator/agentProtocol.ts"
+    participant D as "src/creator/decisionTree.ts"
+    participant G as "src/creator/generator.ts"
+
+    Note over A, G: Phase 1: Discovery
+    A->>R: GET /agent
+    R->>P: getAgentProtocol(baseUrl)
+    P-->>A: AgentProtocolResponse (Steps & Instructions)
+
+    Note over A, G: Phase 2: Incremental Configuration
+    A->>R: GET /agent/start
+    R->>P: getAgentStart()
+    P->>D: evaluateDecisionTree({})
+    D-->>P: DecisionEvaluation
+    P-->>A: AgentStartResponse (First Question + Catalog Summary)
+
+    loop Until progress.complete is true
+        A->>R: POST /agent/answer { answers }
+        R->>P: processAgentAnswer(body)
+        P->>D: evaluateDecisionTree(answers)
+        D-->>P: DecisionEvaluation
+        P-->>A: AgentAnswerResponse (Next Question + Hints)
+    end
+
+    Note over A, G: Phase 3: Generation
+    A->>R: POST /agent/generate { answers }
+    R->>P: generateAgentBundle(body)
+    P->>G: generateBundle(answers)
+    G-->>P: GeneratedAgentBundle
+    P-->>A: AgentGenerateResponse (Bundle + Application Instructions)

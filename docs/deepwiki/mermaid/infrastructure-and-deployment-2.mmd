@@ -1,0 +1,19 @@
+classDiagram
+    class Config {
+        <<src/config.ts>>
+        +server.port
+        +server.host
+        +server.requestTimeoutMs
+    }
+    class AuthMiddleware {
+        <<src/middleware/auth.ts>>
+        +ARTEMISA_API_KEYS
+        +BYPASS_SECRET
+    }
+    class AppEntry {
+        <<src/app.ts>>
+        +RATE_LIMIT_GLOBAL
+        +CORS_ALLOWED_ORIGINS
+    }
+    Config --* AppEntry : provides defaults
+    AuthMiddleware --* AppEntry : secures routes

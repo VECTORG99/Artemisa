@@ -1,0 +1,24 @@
+graph LR
+    subgraph "Natural Language Space"
+        UI["Creator UI"]
+        Draft["Draft Persistence"]
+        API["API Communication"]
+    end
+
+    subgraph "Code Entity Space (Frontend)"
+        Page["frontend/src/app/agents/new/page.tsx"]
+        Session["sessionStorage (session.ts)"]
+        Client["frontend/src/lib/api.ts"]
+        Evaluate["evaluate()"]
+        Generate["generate()"]
+    end
+
+    UI --> Page
+    Page --> Session
+    Page --> Client
+    Client --> Evaluate
+    Client --> Generate
+
+    style UI stroke-dasharray: 5 5
+    style Draft stroke-dasharray: 5 5
+    style API stroke-dasharray: 5 5

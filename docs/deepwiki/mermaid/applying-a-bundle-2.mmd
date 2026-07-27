@@ -1,0 +1,23 @@
+classDiagram
+    class GeneratedAgentBundle {
+        +AgentBlueprint blueprint
+        +GeneratedArtifact[] artifacts
+        +Manifest manifest
+    }
+    class GeneratedArtifact {
+        +string path
+        +string content
+        +string sha256
+        +string mediaType
+    }
+    class SecurityPolicy {
+        +AllowedCommandEntry[] allowed_commands
+        +string[] allowed_paths
+    }
+    class AllowedCommandEntry {
+        +string binary
+        +string[] allowed_args
+    }
+    GeneratedAgentBundle "1" *-- "many" GeneratedArtifact
+    GeneratedArtifact --|> SecurityPolicy : "if path is security-policy.json"
+    SecurityPolicy "1" *-- "many" AllowedCommandEntry

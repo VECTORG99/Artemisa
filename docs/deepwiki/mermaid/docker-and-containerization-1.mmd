@@ -1,0 +1,19 @@
+graph TD
+    subgraph "External"
+        User["User Browser"]
+    end
+
+    subgraph "Docker Network: artemisa-network"
+        Frontend["artemisa-frontend (Next.js)"]
+        Backend["artemisa-backend (Express)"]
+        Legacy["artemisa-creator (Vite + Caddy)"]
+    end
+
+    User -->|":3000"| Frontend
+    User -->|":5173"| Legacy
+    Frontend -->|"/api"| Backend
+    Legacy -->|"/api"| Backend
+    
+    style Backend stroke-width:2px
+    style Frontend stroke-width:2px
+    style Legacy stroke-dasharray: 5 5

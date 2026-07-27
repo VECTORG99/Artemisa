@@ -1,0 +1,18 @@
+sequenceDiagram
+    participant B as Build Script (write-sw-version.mjs)
+    participant V as sw-version.js
+    participant SW as sw.js (Service Worker)
+    participant C as ServiceWorkerRegister.tsx
+    participant N as Navigator (Browser)
+
+    B->>V: Writes self.ARTEMISA_SW_VERSION = COMMIT_SHA [frontend/scripts/write-sw-version.mjs:4-14]
+    SW->>V: importScripts('/sw-version.js') [frontend/public/sw.js:16]
+    C->>N: register('/sw.js') [frontend/src/components/service-worker-register.tsx:46-48]
+    N->>SW: check for updates
+    SW-->>C: 'updatefound' event [frontend/src/components/service-worker-register.tsx:30]
+    C->>C: setWaitingWorker(worker) [frontend/src/components/service-worker-register.tsx:24]
+    Note over C: UI shows "Hay una version nueva disponible"
+    C->>SW: postMessage({ type: 'SKIP_WAITING' }) [frontend/src/components/service-worker-register.tsx:69]
+    SW->>SW: self.skipWaiting() [frontend/public/sw.js:43]
+    N->>C: 'controllerchange' event [frontend/src/components/service-worker-register.tsx:54]
+    C->>N: window.location.reload() [frontend/src/components/service-worker-register.tsx:42]

@@ -1,0 +1,12 @@
+flowchart LR
+  INPUT["CreatorAnswers"] --> EVAL["src/creator/decisionTree.ts"]
+  EVAL -->|evaluation| UI["Frontend UI"]
+  
+  INPUT --> GEN["src/creator/generator.ts"]
+  GEN --> BLUEPRINT["artemisa.blueprint.json"]
+  GEN --> MANIFEST["manifest.json"]
+  GEN --> TARGETS["Target Artifacts (.kiro, AGENTS.md, etc)"]
+  
+  subgraph "Integrity"
+    MANIFEST -.->|SHA-256| TARGETS
+  end

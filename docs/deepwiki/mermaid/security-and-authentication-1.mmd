@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant C as Client
+    participant M as requireAuth (auth.ts)
+    participant V as findValidKeyIndex
+    participant T as TenantContext
+
+    C->>M: Request (Header: Authorization or X-API-Key)
+    Note over M: extractToken()
+    M->>V: token string
+    Note over V: crypto.createHmac('sha256')
+    Note over V: crypto.timingSafeEqual()
+    V-->>M: keyIndex (or -1)
+    
+    alt is valid
+        M->>T: deriveTenantId(API_KEYS[keyIndex])
+        T-->>M: tenantId (8 chars hex)
+        Note over M: req.tenantId = tenantId
+        M->>C: next() -> Route Handler
+    else is invalid
+        M->>C: 403 Forbidden (AUTH_INVALID)
+    end

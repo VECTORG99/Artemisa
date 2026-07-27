@@ -1,0 +1,18 @@
+sequenceDiagram
+    participant T as test/api_test.mjs
+    participant R as src/creator/router.ts
+    participant P as src/creator/agentProtocol.ts
+
+    T->>R: GET /api/v1/creator/agent/start
+    R->>P: getAgentStart()
+    P-->>T: 200 OK (first_question: agent_name)
+
+    loop Every Question
+        T->>R: POST /api/v1/creator/agent/answer
+        R->>P: processAgentAnswer(answers)
+        P-->>T: 200 OK (next_question + progress)
+    end
+
+    T->>R: POST /api/v1/creator/agent/generate
+    R->>P: generateAgentBundleProtocol(answers)
+    P-->>T: 200 OK (artifacts + application_instructions)

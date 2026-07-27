@@ -1,0 +1,173 @@
+{
+  "artemisa-overview": {
+    "title": "Artemisa Overview",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/artemisa-overview",
+    "file": "artemisa-overview.md",
+    "diagrams": ["artemisa-overview-1.mmd", "artemisa-overview-2.mmd"]
+  },
+  "getting-started": {
+    "title": "Getting Started",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/getting-started",
+    "file": "getting-started.md",
+    "diagrams": ["getting-started-1.mmd", "getting-started-2.mmd"]
+  },
+  "architectural-decision-records-adrs": {
+    "title": "Architectural Decision Records (ADRs)",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/architectural-decision-records-adrs",
+    "file": "architectural-decision-records-adrs.md",
+    "diagrams": ["architectural-decision-records-adrs-1.mmd", "architectural-decision-records-adrs-2.mmd"]
+  },
+  "backend-core": {
+    "title": "Backend Core",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/backend-core",
+    "file": "backend-core.md",
+    "diagrams": ["backend-core-1.mmd", "backend-core-2.mmd"]
+  },
+  "server-entrypoint-and-middleware": {
+    "title": "Server Entrypoint and Middleware",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/server-entrypoint-and-middleware",
+    "file": "server-entrypoint-and-middleware.md",
+    "diagrams": ["server-entrypoint-and-middleware-1.mmd", "server-entrypoint-and-middleware-2.mmd"]
+  },
+  "creator-pipeline": {
+    "title": "Creator Pipeline",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/creator-pipeline",
+    "file": "creator-pipeline.md",
+    "diagrams": ["creator-pipeline-1.mmd", "creator-pipeline-2.mmd"]
+  },
+  "decision-tree-and-catalog": {
+    "title": "Decision Tree and Catalog",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/decision-tree-and-catalog",
+    "file": "decision-tree-and-catalog.md",
+    "diagrams": ["decision-tree-and-catalog-1.mmd", "decision-tree-and-catalog-2.mmd"]
+  },
+  "bundle-generator-and-artifact-system": {
+    "title": "Bundle Generator and Artifact System",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/bundle-generator-and-artifact-system",
+    "file": "bundle-generator-and-artifact-system.md",
+    "diagrams": ["bundle-generator-and-artifact-system-1.mmd", "bundle-generator-and-artifact-system-2.mmd"]
+  },
+  "agent-protocol-and-onboarding-flow": {
+    "title": "Agent Protocol and Onboarding Flow",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/agent-protocol-and-onboarding-flow",
+    "file": "agent-protocol-and-onboarding-flow.md",
+    "diagrams": ["agent-protocol-and-onboarding-flow-1.mmd", "agent-protocol-and-onboarding-flow-2.mmd"]
+  },
+  "security-and-authentication": {
+    "title": "Security and Authentication",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/security-and-authentication",
+    "file": "security-and-authentication.md",
+    "diagrams": ["security-and-authentication-1.mmd", "security-and-authentication-2.mmd"]
+  },
+  "frontend-application": {
+    "title": "Frontend Application",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/frontend-application",
+    "file": "frontend-application.md",
+    "diagrams": ["frontend-application-1.mmd", "frontend-application-2.mmd"]
+  },
+  "landing-page-and-navigation": {
+    "title": "Landing Page and Navigation",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/landing-page-and-navigation",
+    "file": "landing-page-and-navigation.md",
+    "diagrams": ["landing-page-and-navigation-1.mmd", "landing-page-and-navigation-2.mmd"]
+  },
+  "creator-ui": {
+    "title": "Creator UI",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/creator-ui",
+    "file": "creator-ui.md",
+    "diagrams": ["creator-ui-1.mmd", "creator-ui-2.mmd"]
+  },
+  "creator-state-management-and-session": {
+    "title": "Creator State Management and Session",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/creator-state-management-and-session",
+    "file": "creator-state-management-and-session.md",
+    "diagrams": ["creator-state-management-and-session-1.mmd", "creator-state-management-and-session-2.mmd"]
+  },
+  "frontend-api-client": {
+    "title": "Frontend API Client",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/frontend-api-client",
+    "file": "frontend-api-client.md",
+    "diagrams": ["frontend-api-client-1.mmd", "frontend-api-client-2.mmd"]
+  },
+  "design-system-and-internationalization": {
+    "title": "Design System and Internationalization",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/design-system-and-internationalization",
+    "file": "design-system-and-internationalization.md",
+    "diagrams": ["design-system-and-internationalization-1.mmd", "design-system-and-internationalization-2.mmd"]
+  },
+  "legacy-agent-creator-agent-creator": {
+    "title": "Legacy Agent Creator (agent-creator/)",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/legacy-agent-creator-agent-creator",
+    "file": "legacy-agent-creator-agent-creator.md",
+    "diagrams": ["legacy-agent-creator-agent-creator-1.mmd", "legacy-agent-creator-agent-creator-2.mmd"]
+  },
+  "shared-types-package-artemisa-types": {
+    "title": "Shared Types Package (@artemisa/types)",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/shared-types-package-artemisa-types",
+    "file": "shared-types-package-artemisa-types.md",
+    "diagrams": ["shared-types-package-artemisa-types-1.mmd", "shared-types-package-artemisa-types-2.mmd"]
+  },
+  "infrastructure-and-deployment": {
+    "title": "Infrastructure and Deployment",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/infrastructure-and-deployment",
+    "file": "infrastructure-and-deployment.md",
+    "diagrams": ["infrastructure-and-deployment-1.mmd", "infrastructure-and-deployment-2.mmd"]
+  },
+  "docker-and-containerization": {
+    "title": "Docker and Containerization",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/docker-and-containerization",
+    "file": "docker-and-containerization.md",
+    "diagrams": ["docker-and-containerization-1.mmd", "docker-and-containerization-2.mmd"]
+  },
+  "ci-cd-and-code-quality": {
+    "title": "CI/CD and Code Quality",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/ci-cd-and-code-quality",
+    "file": "ci-cd-and-code-quality.md",
+    "diagrams": ["ci-cd-and-code-quality-1.mmd", "ci-cd-and-code-quality-2.mmd"]
+  },
+  "testing-strategy": {
+    "title": "Testing Strategy",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/testing-strategy",
+    "file": "testing-strategy.md",
+    "diagrams": ["testing-strategy-1.mmd", "testing-strategy-2.mmd"]
+  },
+  "backend-tests": {
+    "title": "Backend Tests",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/backend-tests",
+    "file": "backend-tests.md",
+    "diagrams": ["backend-tests-1.mmd", "backend-tests-2.mmd"]
+  },
+  "frontend-tests-and-e2e": {
+    "title": "Frontend Tests and E2E",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/frontend-tests-and-e2e",
+    "file": "frontend-tests-and-e2e.md",
+    "diagrams": ["frontend-tests-and-e2e-1.mmd", "frontend-tests-and-e2e-2.mmd"]
+  },
+  "reference-material-and-documentation": {
+    "title": "Reference Material and Documentation",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/reference-material-and-documentation",
+    "file": "reference-material-and-documentation.md",
+    "diagrams": ["reference-material-and-documentation-1.mmd"]
+  },
+  "applying-a-bundle": {
+    "title": "Applying a Bundle",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/applying-a-bundle",
+    "file": "applying-a-bundle.md",
+    "diagrams": ["applying-a-bundle-1.mmd", "applying-a-bundle-2.mmd"]
+  },
+  "reference-artifacts-steering-security-policy-hooks": {
+    "title": "Reference Artifacts (Steering, Security Policy, Hooks)",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/reference-artifacts-steering-security-policy-hooks",
+    "file": "reference-artifacts-steering-security-policy-hooks.md",
+    "diagrams": [
+      "reference-artifacts-steering-security-policy-hooks-1.mmd",
+      "reference-artifacts-steering-security-policy-hooks-2.mmd"
+    ]
+  },
+  "glossary": {
+    "title": "Glossary",
+    "url": "https://deepwiki.com/VECTORG99/Artemisa/glossary",
+    "file": "glossary.md",
+    "diagrams": ["glossary-1.mmd", "glossary-2.mmd"]
+  }
+}

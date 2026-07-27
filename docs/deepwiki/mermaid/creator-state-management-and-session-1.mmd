@@ -1,0 +1,17 @@
+graph TD
+    subgraph "Browser Storage"
+        SS["sessionStorage ('artemisa.creator.draft.v1')"]
+    end
+
+    subgraph "session.ts Entities"
+        LD["loadDraft()"]
+        SD["saveDraft()"]
+        PD["parseDraft()"]
+    end
+
+    App["Creator UI Component"] -->|On Mount| LD
+    LD -->|Read| SS
+    LD -->|Validate Version| PD
+    PD -->|Return CreatorDraft| App
+    App -->|On Answer Change| SD
+    SD -->|Serialize & Write| SS

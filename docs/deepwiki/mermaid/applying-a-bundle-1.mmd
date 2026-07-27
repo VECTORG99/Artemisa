@@ -1,0 +1,23 @@
+graph TD
+    subgraph "Natural Language Space"
+        A["User Answers (JSON)"] --> B["evaluateDecisionTree()"]
+        B --> C["Recommendations"]
+    end
+
+    subgraph "Code Entity Space"
+        C --> D["buildBlueprint()"]
+        D --> E["generateAgentBundle()"]
+        
+        E --> F["Artifact Factories"]
+        F --> F1["jsonArtifact()"]
+        F --> F2["markdownArtifact()"]
+        
+        F1 --> G["Validation Layer"]
+        F2 --> G
+        
+        G --> G1["validateArtifactPath()"]
+        G --> G2["assertNoLiteralSecrets()"]
+        
+        G1 & G2 --> H["Final Bundle Object"]
+        H --> I["manifest.json (SHA-256)"]
+    end

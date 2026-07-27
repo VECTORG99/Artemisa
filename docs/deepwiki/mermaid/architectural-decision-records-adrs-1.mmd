@@ -1,0 +1,19 @@
+graph TD
+    subgraph "Frontend Space (Next.js)"
+        A["session.ts (sessionStorage)"] -- "POST /api/v1/creator/evaluate" --> B["api.ts (fetch wrapper)"]
+    end
+
+    subgraph "Backend Space (Express)"
+        B -- "Request Body" --> C["app.ts (Middleware/Sanitization)"]
+        C -- "Clean Answers" --> D["router.ts (Creator Router)"]
+        D --> E["evaluateDecisionTree()"]
+        E --> F["CreatorCatalog (Technologies/Skills)"]
+        F --> G["generateAgentBundle()"]
+        G --> H["Manifest + SHA-256 Hashes"]
+    end
+
+    subgraph "Output Space (Artifacts)"
+        H --> I["artemisa.blueprint.json"]
+        H --> J["docs/INSTALL.md"]
+        H --> K[".cursorrules / .kiro"]
+    end

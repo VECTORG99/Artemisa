@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant U as User (Frontend)
+    participant E as evaluateDecisionTree()
+    participant Q as creatorQuestions[]
+    participant C as CreatorCatalog
+
+    U->>E: POST /api/v1/creator/evaluate {answers}
+    E->>Q: Filter visibleQuestions via visibleWhen
+    E->>C: Validate IDs (technologies, skills, mcps)
+    E->>E: Generate recommendations based on purpose/arch
+    E->>E: Calculate progress (answered / totalVisible)
+    E-->>U: Return DecisionEvaluation object

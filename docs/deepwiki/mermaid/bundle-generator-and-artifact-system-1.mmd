@@ -1,0 +1,32 @@
+graph TD
+  subgraph "Input Space"
+    ANS["CreatorAnswers"]
+    EVAL["DecisionTree Evaluation"]
+  end
+
+  subgraph "Logic Space (src/creator/generator.ts)"
+    BP["buildBlueprint()"]
+    AF["Artifact Factories"]
+    SV["stableValue()"]
+    SD["assertNoLiteralSecrets()"]
+    PV["validateArtifactPath()"]
+  end
+
+  subgraph "Output Space"
+    BUN["GeneratedAgentBundle"]
+    ART["Artifacts (JSON/MD/YAML)"]
+    MAN["manifest.json"]
+  end
+
+  ANS --> BP
+  EVAL --> BP
+  BP --> AF
+  AF --> SV
+  AF --> SD
+  AF --> PV
+  SV --> ART
+  SD -.->|"Throws on secret"| ART
+  PV -.->|"Throws on invalid path"| ART
+  ART --> BUN
+  ART --> MAN
+  MAN --> BUN

@@ -1,0 +1,17 @@
+graph TD
+    subgraph "Request Lifecycle"
+        R[Incoming Request] --> MW["debugMiddleware (debug.ts)"]
+        MW --> P{isProduction?}
+        P -- "Yes" --> Next[next Route Handler]
+        P -- "No" --> Record["createDebugState() Entry"]
+    end
+
+    subgraph "Storage & Cleanup"
+        Record --> Redact["redactBody()"]
+        Redact --> Store["state.requests.unshift()"]
+        Store --> Cap{"Length > 50?"}
+        Cap -- "Yes" --> Trim["Pop Oldest"]
+        Cap -- "No" --> TTL{"Age > 10m?"}
+        TTL -- "Yes" --> Purge["Filter Out"]
+        TTL -- "No" --> Finish[Ready for /api/debug/requests]
+    end
