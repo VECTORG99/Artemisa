@@ -828,7 +828,7 @@ export default function NewAgentPage() {
           {status === 'ready' && (
             <AnimatedPanel phase={phase}>
               {!mode && (
-                <StepContainer>
+                <StepContainer fill>
                   <ModeSelect onSelect={selectMode} />
                 </StepContainer>
               )}

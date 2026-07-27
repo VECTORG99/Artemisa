@@ -17,6 +17,7 @@ import {
   groupAnswersBySection,
   type FormattedAnswer,
 } from '@/features/creator/lib/answer-labels';
+import { TechIcon } from '@/features/creator/lib/tech-icons';
 import type { AnswerIssue, Catalog, CreatorAnswers, CreatorRecommendation, Workflow } from '@huascar/types';
 
 interface ReviewScreenProps {
@@ -208,13 +209,35 @@ export function ReviewScreen({
 }
 
 function AnswerRow({ answer, onEdit }: { answer: FormattedAnswer; onEdit: (questionId: string) => void }) {
+  // agent_targets is the one answer where the icon communicates the most: it
+  // tells the user which agent platforms the bundle targets. The raw value is
+  // the catalog id array (same order as `values`), so we pair them and render
+  // a chip per platform with its brand icon. Other answers stay as joined text.
+  const platformChips =
+    answer.questionId === 'agent_targets' && Array.isArray(answer.raw) && !answer.empty
+      ? (answer.raw as string[]).map((id, index) => ({ id, label: answer.values[index] ?? id }))
+      : null;
+
   return (
     <div className="group flex items-start gap-3 py-2 first:pt-0 last:pb-0">
       <dt className="min-w-0 flex-1 text-xs leading-relaxed text-zinc-500">{answer.label}</dt>
       <dd className="flex min-w-0 max-w-[58%] shrink-0 items-start justify-end gap-2">
-        <span className="break-words text-right text-sm text-zinc-200">
-          {answer.empty ? <span className="text-zinc-600">Sin responder</span> : answer.values.join(', ')}
-        </span>
+        {answer.empty ? (
+          <span className="break-words text-right text-sm text-zinc-600">Sin responder</span>
+        ) : platformChips ? (
+          <ul className="flex flex-wrap justify-end gap-1.5">
+            {platformChips.map((chip) => (
+              <li key={chip.id}>
+                <span className={glassPill('inline-flex items-center gap-1.5 px-2 py-0.5 text-xs text-zinc-200')}>
+                  <TechIcon id={chip.id} category="agent-platform" className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
+                  {chip.label}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <span className="break-words text-right text-sm text-zinc-200">{answer.values.join(', ')}</span>
+        )}
         <button
           type="button"
           onClick={() => onEdit(answer.questionId)}

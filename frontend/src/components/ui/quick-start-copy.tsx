@@ -24,48 +24,44 @@ export function QuickStartCopy({ url, size = 'md' }: QuickStartCopyProps) {
   };
 
   const inputClasses = {
-    sm: 'text-xs py-2',
-    md: 'text-sm py-2.5',
-    lg: 'text-base py-3',
-  }[size];
-
-  const titleSize = {
-    sm: 'text-sm',
-    md: 'text-base',
-    lg: 'text-lg',
+    sm: 'text-xs py-1.5',
+    md: 'text-xs py-1.5',
+    lg: 'text-sm py-2',
   }[size];
 
   return (
-    <div className="w-full max-w-2xl">
-      <h3 className={`${titleSize} mb-2 text-center font-semibold text-white`}>Inicio Rápido: Pega en tu chat de IA</h3>
-      <div className="flex items-start gap-2">
-        <textarea
+    <div className="mx-auto w-full max-w-xl">
+      <h3 className="mb-1.5 text-center text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+        Inicio Rápido: Pega en tu chat de IA
+      </h3>
+      <div className="flex items-center gap-1.5">
+        <input
+          type="text"
           value={copyText}
           readOnly
-          rows={2}
-          role="textbox"
           aria-readonly="true"
           aria-label="Prompt de inicio rápido para tu chat de IA"
-          className={`${glassInput(`flex-1 font-mono text-white/80 ${inputClasses}`)} resize-none`}
+          title={copyText}
+          className={`${glassInput(`min-w-0 flex-1 truncate font-mono text-white/70 ${inputClasses}`)} cursor-default`}
         />
         <button
           type="button"
           onClick={handleCopy}
           aria-label="Copiar prompt de inicio rápido"
-          className={`${glassButton('shrink-0')} mt-0.5`}
+          title="Copiar"
+          className={`${glassButton('shrink-0 px-2 py-1.5')}`}
         >
           {copied ? (
-            <LuCheck className="h-4 w-4" aria-hidden="true" />
+            <LuCheck className="h-3.5 w-3.5 text-emerald-400" aria-hidden="true" />
           ) : (
-            <LuCopy className="h-4 w-4" aria-hidden="true" />
+            <LuCopy className="h-3.5 w-3.5" aria-hidden="true" />
           )}
-          <span>Copiar</span>
         </button>
       </div>
       {/* Single announcement channel for screen readers (#572):
           the button label change is visual (icon swap); the aria-live
           region is the only spoken announcement. */}
-      <p className="mt-2 min-h-5 text-sm text-emerald-400" aria-live="polite">
+      <p className="mt-1 min-h-4 text-center text-[11px] text-emerald-400" aria-live="polite">
         {copied ? '¡Copiado!' : ''}
       </p>
     </div>
