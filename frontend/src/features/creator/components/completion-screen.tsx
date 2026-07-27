@@ -123,6 +123,7 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
   const [zipError, setZipError] = useState('');
 
   const activeArtifact = bundle.artifacts.find((artifact) => artifact.path === activePath);
+  const promptArtifact = bundle.artifacts.find((artifact) => artifact.path === 'PROMPT.md');
 
   const grouped = useMemo(() => {
     const map = new Map<ArtifactKind, GeneratedArtifact[]>();
@@ -409,39 +410,72 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
       )}
 
       {tab === 'apply' && (
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className={glassCard('flex flex-col gap-3 rounded-2xl p-5')}>
-            <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Pasos de aplicación</span>
-            <p className="text-sm leading-relaxed text-zinc-400">{bundle.applicationGuide.summary}</p>
-            <ol className="flex flex-col gap-2">
-              {bundle.applicationGuide.steps.map((step, index) => (
-                <li key={index} className="flex gap-2.5 text-sm leading-relaxed text-zinc-300">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent-deep/20 text-[10px] tabular-nums text-zinc-200">
-                    {index + 1}
-                  </span>
-                  <span className="min-w-0">{step}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <div className={glassCard('flex flex-col gap-3 rounded-2xl p-5')}>
-            <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Checklist de producción</span>
-            {bundle.applicationGuide.productionChecklist.length === 0 ? (
-              <p className="text-sm text-zinc-500">
-                Este agente no declara alcance de producción, así que el generador no añadió checklist operacional.
-              </p>
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {bundle.applicationGuide.productionChecklist.map((item, index) => (
+        <div className="flex flex-col gap-4">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className={glassCard('flex flex-col gap-3 rounded-2xl p-5')}>
+              <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Pasos de aplicación</span>
+              <p className="text-sm leading-relaxed text-zinc-400">{bundle.applicationGuide.summary}</p>
+              <ol className="flex flex-col gap-2">
+                {bundle.applicationGuide.steps.map((step, index) => (
                   <li key={index} className="flex gap-2.5 text-sm leading-relaxed text-zinc-300">
-                    <LuListChecks className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" aria-hidden="true" />
-                    <span className="min-w-0">{item}</span>
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent-deep/20 text-[10px] tabular-nums text-zinc-200">
+                      {index + 1}
+                    </span>
+                    <span className="min-w-0">{step}</span>
                   </li>
                 ))}
-              </ul>
-            )}
+              </ol>
+            </div>
+
+            <div className={glassCard('flex flex-col gap-3 rounded-2xl p-5')}>
+              <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Checklist de producción</span>
+              {bundle.applicationGuide.productionChecklist.length === 0 ? (
+                <p className="text-sm text-zinc-500">
+                  Este agente no declara alcance de producción, así que el generador no añadió checklist operacional.
+                </p>
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {bundle.applicationGuide.productionChecklist.map((item, index) => (
+                    <li key={index} className="flex gap-2.5 text-sm leading-relaxed text-zinc-300">
+                      <LuListChecks className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" aria-hidden="true" />
+                      <span className="min-w-0">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
+
+          {promptArtifact && (
+            <div className={glassCard('flex flex-col gap-3 rounded-2xl p-5')}>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Prompt para el agente</span>
+                <button
+                  type="button"
+                  onClick={() => copy('prompt', promptArtifact.content)}
+                  className={glassButton('px-3 py-1.5 text-xs')}
+                >
+                  {copied === 'prompt' ? (
+                    <>
+                      <LuCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                      Copiado
+                    </>
+                  ) : (
+                    <>
+                      <LuClipboard className="h-3.5 w-3.5" aria-hidden="true" />
+                      Copiar prompt
+                    </>
+                  )}
+                </button>
+              </div>
+              <pre className="creator-scroll max-h-[40vh] overflow-auto rounded-2xl border border-white/[0.06] bg-black/30 p-3 text-xs leading-relaxed text-zinc-300">
+                {highlightArtifact(promptArtifact.content, detectArtifactLanguage(promptArtifact.path))}
+              </pre>
+              <p className="text-xs text-zinc-500">
+                Copia este prompt junto con los artefactos del bundle para iniciar al agente con el contexto completo.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
