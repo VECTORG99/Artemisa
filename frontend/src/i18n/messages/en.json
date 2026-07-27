@@ -190,6 +190,7 @@
       "loading": "Loading workflow contract…",
       "searchPlaceholder": "Search a question across the whole tree…",
       "searchAriaLabel": "Search questions",
+      "sectionsNavAriaLabel": "Sections",
       "searchResults": "{count} question(s) across all sections",
       "searchResultsTitle": "Results for «{query}»",
       "noSearchResults": "No visible question matches that search.",

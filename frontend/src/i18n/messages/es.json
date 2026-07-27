@@ -190,6 +190,7 @@
       "loading": "Cargando contrato del workflow…",
       "searchPlaceholder": "Buscar una pregunta en todo el árbol…",
       "searchAriaLabel": "Buscar preguntas",
+      "sectionsNavAriaLabel": "Secciones",
       "searchResults": "{count} pregunta(s) en todas las secciones",
       "searchResultsTitle": "Resultados para «{query}»",
       "noSearchResults": "Ninguna pregunta visible coincide con esa búsqueda.",
