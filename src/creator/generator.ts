@@ -263,29 +263,12 @@ export function inferCloudProvider(target: string): string | null {
 }
 
 function buildSystemPrompt(blueprint: AgentBlueprint): string {
-  const constraints = [
-    `Objetivo: ${blueprint.purpose.objective}`,
-    `Criterio de éxito: ${blueprint.purpose.successCriteria}`,
-    `Arquitectura: ${describeCatalogSelection(blueprint.project.architecture)}`,
-    `Stack: ${blueprint.project.technologies.map(describeCatalogSelection).join(', ')}`,
-    `Entorno: ${blueprint.environments.target}`,
-    `Capacidades: ${blueprint.agent.capabilities.map((cap) => cap.replace(/-/g, ' ')).join(', ')}`,
-    'Explica evidencia, supuestos, riesgos y cambios propuestos.',
-    'No reveles secretos ni inventes acceso a herramientas o datos.',
-    blueprint.agent.requireHumanApproval
-      ? 'Solicita aprobación humana antes de cualquier acción con efectos.'
-      : 'Trabaja en modo asesor y no realices acciones con efectos.',
-  ];
-  if (blueprint.prReview.enabled) constraints.push(`Enfoque de PR review: ${blueprint.prReview.focus.join(', ')}.`);
-  if (blueprint.purpose.persona)
-    constraints.push(`Estilo/tono/restricciones específicas: ${blueprint.purpose.persona}`);
-  if (blueprint.knowledge.enabled)
-    constraints.push(
-      `Fuentes de conocimiento: ${blueprint.knowledge.sources.map(describeCatalogSelection).join(', ')}.`,
-    );
-  if (blueprint.environments.target !== 'development' && blueprint.environments.target !== 'local')
-    constraints.push('En producción prioriza mínimo privilegio, observabilidad, rollback y disponibilidad.');
-  return constraints.join('\n');
+  /**
+   * Concise imperative constraints for prompts and YAML instruction fields.
+   * Context (objective, stack, architecture) is surfaced separately so
+   * artifacts can avoid duplicating it under both Context and Constraints.
+   */
+  return buildAgentConstraintLines(blueprint).join('\n');
 }
 
 /**
@@ -356,81 +339,110 @@ function buildAllowedCommands(
 }
 
 function buildWhy(blueprint: AgentBlueprint): string {
-  const technologies = blueprint.project.technologies.map(describeCatalogSelection).join(', ');
-  const recommendations =
-    blueprint.recommendations.length === 0
-      ? '- No se activaron recomendaciones adicionales.'
-      : blueprint.recommendations
-          .map(
-            (item) =>
-              `- **${item.title}:** ${item.reason}\n  - Beneficios: ${item.benefits.join('; ')}\n  - Trade-offs: ${item.tradeoffs.join('; ')}\n  - Alternativas: ${item.alternatives.join('; ')}`,
-          )
-          .join('\n');
-  return `# Por qué se generó este agente
+  const sections: string[] = [];
+  const addSection = (heading: string, body: string) => {
+    if (!body.trim()) return;
+    sections.push(`## ${heading}\n\n${body.trim()}\n`);
+  };
 
-## Problema y éxito
+  addSection(
+    'Problema y éxito',
+    [
+      `Objetivo: ${blueprint.purpose.objective}`,
+      `Criterio de éxito: ${blueprint.purpose.successCriteria}`,
+      `Tipo: ${blueprint.purpose.type}`,
+    ]
+      .map((l) => `- ${l}`)
+      .join('\n'),
+  );
 
-- **Objetivo:** ${blueprint.purpose.objective}
-- **Criterio de éxito:** ${blueprint.purpose.successCriteria}
-- **Tipo:** ${blueprint.purpose.type}
+  const contextLines: string[] = [
+    `Stack: ${blueprint.project.technologies.map(describeCatalogSelection).join(', ') || 'No especificado'}`,
+    `Arquitectura: ${describeCatalogSelection(blueprint.project.architecture)}`,
+    `Entorno: ${blueprint.environments.target}`,
+  ];
+  if (blueprint.environments.deploymentTarget) {
+    contextLines.push(`Destino de producción: ${describeCatalogSelection(blueprint.environments.deploymentTarget)}`);
+  }
+  if (blueprint.devops.ciCd.length > 0) {
+    contextLines.push(`CI/CD: ${blueprint.devops.ciCd.map(describeCatalogSelection).join(', ')}`);
+  }
+  addSection('Contexto técnico', contextLines.map((l) => `- ${l}`).join('\n'));
 
-## Contexto técnico
+  if (blueprint.environments.developmentSetup) {
+    addSection('Entorno de desarrollo', `- Setup: ${blueprint.environments.developmentSetup}`);
+  }
+  if (blueprint.environments.containerPlatforms.length > 0) {
+    addSection(
+      'Plataformas de contenedores',
+      `- Seleccionadas: ${blueprint.environments.containerPlatforms.map(describeCatalogSelection).join(', ')}`,
+    );
+  }
+  if (blueprint.devops.infrastructure.length > 0) {
+    addSection(
+      'Infraestructura como código',
+      `- Herramientas: ${blueprint.devops.infrastructure.map(describeCatalogSelection).join(', ')}`,
+    );
+  }
+  if (blueprint.devops.observability.length > 0) {
+    addSection('Observabilidad', `- Stack: ${blueprint.devops.observability.map(describeCatalogSelection).join(', ')}`);
+  }
+  if (blueprint.devops.compliance.length > 0) {
+    addSection(
+      'Decisiones de seguridad',
+      [
+        `Controles: ${blueprint.devops.compliance.map(describeCatalogSelection).join(', ')}`,
+        `Autonomía: ${blueprint.agent.autonomy}`,
+        `Aprobación humana: ${blueprint.agent.requireHumanApproval ? 'requerida' : 'no requerida'}`,
+      ]
+        .map((l) => `- ${l}`)
+        .join('\n'),
+    );
+  }
 
-- **Stack:** ${technologies}
-- **Arquitectura:** ${describeCatalogSelection(blueprint.project.architecture)}
-- **Entorno:** ${blueprint.environments.target}
-- **Destino de producción:** ${blueprint.environments.deploymentTarget ? describeCatalogSelection(blueprint.environments.deploymentTarget) : 'No aplica'}
-- **CI/CD:** ${blueprint.devops.ciCd.map(describeCatalogSelection).join(', ')}
+  if (blueprint.agent.capabilities.length > 0) {
+    addSection('Capacidades', `- ${blueprint.agent.capabilities.map((c) => c.replace(/-/g, ' ')).join(', ')}`);
+  }
 
-${
-  blueprint.environments.developmentSetup
-    ? `## Entorno de desarrollo
+  const integrations: string[] = [];
+  if (blueprint.knowledge.enabled) {
+    integrations.push(`Fuentes: ${blueprint.knowledge.sources.map(describeCatalogSelection).join(', ')}`);
+  }
+  if (blueprint.prReview.enabled) {
+    integrations.push(`PR review: ${blueprint.prReview.focus.join(', ')}`);
+  }
+  if (blueprint.integrations.mcps.length > 0) {
+    integrations.push(`MCPs: ${blueprint.integrations.mcps.map((m) => m.name).join(', ')}`);
+  }
+  if (integrations.length > 0) {
+    addSection('Knowledge e integraciones', integrations.map((l) => `- ${l}`).join('\n'));
+  }
 
-- **Setup:** ${blueprint.environments.developmentSetup}
-${blueprint.environments.developmentSetup === 'docker-compose' ? '- Se recomienda Docker Compose para reproducibilidad local.\n' : ''}${blueprint.environments.developmentSetup === 'devcontainer' ? '- Se recomienda Dev Container para consistencia de toolchain.\n' : ''}
-`
-    : ''
-}${
-    blueprint.environments.containerPlatforms.length > 0
-      ? `## Plataformas de contenedores
+  if (blueprint.recommendations.length > 0) {
+    const recs = blueprint.recommendations.map((r) => `- **${r.title}:** ${r.reason}`).join('\n');
+    addSection('Recomendaciones explicables', recs);
 
-- **Seleccionadas:** ${blueprint.environments.containerPlatforms.map(describeCatalogSelection).join(', ')}
-- Estos artefactos de contenedores deben fijarse con versiones exactas antes de producción.
+    const benefits = [...new Set(blueprint.recommendations.flatMap((r) => r.benefits))];
+    if (benefits.length > 0) {
+      addSection('Beneficios', benefits.map((b) => `- ${b}`).join('\n'));
+    }
 
-`
-      : ''
-  }${
-    blueprint.devops.infrastructure.length > 0
-      ? `## Infraestructura como código
+    const tradeoffs = [...new Set(blueprint.recommendations.flatMap((r) => r.tradeoffs))];
+    if (tradeoffs.length > 0) {
+      addSection('Trade-offs', tradeoffs.map((t) => `- ${t}`).join('\n'));
+    }
+  } else {
+    addSection('Recomendaciones explicables', '- No se activaron recomendaciones adicionales.');
+  }
 
-- **Herramientas:** ${blueprint.devops.infrastructure.map(describeCatalogSelection).join(', ')}
-- La infraestructura debe versionarse junto al código de la aplicación.
+  addSection(
+    'Done when',
+    buildAgentDoneWhen(blueprint)
+      .map((l) => `- ${l}`)
+      .join('\n'),
+  );
 
-`
-      : ''
-  }${
-    blueprint.devops.observability.length > 0
-      ? `## Observabilidad
-
-- **Stack:** ${blueprint.devops.observability.map(describeCatalogSelection).join(', ')}
-- Se recomienda cubrir al menos logs, métricas y trazas para producción.
-
-`
-      : ''
-  }## Decisiones de seguridad
-
-El agente opera en modo **${blueprint.agent.autonomy}**. ${blueprint.agent.requireHumanApproval ? 'Las acciones con efectos requieren aprobación humana.' : 'El alcance generado es asesor y sin acciones con efectos.'} Los secretos sólo se expresan como referencias de variables de entorno.
-
-## Conocimiento y artefactos
-
-${blueprint.knowledge.enabled ? `Se solicitó contexto mediante: ${blueprint.knowledge.sources.map(describeCatalogSelection).join(', ')}.` : 'No se habilitó RAG; el contexto estable permanece en steering y documentación.'}
-${blueprint.prReview.enabled ? `Se genera una rúbrica de PR enfocada en ${blueprint.prReview.focus.join(', ')}.` : 'No se genera automatización de PR review.'}
-${blueprint.features.kiro ? 'Se generan steering, hooks/skills aplicables bajo `.kiro/`.' : 'No se generan archivos `.kiro/` porque Kiro no fue seleccionado.'}
-
-## Recomendaciones explicables
-
-${recommendations}
-`;
+  return `# Por qué se generó este agente\n\n${sections.join('\n')}`;
 }
 
 function buildInstall(blueprint: AgentBlueprint): string {
@@ -564,105 +576,70 @@ function buildProjectCommand(technologies: string[], type: 'build' | 'test' | 'l
 }
 
 function buildAgentsMd(blueprint: AgentBlueprint): string {
-  const technologies = blueprint.project.technologies;
-  const stack = technologies.map(describeCatalogSelection).join(', ') || 'No especificado';
-  const architecture = describeCatalogSelection(blueprint.project.architecture);
-  const buildCommand = buildProjectCommand(technologies, 'build');
-  const testCommand = buildProjectCommand(technologies, 'test');
-  const lintCommand = buildProjectCommand(technologies, 'lint');
-  const securityRules =
-    blueprint.devops.compliance.length > 0
-      ? blueprint.devops.compliance
+  const stack = blueprint.project.technologies.map(describeCatalogSelection).join(', ') || 'No especificado';
+  const testingLines =
+    blueprint.testing.tools.length > 0
+      ? blueprint.testing.tools
           .map(describeCatalogSelection)
-          .map((r) => `- ${r}`)
+          .map((t) => `- ${t}`)
           .join('\n')
-      : '- No incluyas secretos, credenciales ni datos sensibles en el código.\n- Solicita aprobación humana antes de deploy o acciones con efectos.';
-  const prReview = blueprint.prReview.enabled
-    ? `Se habilitó revisión de PR con enfoque en: ${blueprint.prReview.focus.join(', ')}.`
-    : 'No se habilitó revisión automática de PR.';
-  const knowledgeSources = blueprint.knowledge.enabled
+      : '- Sin herramientas de testing específicas. Usar los comandos de test del stack.';
+  const knowledgeLines = blueprint.knowledge.enabled
     ? blueprint.knowledge.sources
         .map(describeCatalogSelection)
         .map((s) => `- ${s}`)
         .join('\n')
     : '- No se configuraron fuentes de conocimiento adicionales.';
-  const mcpSection =
+  const mcpLines =
     blueprint.integrations.mcps.length > 0
       ? blueprint.integrations.mcps.map((mcp) => `- **${mcp.name}** (${mcp.category}): ${mcp.sourceUrl}`).join('\n')
       : '- No se habilitaron integraciones MCP.';
-  const conventions = [
-    `Arquitectura: ${architecture}. Respeta sus límites y convenciones de capas.`,
-    `Cambios pequeños, reversibles y acompañados de pruebas cuando sea posible.`,
-    `Explica evidencia, riesgos, supuestos y trade-offs antes de proponer soluciones.`,
-    blueprint.agent.requireHumanApproval
-      ? 'Solicita aprobación humana explícita antes de merge, deploy o acciones con efectos.'
-      : 'Trabaja en modo asesor sin ejecutar acciones con efectos.',
-  ];
-  return `# AGENTS.md
+  const commands = buildAllowedCommandLines(blueprint);
+  const capabilities = buildAgentCapabilityLines(blueprint).join('\n');
+  const constraints = buildAgentConstraintLines(blueprint)
+    .map((l) => `- ${l}`)
+    .join('\n');
+  const done = buildAgentDoneWhen(blueprint)
+    .map((l) => `- ${l}`)
+    .join('\n');
+
+  return `# ${blueprint.identity.name}
 
 ## Mission
 
 ${blueprint.purpose.objective}
 
-## Success Criteria
-
-${blueprint.purpose.successCriteria}
-
 ## Stack
 
 ${stack}
 
-## Architecture
+## Capabilities
 
-${architecture}
+${capabilities}
 
-## Build Commands
+## Allowed commands
 
-- ${buildCommand}
-
-## Test Commands
-
-- ${testCommand}
-
-## Lint Commands
-
-- ${lintCommand}
-
-## Dependencies
-
-- Stack principal: ${stack}.
-- Proveedor de repositorio: ${describeCatalogSelection(blueprint.project.repositoryProvider)}.
-${blueprint.environments.deploymentTarget ? `- Destino de despliegue: ${describeCatalogSelection(blueprint.environments.deploymentTarget)}.` : ''}
+${commands.length > 0 ? commands.join('\n') : '- Ninguno'}
 
 ## Testing & Quality
-${
-  blueprint.testing.tools.length > 0
-    ? blueprint.testing.tools
-        .map(describeCatalogSelection)
-        .map((t) => `- ${t}`)
-        .join('\n')
-    : '- Sin herramientas de testing específicas configuradas. Usar los comandos de test del stack.'
-}
 
-## Conventions
+${testingLines}
 
-${conventions.map((c) => `- ${c}`).join('\n')}
+## Constraints
 
-## Security Rules
-
-${securityRules}
-
-## PR Review
-
-${prReview}
+${constraints}
 
 ## Knowledge Sources
 
-${knowledgeSources}
+${knowledgeLines}
 
 ## MCP Integrations
 
-${mcpSection}
+${mcpLines}
+
+## Done when
+
+${done}
 `;
 }
 
@@ -769,69 +746,165 @@ function buildAllowedCommandLines(blueprint: AgentBlueprint): string[] {
   return commands.map((entry) => `- ${entry.binary}: ${entry.allowed_args.join(', ')}`);
 }
 
+function buildAgentContextLines(blueprint: AgentBlueprint): string[] {
+  return [
+    `Objetivo: ${blueprint.purpose.objective}`,
+    `Éxito cuando: ${blueprint.purpose.successCriteria}`,
+    `Arquitectura: ${describeCatalogSelection(blueprint.project.architecture)}`,
+    `Stack: ${blueprint.project.technologies.map(describeCatalogSelection).join(', ') || 'No especificado'}`,
+    `Entorno: ${blueprint.environments.target}`,
+    `Autonomía: ${blueprint.agent.autonomy}`,
+  ];
+}
+
+function buildAgentCapabilityLines(blueprint: AgentBlueprint): string[] {
+  const caps = blueprint.agent.capabilities.map((c) => c.replace(/-/g, ' ')).join(', ') || 'Ninguna seleccionada';
+  const allowed = buildAllowedCommands(
+    blueprint.agent.capabilities,
+    blueprint.project.technologies,
+    blueprint.testing.tools,
+  );
+  const binaries = [...new Set(allowed.map((c) => c.binary))].sort().join(', ') || 'ninguno';
+  const technologies = blueprint.project.technologies;
+  return [
+    `- Capacidades: ${caps}`,
+    `- Build: ${buildProjectCommand(technologies, 'build')}`,
+    `- Test: ${buildProjectCommand(technologies, 'test')}`,
+    `- Lint: ${buildProjectCommand(technologies, 'lint')}`,
+    `- Comandos shell permitidos: ${binaries}`,
+  ];
+}
+
+function buildAgentConstraintLines(blueprint: AgentBlueprint): string[] {
+  const lines: string[] = [
+    'Explicar evidencia, supuestos, riesgos y cambios propuestos antes de actuar',
+    'No revelar secretos ni inventar acceso a herramientas o datos',
+    'No escribir secretos, tokens ni credenciales en código ni prompts',
+    'Priorizar seguridad, mínimo privilegio, observabilidad y rollback',
+  ];
+  if (blueprint.agent.requireHumanApproval) {
+    lines.push('Solicitar aprobación humana antes de acciones con efectos');
+  } else {
+    lines.push('Trabajar en modo asesor; no ejecutar acciones con efectos');
+  }
+  if (blueprint.knowledge.enabled) {
+    lines.push(`Consultar fuentes: ${blueprint.knowledge.sources.map(describeCatalogSelection).join(', ')}`);
+  }
+  if (blueprint.prReview.enabled) {
+    lines.push(`Revisar PR enfocado en: ${blueprint.prReview.focus.join(', ')}`);
+  }
+  if (blueprint.purpose.persona) {
+    lines.push(`Tono: ${blueprint.purpose.persona}`);
+  }
+  return lines;
+}
+
+function buildAgentDoneWhen(blueprint: AgentBlueprint): string[] {
+  const lines = [
+    `Criterio de éxito cumplido: ${blueprint.purpose.successCriteria}`,
+    'Artefactos copiados respetando rutas del manifest',
+    'Hashes SHA-256 del manifest verificados',
+    'Agente validado en modo asesor con un caso real',
+  ];
+  if (
+    blueprint.environments.target === 'production' ||
+    blueprint.environments.target === 'both' ||
+    blueprint.environments.target === 'staging'
+  ) {
+    lines.push('Probar en staging con observabilidad, rollback y aprobación humana verificados');
+    lines.push('Configurar identidad de workload separada y sin credenciales personales');
+  }
+  return lines;
+}
+
 /**
- * Consolidated copy-paste prompt for the agent. It is intentionally concise
- * and references the other bundle artifacts (blueprint.json, docs/INSTALL.md,
- * docs/WHY.md and the target-specific files) instead of duplicating them.
+ * Consolidated copy-paste prompt for the agent. It follows the same AI-first
+ * template as the target rules and references the other bundle artifacts
+ * (blueprint.json, docs/INSTALL.md, docs/WHY.md) instead of duplicating them.
  */
 function buildPromptMd(blueprint: AgentBlueprint): string {
-  const stack = blueprint.project.technologies.map(describeCatalogSelection).join(', ') || 'No especificado';
-  const architecture = describeCatalogSelection(blueprint.project.architecture);
+  const context = buildAgentContextLines(blueprint)
+    .map((l) => `- ${l}`)
+    .join('\n');
+  const capabilities = buildAgentCapabilityLines(blueprint).join('\n');
+  const constraints = buildAgentConstraintLines(blueprint)
+    .map((l) => `- ${l}`)
+    .join('\n');
   const commands = buildAllowedCommandLines(blueprint);
-  const targets = blueprint.agent.targets.map((t) => `\`${t}\``).join(', ');
+  const done = buildAgentDoneWhen(blueprint)
+    .map((l) => `- ${l}`)
+    .join('\n');
 
-  const lines = [
-    `# ${blueprint.identity.name}`,
-    '',
-    `## Objetivo`,
-    '',
-    blueprint.purpose.objective || 'Configurar el agente según el blueprint generado.',
-    '',
-    `## Criterio de éxito`,
-    '',
-    blueprint.purpose.successCriteria || 'El agente aplica los artefactos sin exceder su alcance ni revelar secretos.',
-    '',
-    `## Contexto`,
-    '',
-    `- Stack: ${stack}`,
-    `- Arquitectura: ${architecture}`,
-    `- Entorno: ${blueprint.environments.target}`,
-    `- Capacidades: ${blueprint.agent.capabilities.map((c) => c.replace(/-/g, ' ')).join(', ')}`,
-    '',
-    `## Autonomía y reglas de aprobación`,
-    '',
-    `- Autonomía: ${blueprint.agent.autonomy}`,
-    blueprint.agent.requireHumanApproval
-      ? '- Solicita aprobación humana explícita antes de cualquier acción con efectos.'
-      : '- Trabaja en modo asesor; no ejecutes acciones con efectos.',
-    '- No escribas nunca secretos, tokens ni credenciales en el código o los prompts.',
-    '- Explica evidencia, riesgos, supuestos y trade-offs antes de proponer cambios.',
-    '',
-    `## Comandos de build/test/lint permitidos`,
-    '',
-    ...(commands.length > 0 ? commands : ['- No se permiten comandos de shell para este agente.']),
-    '',
-    `## Alcance y limitaciones`,
-    '',
-    `- Este prompt acompaña a los artefactos del bundle (${targets}).`,
-    '- No reejecutes el bundle generador ni modifiques los archivos de configuración sin revisión.',
-    `- ${blueprint.environments.target === 'production' ? 'Producción requiere staging, observabilidad, rollback y aprobación humana verificados.' : 'Valida primero en desarrollo antes de promover a producción.'}`,
-    '',
-    `## Instrucción de cierre`,
-    '',
-    'Aplica estos artefactos y reporta evidencia antes de cualquier acción con efectos.',
-  ];
+  return `# ${blueprint.identity.name}
 
-  if (blueprint.purpose.persona) {
-    lines.push('', `## Tono/restricciones adicionales`, '', blueprint.purpose.persona);
-  }
+## Context
 
-  return lines.join('\n') + '\n';
+${context}
+
+## Capabilities
+
+${capabilities}
+
+## Constraints
+
+${constraints}
+
+## Allowed commands
+
+${commands.length > 0 ? commands.join('\n') : '- Ninguno'}
+
+## Done when
+
+${done}
+
+## Notas
+
+- Usa este prompt junto a blueprint.json, docs/INSTALL.md, docs/WHY.md y los artefactos target seleccionados.
+- No reejecutes el generador ni modifiques archivos de configuración sin revisión.
+`;
+}
+
+function buildAiFirstRuleContent(blueprint: AgentBlueprint): string {
+  const context = buildAgentContextLines(blueprint)
+    .map((l) => `- ${l}`)
+    .join('\n');
+  const capabilities = buildAgentCapabilityLines(blueprint).join('\n');
+  const constraints = buildAgentConstraintLines(blueprint)
+    .map((l) => `- ${l}`)
+    .join('\n');
+  const commands = buildAllowedCommandLines(blueprint);
+  const done = buildAgentDoneWhen(blueprint)
+    .map((l) => `- ${l}`)
+    .join('\n');
+
+  return `# ${blueprint.identity.name}
+
+## Context
+
+${context}
+
+## Capabilities
+
+${capabilities}
+
+## Constraints
+
+${constraints}
+
+## Allowed commands
+
+${commands.length > 0 ? commands.join('\n') : '- Ninguno'}
+
+## Done when
+
+${done}
+`;
 }
 
 function buildCursorRules(blueprint: AgentBlueprint): GeneratedArtifact[] {
   const slug = blueprint.identity.slug;
   const globs = inferStackGlobs(blueprint.project.technologies);
+  const content = buildAiFirstRuleContent(blueprint);
   const mdcContent = `---
 description: ${JSON.stringify(blueprint.identity.description.replace(/\n/g, ' '))}
 globs:
@@ -839,45 +912,7 @@ ${globs.map((g) => `  - "${g}"`).join('\n')}
 alwaysApply: false
 ---
 
-# ${blueprint.identity.name}
-
-## Contexto
-
-${blueprint.purpose.objective}
-
-## Criterio de éxito
-
-${blueprint.purpose.successCriteria}
-
-## Instrucciones
-
-${buildSystemPrompt(blueprint)}
-
-## Comandos permitidos
-
-${buildAllowedCommandLines(blueprint).join('\n')}
-`;
-  const global = `# ${blueprint.identity.name}
-
-## Misión
-
-${blueprint.purpose.objective}
-
-## Reglas globales
-
-- Objetivo: ${blueprint.purpose.objective}
-- Criterio de éxito: ${blueprint.purpose.successCriteria}
-- Arquitectura: ${describeCatalogSelection(blueprint.project.architecture)}
-- Stack: ${blueprint.project.technologies.map(describeCatalogSelection).join(', ')}
-- Autonomía: ${blueprint.agent.autonomy}
-- No ejecutes acciones con efectos sin aprobación humana explícita.
-- No incluyas secretos ni credenciales en el código o en los prompts.
-- Explica evidencia, riesgos, supuestos y cambios propuestos antes de actuar.
-
-## Comandos permitidos
-
-${buildAllowedCommandLines(blueprint).join('\n') || '- No se allowlistearon comandos de shell para este agente.'}
-`;
+${content}`;
   return [
     makeArtifact(
       `.cursor/rules/${slug}.mdc`,
@@ -886,90 +921,96 @@ ${buildAllowedCommandLines(blueprint).join('\n') || '- No se allowlistearon coma
       'Regla Cursor con activación por globs para el agente.',
       mdcContent,
     ),
-    makeArtifact('.cursorrules', 'cursor-rules', 'text/markdown', 'Regla global consolidada para Cursor.', global),
+    makeArtifact('.cursorrules', 'cursor-rules', 'text/markdown', 'Regla global consolidada para Cursor.', content),
   ];
 }
 
 function buildDevinDesktopRules(blueprint: AgentBlueprint): GeneratedArtifact[] {
   const slug = blueprint.identity.slug;
-  const rules = `# ${blueprint.identity.name}
-
-## Contexto
-
-${blueprint.purpose.objective}
-
-## Criterio de éxito
-
-${blueprint.purpose.successCriteria}
-
-## Steering
-
-${buildSystemPrompt(blueprint)}
-
-## Comandos permitidos
-
-${buildAllowedCommandLines(blueprint).join('\n') || '- No se allowlistearon comandos de shell.'}
-
-## Seguridad
-
-- No ejecutes acciones con efectos sin aprobación humana.
-- No reveles secretos ni inventes acceso a herramientas o datos.
-- Prioriza mínimo privilegio, observabilidad y rollback en producción.
-`;
-  const global = `# ${blueprint.identity.name} — windsurf rules
-
-## Misión
-
-${blueprint.purpose.objective}
-
-## Reglas de trabajo
-
-- Lee documentación y convenciones antes de proponer cambios.
-- Mantén los límites de ${describeCatalogSelection(blueprint.project.architecture)}.
-- Cambios pequeños, reversibles y con pruebas.
-- Explica evidencia, riesgos y trade-offs.
-- No secrets, no deploys automáticos, no merge sin aprobación.
-
-## Stack
-
-${blueprint.project.technologies.map(describeCatalogSelection).join(', ')}
-`;
+  const content = buildAiFirstRuleContent(blueprint);
   return [
     makeArtifact(
       `.windsurf/rules/${slug}.md`,
       'devin-rules',
       'text/markdown',
       'Regla de Windsurf/Devin Desktop para el agente.',
-      rules,
+      content,
     ),
     makeArtifact(
       '.windsurfrules',
       'devin-rules',
       'text/markdown',
       'Reglas globales consolidadas para Devin Desktop/Windsurf.',
-      global,
+      content,
     ),
   ];
 }
 
 function buildCodeRabbitConfig(blueprint: AgentBlueprint): GeneratedArtifact[] {
-  const pathInstructions = blueprint.prReview.enabled
-    ? blueprint.prReview.focus.map((area) => ({
-        path: inferStackGlobs(blueprint.project.technologies)[0] ?? '**/*',
-        instructions: `Presta especial atención a ${area} en cada revisión. Documenta evidencia y severidad.`,
-      }))
-    : [
-        {
-          path: inferStackGlobs(blueprint.project.technologies)[0] ?? '**/*',
-          instructions: 'Revisa correctitud, seguridad y mantenibilidad. Documenta hallazgos con evidencia.',
-        },
-      ];
-  const tools: Record<string, { enabled: boolean; severity?: string }> = {
+  const stackGlobs = inferStackGlobs(blueprint.project.technologies);
+  const firstGlob = stackGlobs[0] ?? '**/*';
+
+  const pathFilters = [
+    '"!**/package-lock.json"',
+    '"!**/yarn.lock"',
+    '"!**/pnpm-lock.yaml"',
+    '"!**/dist/**"',
+    '"!**/.next/**"',
+    '"!**/coverage/**"',
+    '"!**/*.min.js"',
+    '"!**/*.svg"',
+    ...stackGlobs.map((g) => `"${g}"`),
+  ];
+
+  const pathInstructions: Array<{ path: string; instructions: string }> = [];
+
+  pathInstructions.push({
+    path: firstGlob,
+    instructions: `Respeta la arquitectura ${describeCatalogSelection(blueprint.project.architecture)}. No incluyas secretos en el código. Ejecuta lint, typecheck y tests antes de aprobar.`,
+  });
+
+  const testPatterns = stackGlobs.filter((g) => g.toLowerCase().includes('test'));
+  for (const testGlob of testPatterns) {
+    pathInstructions.push({
+      path: testGlob,
+      instructions:
+        'Verifica cobertura, determinismo y casos límite. Rechaza tests que dependan de servicios reales o secretos.',
+    });
+  }
+
+  if (blueprint.devops.compliance.length > 0) {
+    pathInstructions.push({
+      path: '**/{auth,config,secrets}*',
+      instructions:
+        'Revisa principio de mínimo privilegio, rotación de secretos y ausencia de credenciales hardcodeadas.',
+    });
+    pathInstructions.push({
+      path: '.env*',
+      instructions: 'Verifica que las variables sensibles usen referencias y no se commiteen valores reales.',
+    });
+  }
+
+  if (blueprint.prReview.enabled) {
+    for (const focus of blueprint.prReview.focus) {
+      pathInstructions.push({
+        path: firstGlob,
+        instructions: `Presta atención a ${focus}: documenta hallazgos con evidencia, riesgos y severidad.`,
+      });
+    }
+  }
+
+  const tools: Record<string, { enabled: boolean }> = {
     shellcheck: { enabled: blueprint.project.technologies.includes('bash') },
     markdownlint: { enabled: true },
     'github-checks': { enabled: blueprint.project.repositoryProvider === 'github' },
     'ast-grep': { enabled: false },
   };
+
+  const reviewInstructions = buildAgentConstraintLines(blueprint).join('\n');
+  const toneInstructions = blueprint.purpose.persona
+    ? `Tono: ${blueprint.purpose.persona}\nSé directo, evidencia primero y sin inventar datos.`
+    : 'Sé directo, evidencia primero y sin inventar datos.';
+
   const yaml = `# CodeRabbit configuration for ${blueprint.identity.name}
 # Generated by Artemisa; review before applying.
 language: es
@@ -980,10 +1021,19 @@ reviews:
   poem: false
   review_status: true
   collapse_walkthrough: false
-  path_filters:
-${inferStackGlobs(blueprint.project.technologies)
-  .map((g) => `    - "${g}"`)
+  enable_prompt_for_ai_agents: true
+  review_instructions: |
+${reviewInstructions
+  .split('\n')
+  .map((l) => `    ${l}`)
   .join('\n')}
+  tone_instructions: |
+${toneInstructions
+  .split('\n')
+  .map((l) => `    ${l}`)
+  .join('\n')}
+  path_filters:
+${pathFilters.map((g) => `    - ${g}`).join('\n')}
   path_instructions:
 ${pathInstructions
   .map(
@@ -1001,7 +1051,9 @@ ${Object.entries(tools)
   auto_review:
     enabled: true
     drafts: false
-    base_branches: []
+    base_branches:
+      - "main"
+      - "development"
   auto_reply:
     enabled: true
 chat:
@@ -1020,20 +1072,7 @@ chat:
 
 function buildKiloCodeRules(blueprint: AgentBlueprint): GeneratedArtifact[] {
   const slug = blueprint.identity.slug;
-  const base = `# ${blueprint.identity.name}
-
-## Contexto
-
-${blueprint.purpose.objective}
-
-## Criterio de éxito
-
-${blueprint.purpose.successCriteria}
-
-## Instrucciones generales
-
-${buildSystemPrompt(blueprint)}
-`;
+  const content = buildAiFirstRuleContent(blueprint);
   const modes = [
     {
       id: 'code',
@@ -1045,13 +1084,14 @@ ${buildSystemPrompt(blueprint)}
     { id: 'review', name: 'Review', description: 'Revisión de código y pull requests', filePattern: 'src/**/*' },
     { id: 'debug', name: 'Debug', description: 'Diagnóstico y corrección de errores', filePattern: 'src/**/*' },
   ];
+  const instructions = buildSystemPrompt(blueprint);
   const kiloModes = {
     version: '1.0.0',
     modes: modes.map((m) => ({
       name: m.name,
       description: m.description,
       filePattern: m.filePattern,
-      instructions: buildSystemPrompt(blueprint),
+      instructions,
       allowedCommands: buildAllowedCommands(
         blueprint.agent.capabilities,
         blueprint.project.technologies,
@@ -1065,7 +1105,7 @@ ${buildSystemPrompt(blueprint)}
       'kilocode-rules',
       'text/markdown',
       'Regla base de Kilo Code para el agente.',
-      base,
+      content,
     ),
     jsonArtifact('.kilocodemodes', 'kilocode-rules', 'Definición de modos Kilo Code.', kiloModes),
   ];
@@ -1158,7 +1198,7 @@ function buildTargetArtifacts(target: string, blueprint: AgentBlueprint): Genera
           `.kiro/steering/${blueprint.identity.slug}.md`,
           'instruction',
           'Steering del proyecto para Kiro.',
-          `# ${blueprint.identity.name}\n\n${buildSystemPrompt(blueprint)}\n`,
+          buildAiFirstRuleContent(blueprint),
         ),
         ...(blueprint.features.skills
           ? [
