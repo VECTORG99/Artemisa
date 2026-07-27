@@ -304,7 +304,10 @@ export function FineTuningDashboard({
     <div className="grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)]">
       {/* ── Sections ───────────────────────────────────────────────────────── */}
       <aside className={`flex h-[76vh] min-h-0 flex-col rounded-3xl p-3 ${glassPanel()}`}>
-        <nav className="creator-scroll flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto" aria-label="Secciones">
+        <nav
+          className="creator-scroll flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto"
+          aria-label={t.fineTuning.sectionsNavAriaLabel}
+        >
           {sectionsToRender.map((section) => {
             const isActive = section.id === activeSection;
             const progress = sectionProgress.get(section.id);
