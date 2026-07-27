@@ -304,11 +304,15 @@ Estos endpoints son públicos y están diseñados para que agentes de IA (Claude
 
 ### Otros endpoints
 
-| Ruta                    | Método | Descripción                                     |
-| ----------------------- | ------ | ----------------------------------------------- |
-| `GET /api/health`       | GET    | Salud del backend (memoria, disco, uptime).     |
-| `GET /api/metrics`      | GET    | Métricas HTTP (protegido por `METRICS_SECRET`). |
-| `GET /api/openapi.json` | GET    | Documento OpenAPI 3.1.                          |
+| Ruta                    | Método | Descripción                                      |
+| ----------------------- | ------ | ------------------------------------------------ |
+| `GET /api/health`       | GET    | Deep health check (memoria, disco, uptime).      |
+| `GET /api/health/live`  | GET    | Liveness probe (siempre 200 si el proceso vive). |
+| `GET /api/health/ready` | GET    | Readiness probe (200 si puede servir requests).  |
+| `GET /api/metrics`      | GET    | Métricas HTTP (protegido por `METRICS_SECRET`).  |
+| `GET /api/openapi.json` | GET    | Documento OpenAPI 3.1.                           |
+
+> Referencia completa de la API en [`docs/api-reference.md`](docs/api-reference.md).
 
 ### Versionado y errores
 
@@ -491,8 +495,12 @@ test/
 
 ## Documentación adicional
 
+- [`docs/api-reference.md`](docs/api-reference.md): referencia completa de la API del Creator.
 - [`docs/architecture.md`](docs/architecture.md): arquitectura interna del Creator.
 - [`docs/deployment.md`](docs/deployment.md): despliegue local, Docker y Render.
+- [`docs/self-hosting.md`](docs/self-hosting.md): guía de self-hosting en VPS/bare metal.
+- [`docs/troubleshooting.md`](docs/troubleshooting.md): troubleshooting del Creator.
+- [`docs/apply-bundle.md`](docs/apply-bundle.md): cómo aplicar y validar un bundle generado.
 - [`docs/use_cases.md`](docs/use_cases.md): casos de uso.
 - [`docs/reference/`](docs/reference/README.md): artefactos de referencia y guías de aplicación.
 - [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md): convenciones de código y docs.
