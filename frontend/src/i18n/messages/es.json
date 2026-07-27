@@ -25,9 +25,9 @@
   "landing": {
     "heroTitle": "Huascar",
     "heroCta": "Generar configuración",
-    "heroDescription": "Genera archivos de configuración para agentes de desarrollo y operación mediante un árbol de decisiones explicables. Sin ejecutar, sin desplegar, sin caja negra.",
+    "heroDescription": "Configura agentes de desarrollo compatibles con 6+ plataformas en minutos. Un árbol de decisiones explicable genera archivos reproducibles listos para aplicar, sin caja negra.",
     "ctaTitle": "¿Listo para configurar tu agente?",
-    "ctaDescription": "El creador te guía paso a paso hasta un bundle de archivos listo para copiar a tu proyecto.",
+    "ctaDescription": "Responde 32 preguntas guiadas y obtén un bundle listo para Cursor, Devin, CodeRabbit, Kiro y más.",
     "ctaButton": "Iniciar creador →"
   }
 }

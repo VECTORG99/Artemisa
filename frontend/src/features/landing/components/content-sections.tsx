@@ -18,6 +18,7 @@ import {
   SiVite,
   SiVitest,
 } from 'react-icons/si';
+import { LuGitBranch, LuLayers, LuScale } from 'react-icons/lu';
 import { glassStyle, Modal, useLandingModal } from './landing-modal';
 import { useTranslations } from '@/i18n';
 import { glassButton, glassCard } from '@/lib/glass';
@@ -84,45 +85,43 @@ interface ValueProp {
   title: string;
   description: string;
   hue: number;
-  icon: string;
+  icon: IconType;
 }
 
 const valueProps: ValueProp[] = [
   {
     title: 'Árbol de decisiones determinista',
     description:
-      '32 preguntas stateless que se adaptan a tu contexto: desarrollo, producción o ambos. Sin un LLM decidiendo la arquitectura por ti.',
-    hue: 200,
-    icon: '/images/arbol.svg',
+      '32 pasos guiados que adaptan la configuración a tu contexto: desarrollo, producción o ambos. Reduce horas de ajuste a minutos sin dejar que un LLM decida la arquitectura por ti.',
+    hue: 205,
+    icon: LuGitBranch,
   },
   {
     title: 'Recomendaciones con evidencia',
     description:
-      'Cada sugerencia incluye motivo, trade-offs y alternativas. Sabes por qué se elige cada opción, no solo qué elegir.',
+      'Cada sugerencia incluye motivo, trade-offs y alternativas comparadas. Configura con criterio visible y reduce decisiones ciegas.',
     hue: 280,
-    icon: '/images/recomendaciones.svg',
+    icon: LuScale,
   },
   {
-    title: 'Bundle listo para aplicar',
+    title: 'Compatible con 6+ plataformas',
     description:
-      'Blueprint, manifest, hashes SHA-256, INSTALL.md y WHY.md. Reproducible, auditable y seguro desde el primer commit.',
+      'Un mismo bundle se adapta a Cursor, Devin, CodeRabbit, Kilo Code, Kiro y otras herramientas. Aplica tu agente donde ya trabajas, sin reescribir configuraciones.',
     hue: 160,
-    icon: '/images/bundle.svg',
+    icon: LuLayers,
   },
 ];
 
-function GlassIcon({ src, alt }: { src: string; alt: string; hue: number }) {
+function ValueIconBox({ icon: Icon, hue }: { icon: IconType; hue: number }) {
   return (
-    <div className="relative mx-auto h-40 w-40 shrink-0">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={alt}
-        width={512}
-        height={512}
-        className="h-full w-full object-contain"
-        style={{ mixBlendMode: 'screen' }}
-      />
+    <div
+      className="mx-auto flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl"
+      style={{
+        background: `hsla(${hue}, 70%, 45%, 0.12)`,
+        border: `1px solid hsla(${hue}, 70%, 60%, 0.35)`,
+      }}
+    >
+      <Icon className="h-8 w-8" style={{ color: `hsla(${hue}, 80%, 70%, 1)` }} aria-hidden="true" />
     </div>
   );
 }
@@ -139,7 +138,7 @@ function ValuePropsSection() {
             className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
             style={glassStyle}
           >
-            <GlassIcon src={prop.icon} alt={prop.title} hue={prop.hue} />
+            <ValueIconBox icon={prop.icon} hue={prop.hue} />
             <h3 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
               {prop.title}
             </h3>
