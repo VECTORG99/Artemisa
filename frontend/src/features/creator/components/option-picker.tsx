@@ -250,40 +250,51 @@ export function OptionPicker({
         {allowCustom && (
           <div className="ml-auto flex items-center gap-2">
             {customOpen ? (
-              <>
-                <input
-                  type="text"
-                  value={customDraft}
-                  autoFocus
-                  onChange={(event) => setCustomDraft(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      event.preventDefault();
-                      addCustom();
-                    }
-                    if (event.key === 'Escape') setCustomOpen(false);
-                  }}
-                  placeholder="Nombre de la tecnología"
-                  aria-label="Nombre de la opción personalizada"
-                  className={glassInput('w-56 py-1.5 text-xs')}
-                />
-                <button
-                  type="button"
-                  onClick={addCustom}
-                  disabled={!slugify(customDraft) || atMax}
-                  className={glassFilterChip(false, 'text-[11px] disabled:cursor-not-allowed disabled:opacity-40')}
-                >
-                  Añadir
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCustomOpen(false)}
-                  aria-label="Cancelar opción personalizada"
-                  className="rounded-full p-1 text-zinc-500 transition-colors hover:text-white"
-                >
-                  <LuX className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-              </>
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={customDraft}
+                    autoFocus
+                    onChange={(event) => setCustomDraft(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        addCustom();
+                      }
+                      if (event.key === 'Escape') setCustomOpen(false);
+                    }}
+                    placeholder="Ej: mi-framework (requiere adaptador manual)"
+                    aria-label="Nombre de la opción personalizada"
+                    className={glassInput('w-64 py-1.5 text-xs')}
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustom}
+                    disabled={!slugify(customDraft) || atMax}
+                    className={glassFilterChip(false, 'text-[11px] disabled:cursor-not-allowed disabled:opacity-40')}
+                  >
+                    Añadir
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCustomOpen(false)}
+                    aria-label="Cancelar opción personalizada"
+                    className="rounded-full p-1 text-zinc-500 transition-colors hover:text-white"
+                  >
+                    <LuX className="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+                </div>
+                {slugify(customDraft) && (
+                  <span className="text-[11px] text-zinc-500">
+                    Se guardará como <code className="text-zinc-400">custom:{slugify(customDraft)}</code>
+                  </span>
+                )}
+                <p className="flex items-center gap-1.5 text-[11px] text-amber-400/80">
+                  <LuTriangleAlert className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  Las opciones custom requieren un adaptador manual y generan una advertencia en el bundle.
+                </p>
+              </div>
             ) : (
               <button
                 type="button"
