@@ -55,7 +55,9 @@ export function HeroSection() {
           </div>
         </div>
 
-        <p className="mt-4 text-sm text-white/60">── o configura manualmente ──</p>
+        <p className="mt-4 inline-block rounded-full border border-black/70 bg-black/50 px-3 py-1 text-sm text-white shadow-sm backdrop-blur-sm">
+          ── o configura manualmente ──
+        </p>
 
         <Link
           href="/agents/new"
