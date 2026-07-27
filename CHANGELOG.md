@@ -4,6 +4,12 @@ All notable changes to this project are documented here.
 
 ### Bug Fixes
 
+- Strip v prefix from git-cliff to prevent double-v tags (#661) _(ci)_
+
+## [v1.1.0] - 2026-07-27
+
+### Bug Fixes
+
 - Strip v prefix from git-cliff to prevent double-v tags _(ci)_
 
 - Expand agent capabilities, add max autonomy, multi-custom, expandable lists (#658) _(creator)_
@@ -39,6 +45,8 @@ All notable changes to this project are documented here.
 - Change accent colour on hover, not on a timer _(ui)_
 
 ### Chores
+
+- V1.1.0 _(release)_
 
 - Vv0.1.0 _(release)_
 
