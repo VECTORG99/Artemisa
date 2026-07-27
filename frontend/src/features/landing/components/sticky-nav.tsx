@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LuRocket, LuFlaskConical, LuLayers, LuBookOpen, LuScale, LuGithub } from 'react-icons/lu';
+import { LuRocket, LuFlaskConical, LuLayers, LuBookOpen, LuScale, LuGithub, LuUsers } from 'react-icons/lu';
 import type { IconType } from 'react-icons';
 import { glassStyle, useLandingModal, type LandingModalId } from './landing-modal';
 
@@ -36,6 +36,14 @@ export function StickyHeader() {
           <LuBookOpen className="h-3.5 w-3.5" aria-hidden="true" />
           Docs
         </Link>
+        <Link
+          href="/desarrolladores"
+          aria-label="Ver desarrolladores"
+          className="flex items-center gap-1.5 transition-colors hover:text-white"
+        >
+          <LuUsers className="h-3.5 w-3.5" aria-hidden="true" />
+          Equipo
+        </Link>
         <a
           href="#tecnologia"
           aria-label="Ir a sección Tecnología"
@@ -68,6 +76,12 @@ interface FooterLink {
 }
 
 const footerLinks: FooterLink[] = [
+  {
+    label: 'Equipo',
+    href: '/desarrolladores',
+    icon: LuUsers,
+    ariaLabel: 'Ver desarrolladores',
+  },
   {
     label: 'Legal',
     modal: 'legal',

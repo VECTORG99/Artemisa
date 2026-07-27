@@ -220,6 +220,62 @@ Base URL:
 /api/v1/creator
 ```
 
+### Autenticacion del Creator
+
+En produccion la autenticacion esta activa con `AUTH_REQUIRED=true` (ver `render.yaml`).
+Configura `HUASCAR_API_KEYS` como una lista separada por comas y no commitees claves
+reales en `.env`, ejemplos, logs ni documentacion.
+
+```bash
+AUTH_REQUIRED=true
+HUASCAR_API_KEYS=dev-key-1,ops-key-2
+```
+
+Las rutas protegidas aceptan cualquiera de estos headers:
+
+```bash
+curl -X POST http://localhost:3001/api/v1/creator/generate \
+  -H "Authorization: Bearer dev-key-1" \
+  -H "Content-Type: application/json" \
+  -d '{"answers":{}}'
+
+curl -X POST http://localhost:3001/api/v1/creator/preview \
+  -H "X-API-Key: dev-key-1" \
+  -H "Content-Type: application/json" \
+  -d '{"answers":{}}'
+```
+
+Rutas publicas del Creator, montadas antes de `requireAuth` y disponibles sin API key:
+
+| Ruta              | Metodo |
+| ----------------- | ------ |
+| `/catalog`        | GET    |
+| `/workflow`       | GET    |
+| `/tutorial`       | GET    |
+| `/skills`         | GET    |
+| `/mcps`           | GET    |
+| `/models`         | GET    |
+| `/docs`           | GET    |
+| `/agent`          | GET    |
+| `/agent/start`    | GET    |
+| `/agent/answer`   | POST   |
+| `/agent/generate` | POST   |
+| `/startup`        | GET    |
+
+Rutas protegidas del Creator, montadas despues de `requireAuth`:
+
+| Ruta        | Metodo |
+| ----------- | ------ |
+| `/evaluate` | POST   |
+| `/preview`  | POST   |
+| `/generate` | POST   |
+
+Para desarrollo local puedes desactivar auth:
+
+```bash
+AUTH_REQUIRED=false
+```
+
 ### `GET /catalog`
 
 Devuelve versión, categorías y tecnologías.
