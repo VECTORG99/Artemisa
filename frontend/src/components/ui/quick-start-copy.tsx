@@ -2,17 +2,14 @@
 
 import { useState } from 'react';
 import { LuCheck, LuCopy } from 'react-icons/lu';
-import { glassButton, glassCard, glassInput, glassPill } from '@/lib/glass';
+import { glassButton, glassCard, glassInput } from '@/lib/glass';
 
 interface QuickStartCopyProps {
   url: string;
   size?: 'sm' | 'md' | 'lg';
-  showCompatible?: boolean;
 }
 
-const COMPATIBLE_AGENTS = ['Claude', 'ChatGPT', 'Copilot', 'Cursor', 'Devin', 'Gemini', 'Warp', 'Aider'];
-
-export function QuickStartCopy({ url, size = 'md', showCompatible = false }: QuickStartCopyProps) {
+export function QuickStartCopy({ url, size = 'md' }: QuickStartCopyProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -49,11 +46,8 @@ export function QuickStartCopy({ url, size = 'md', showCompatible = false }: Qui
         <span className="text-accent" aria-hidden="true">
           ⚡
         </span>
-        <h3 className={`${titleSize} font-semibold text-white`}>Inicio Rápido vía IA</h3>
+        <h3 className={`${titleSize} font-semibold text-white`}>Inicio Rapido</h3>
       </div>
-      <p className="mt-1 text-sm text-zinc-400">
-        Pega esto en tu IA favorita y ella configura tu agente automáticamente.
-      </p>
       <div className="mt-4 flex items-center gap-2">
         <input
           value={url}
@@ -76,15 +70,6 @@ export function QuickStartCopy({ url, size = 'md', showCompatible = false }: Qui
         <p className="mt-2 text-sm text-emerald-400" aria-live="polite">
           ¡Copiado!
         </p>
-      )}
-      {showCompatible && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {COMPATIBLE_AGENTS.map((agent) => (
-            <span key={agent} className={glassPill('text-[10px] text-zinc-400')}>
-              {agent}
-            </span>
-          ))}
-        </div>
       )}
     </div>
   );

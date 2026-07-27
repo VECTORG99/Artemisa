@@ -68,7 +68,7 @@ export function ModeSelect({ onSelect }: ModeSelectProps) {
       </div>
 
       <div className="w-full max-w-2xl space-y-8">
-        <QuickStartCopy url={STARTUP_URL} size="lg" showCompatible={true} />
+        <QuickStartCopy url={STARTUP_URL} size="lg" />
 
         <div className="flex items-center gap-4">
           <div className="flex-1 h-px bg-white/10" />

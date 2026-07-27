@@ -50,7 +50,7 @@ export function HeroSection() {
         <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-zinc-400 sm:text-lg">{t.heroDescription}</p>
 
         <div className="mt-8 max-w-lg mx-auto">
-          <QuickStartCopy url={STARTUP_URL} size="md" showCompatible={true} />
+          <QuickStartCopy url={STARTUP_URL} size="md" />
         </div>
 
         <p className="mt-4 text-sm text-zinc-500">── o configura manualmente ──</p>

@@ -20,6 +20,11 @@ describe('QuickStartCopy', () => {
     expect(screen.getByRole('textbox')).toHaveValue('https://example.com/startup');
   });
 
+  it('muestra el título "Inicio Rapido"', () => {
+    render(<QuickStartCopy url="https://example.com/startup" />);
+    expect(screen.getByRole('heading', { name: /Inicio Rapido/i })).toBeInTheDocument();
+  });
+
   it('botón de copiar llama navigator.clipboard.writeText', async () => {
     render(<QuickStartCopy url="https://example.com/startup" />);
     const button = screen.getByRole('button', { name: /copiar/i });
@@ -32,17 +37,6 @@ describe('QuickStartCopy', () => {
     const button = screen.getByRole('button', { name: /copiar/i });
     fireEvent.click(button);
     await waitFor(() => expect(screen.getAllByText('¡Copiado!').length).toBeGreaterThanOrEqual(2));
-  });
-
-  it('muestra IAs compatibles cuando showCompatible=true', () => {
-    render(<QuickStartCopy url="https://example.com/startup" showCompatible />);
-    expect(screen.getByText('Claude')).toBeInTheDocument();
-    expect(screen.getByText('Devin')).toBeInTheDocument();
-  });
-
-  it('no muestra IAs cuando showCompatible=false', () => {
-    render(<QuickStartCopy url="https://example.com/startup" />);
-    expect(screen.queryByText('Claude')).not.toBeInTheDocument();
   });
 
   it('es accesible (aria labels presentes)', () => {
