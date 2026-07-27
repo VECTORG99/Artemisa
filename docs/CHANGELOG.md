@@ -4,6 +4,38 @@ All notable changes to this project are documented here.
 
 ### Bug Fixes
 
+- Reubicar botón de idioma a la derecha en modo creación _(creator)_
+
+- Reubicar botón de idioma a la derecha en modo creación (#689). _(creator)_
+
+### Documentation
+
+- Importar espejo local de la documentación de DeepWiki _(deepwiki)_
+
+- Importar espejo local de la documentación de DeepWiki. _(deepwiki)_
+
+- Eliminar referencias al Runtime eliminado y documentación obsoleta _(cleanup)_
+
+- Eliminar referencias al Runtime eliminado y documentación obsoleta (#674 follow-up). _(cleanup)_
+
+### Features
+
+- Sección de compatibilidad con métricas reales _(landing)_
+
+- Sección de compatibilidad con métricas reales (#688). _(landing)_
+
+### Other
+
+- Merge development into master _(other)_
+
+- Extraer aria-label hardcodeado del dashboard de ajuste fino _(advanced)_
+
+- Extraer aria-label hardcodeado del dashboard de ajuste fino (#690). _(advanced)_
+
+## [v1.3.0] - 2026-07-27
+
+### Bug Fixes
+
 - Aplicar estilo liquid glass estándar en la sección de features _(landing)_
 
 - Aplicar estilo liquid glass estándar en la sección de features (#687). _(landing)_
@@ -11,6 +43,10 @@ All notable changes to this project are documented here.
 - Eliminar documentación de Use Cases y agregar fallback a español. _(docs)_
 
 - Eliminar modal y traducciones de Use Cases de la landing. _(frontend)_
+
+### Chores
+
+- V1.3.0 _(release)_
 
 ### Documentation
 
