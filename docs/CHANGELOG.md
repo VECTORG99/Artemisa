@@ -2,43 +2,65 @@
 
 All notable changes to this project are documented here.
 
-### Documentation
-
-- Clean up outdated defensive statements and Runtime history (#674) _(readme)_
-
-### Refactor
-
-- Remove remaining Huascar references and complete rename (#632) _(repo)_
-
-- Optimize AI-facing artifacts (#667) _(generator)_
-
-## [v1.2.0] - 2026-07-27
-
 ### Bug Fixes
 
-- Pin Render starter plan, add CORS and health check, align Vercel auth _(deploy)_
+- Aplicar estilo liquid glass estándar en la sección de features _(landing)_
+
+- Aplicar estilo liquid glass estándar en la sección de features (#687). _(landing)_
+
+- Eliminar documentación de Use Cases y agregar fallback a español. _(docs)_
+
+- Eliminar modal y traducciones de Use Cases de la landing. _(frontend)_
+
+### Documentation
+
+- Sincronizar traducciones .en.md con la actualización de docs (#685). _(i18n)_
+
+- Rewrite README.md from scratch for the generator-only product
+
+- Update README.md with current generator-only scope
+
+- Remove remaining Runtime/agent-creator references across docs
+
+- Remove deprecated agent-creator deployment content
+
+- Remove creator-bundle.svg reference from legacy README
+
+- Remove unused creator-bundle.svg and legacy reference
+
+- Remove remaining stale Runtime references and config
+
+- Remove stale knip ignore, pnpm-workspace, and SVG registration button
+
+- Remove stale Runtime references from docs and source comments
+
+- Remove stale Runtime references — types, test data, config, and documentation
+
+### Features
+
+- Soporte completo de inglés en frontend y documentación core _(i18n)_
+
+- Reducir docs .en.md a solo la documentación core nueva. _(i18n)_
+
+- Soporte completo de inglés en frontend y documentación. _(i18n)_
+
+### Other
+
+- Migrate backend from Render to DigitalOcean App Platform _(other)_
+
+## [v1.2.1] - 2026-07-27
+
+### Chores
+
+- V1.2.1 _(release)_
+
+## [v1.2.0] - 2026-07-27
 
 ### Chores
 
 - V1.2.0 _(release)_
 
-### Documentation
-
-- Restore hackathon hero, badges and Important callouts lost in rename (#665) _(readme)_
-
-### Features
-
-- Add PROMPT.md artifact and surface it in the completion screen (#668) _(generator)_
-
-### Other
-
-- Reorganize final review into explanation top, decisions below (#666) _(creator)_
-
 ## [v1.1.1] - 2026-07-27
-
-### Bug Fixes
-
-- Strip v prefix from git-cliff to prevent double-v tags (#661) _(ci)_
 
 ### Chores
 
@@ -49,6 +71,24 @@ All notable changes to this project are documented here.
 ### Bug Fixes
 
 - Strip v prefix from git-cliff to prevent double-v tags _(ci)_
+
+### Chores
+
+- V1.1.0 _(release)_
+
+- Vv0.1.0 _(release)_
+
+### Other
+
+- V1.0.0 — Artemisa hackathon-ready _(other)_
+
+## [v1.0.0] - 2026-07-27
+
+### Bug Fixes
+
+- Pin Render starter plan, add CORS and health check, align Vercel auth _(deploy)_
+
+- Strip v prefix from git-cliff to prevent double-v tags (#661) _(ci)_
 
 - Expand agent capabilities, add max autonomy, multi-custom, expandable lists (#658) _(creator)_
 
@@ -82,13 +122,11 @@ All notable changes to this project are documented here.
 
 - Change accent colour on hover, not on a timer _(ui)_
 
-### Chores
-
-- V1.1.0 _(release)_
-
-- Vv0.1.0 _(release)_
-
 ### Documentation
+
+- Clean up outdated defensive statements and Runtime history (#674) _(readme)_
+
+- Restore hackathon hero, badges and Important callouts lost in rename (#665) _(readme)_
 
 - Redesign hero with hackathon branding and for-the-badge shields (#622) _(readme)_
 
@@ -97,6 +135,8 @@ All notable changes to this project are documented here.
 - Document creator auth (#612)
 
 ### Features
+
+- Add PROMPT.md artifact and surface it in the completion screen (#668) _(generator)_
 
 - Expand skills and MCP catalogs (#647) (#659) _(catalog)_
 
@@ -122,11 +162,19 @@ All notable changes to this project are documented here.
 
 ### Other
 
-- V1.0.0 — Artemisa hackathon-ready _(other)_
+- Relocate Docker, config and docs to reduce top-level clutter (#680) _(root)_
+
+- Reorganize final review into explanation top, decisions below (#666) _(creator)_
 
 - Render review decisions in a two-column grid (#633) _(creator)_
 
 - Remove accent colour cycling, restore fixed red accent _(ui)_
+
+### Refactor
+
+- Remove remaining Huascar references and complete rename (#632) _(repo)_
+
+- Optimize AI-facing artifacts (#667) _(generator)_
 
 ## [v0.1.0] - 2026-07-26
 
