@@ -24,6 +24,10 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,9 +36,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: cp .env.example .env
-      - name: Unit tests
-        run: npm run test:unit
+      - name: Unit tests (shard ${{ matrix.shard }}/3)
+        run: |
+          files=$(ls test/*.test.mjs | awk "NR % 3 == ${{ matrix.shard }} - 1")
+          node --import tsx/esm --test --test-concurrency=4 $files
       - name: Integration tests
+        if: matrix.shard == 1
         run: npm test
 
   security:
