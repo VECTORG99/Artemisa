@@ -27,7 +27,7 @@ export default function HomePage() {
       {/* Scrollable content with unified space simulation as background */}
       <div
         id="space-scroll-container"
-        className="relative h-screen snap-y snap-mandatory overflow-x-hidden overflow-y-auto"
+        className="relative h-screen snap-y snap-mandatory overflow-x-hidden overflow-y-auto scroll-smooth"
       >
         {/* The simulation renders the black hole + stars + meteors as a
             fixed full-viewport canvas (see space-simulation.tsx) so the
