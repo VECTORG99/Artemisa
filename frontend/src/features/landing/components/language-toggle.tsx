@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { glassStyle } from './landing-modal';
 import { useLocale, type Locale } from '@/i18n';
 
@@ -10,6 +11,8 @@ import { useLocale, type Locale } from '@/i18n';
  */
 export function LanguageToggle() {
   const { locale, setLocale } = useLocale();
+  const pathname = usePathname();
+  const isCreator = pathname?.startsWith('/agents/new') ?? false;
 
   const nextLocale: Locale = locale === 'es' ? 'en' : 'es';
   const label = locale === 'es' ? 'ES' : 'EN';
@@ -20,7 +23,7 @@ export function LanguageToggle() {
       type="button"
       onClick={() => setLocale(nextLocale)}
       aria-label={ariaLabel}
-      className="pointer-events-auto fixed bottom-5 left-52 z-50 flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-white/80 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      className={`pointer-events-auto fixed bottom-5 z-50 flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-white/80 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${isCreator ? 'left-80' : 'left-52'}`}
       style={glassStyle}
     >
       <span aria-hidden="true">🌐</span>
