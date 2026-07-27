@@ -41,13 +41,13 @@ export function HeroSection() {
   return (
     <section className="flex h-screen snap-start flex-col items-center justify-center px-6">
       <div className="relative z-10 max-w-3xl text-center">
-        <h1 className="text-6xl font-bold tracking-tight text-white sm:text-7xl lg:text-8xl">
+        <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl xl:text-8xl">
           <span className="bg-gradient-to-r from-white via-zinc-300 to-zinc-500 bg-clip-text text-transparent">
             {t.heroTitle}
           </span>
         </h1>
 
-        <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">{t.heroDescription}</p>
+        <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-zinc-400 sm:text-lg">{t.heroDescription}</p>
 
         <div className="mt-8 max-w-lg mx-auto">
           <QuickStartCopy url={STARTUP_URL} size="md" showCompatible={true} />
@@ -200,9 +200,7 @@ function TechStackSection() {
   return (
     <section id="tecnologia" className="flex h-screen snap-start items-center justify-center px-6">
       <div className="relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10" style={glassStyle}>
-        <span className="text-xs font-semibold uppercase tracking-wider text-red-400/80">
-          Stack real del proyecto
-        </span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-red-400/80">Stack real del proyecto</span>
         <h2 className="mt-2 text-3xl font-bold text-white">Tecnología que usamos</h2>
         <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400">
           Huascar es open source. Este es el stack exacto con el que está construido.
