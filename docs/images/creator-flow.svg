@@ -103,14 +103,7 @@
   <text x="452" y="458" text-anchor="middle" fill="#71717a" font-size="10">stateless · Express/TypeScript</text>
   <text x="452" y="470" text-anchor="middle" fill="#71717a" font-size="10">catálogo · árbol · generador</text>
 
-  <!-- Separator -->
-  <line x1="562" y1="420" x2="562" y2="475" stroke="#27272a" stroke-width="1"/>
-
-  <!-- Runtime box -->
-  <rect x="570" y="420" width="280" height="55" rx="8" fill="#1c1c1e" stroke="#27272a" stroke-width="1" stroke-dasharray="4,3"/>
-  <text x="710" y="441" text-anchor="middle" fill="#52525b" font-size="11" font-weight="600">Runtime legacy (separado)</text>
-  <text x="710" y="458" text-anchor="middle" fill="#3f3f46" font-size="10">ArtemisaEngine · RAG · MCP · ReAct</text>
-  <text x="710" y="470" text-anchor="middle" fill="#3f3f46" font-size="10">/api/agent/execute</text>
+  <!-- No runtime: the Creator only generates configuration files. -->
 
   <!-- Arrow markers -->
   <defs>

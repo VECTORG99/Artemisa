@@ -12,9 +12,6 @@ services:
       - PORT=3001
       - AUTH_REQUIRED=true
       - ARTEMISA_API_KEYS=${ARTEMISA_API_KEYS}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ARTEMISA_DB_PATH=/app/data/artemisa.db
-      - LLM_MOCK_MODE=false
       - BYPASS_SECRET=${BYPASS_SECRET}
       - METRICS_SECRET=${METRICS_SECRET}
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000}

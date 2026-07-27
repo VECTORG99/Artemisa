@@ -6,7 +6,7 @@
   "properties": {
     "knowledge_bases": {
       "type": "array",
-      "description": "Mirrors the RagSource union in src/engine/RagEngine.ts.",
+      "description": "Allowed knowledge base source types for the generated bundle.",
       "items": {
         "type": "object",
         "required": ["type"],

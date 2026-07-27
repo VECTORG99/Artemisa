@@ -22,8 +22,6 @@ Antes de generar el bundle, el Creator muestra las respuestas acumuladas y las r
 
 El bundle es un conjunto de artefactos deterministas con SHA-256 por archivo. Artemisa no escribe los archivos automáticamente — el usuario los revisa y los copia al proyecto destino.
 
-![Bundle generado con artefactos](../docs/images/creator-bundle.svg)
-
 ## Funcionalidad
 
 - Carga catálogo, workflow y tutorial desde `/api/v1/creator`.

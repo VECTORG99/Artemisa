@@ -102,24 +102,14 @@ Defaults per environment:
 
 > `NEXT_PUBLIC_API_URL` is consumed at **build time** by Next.js and baked into the JS bundle. Changing it requires a rebuild.
 
-### Agent Creator (Vite)
-
-| Variable             | Required | Default                 | Description                           |
-| -------------------- | -------- | ----------------------- | ------------------------------------- |
-| `VITE_API_URL`       | No       | `http://localhost:3001` | Backend API URL for the Vite dev tool |
-| `VITE_DASHBOARD_URL` | No       | `http://localhost:3000` | Dashboard URL link                    |
-
-> The `agent-creator/` Vite app is legacy (superseded by `frontend/agents/new`, issue #390). It remains in the workspace but is not the active Creator UI.
-
 ---
 
 ## 4. Service Ports
 
-| Service                  | Container Port | Host Port | Notes                             |
-| ------------------------ | -------------- | --------- | --------------------------------- |
-| **Backend** (Express)    | `3001`         | `3001`    | JSON API                          |
-| **Frontend** (Next.js)   | `3000`         | `3000`    | Dashboard UI                      |
-| **Agent Creator** (Vite) | `5173`         | `5173`    | Dev tool (optional in production) |
+| Service                | Container Port | Host Port | Notes                |
+| ---------------------- | -------------- | --------- | -------------------- |
+| **Backend** (Express)  | `3001`         | `3001`    | JSON API             |
+| **Frontend** (Next.js) | `3000`         | `3000`    | Landing + Creator UI |
 
 All services share the `artemisa-network` bridge network.
 
@@ -136,8 +126,6 @@ docker build -f docker/Dockerfile.frontend \
   --build-arg NEXT_PUBLIC_API_URL=http://localhost:3001 \
   -t artemisa-frontend .
 
-# Agent Creator (optional)
-docker build -f docker/Dockerfile.agent-creator -t artemisa-agent-creator .
 ```
 
 > The backend Docker image no longer requires `python3 make g++` or a `better-sqlite3` native rebuild: the build is a pure `npm ci` + `tsc` + `npm prune`.
@@ -190,7 +178,7 @@ services:
 ## 7. Local Development
 
 ```bash
-# Install all dependencies (root + frontend + agent-creator via workspaces)
+# Install all dependencies (root + frontend via workspaces)
 make install
 
 # Or manually from the repo root ONLY (npm workspaces hoists shared deps):
@@ -199,10 +187,9 @@ npm ci
 # Start development servers (each in its own terminal):
 npm run dev              # Backend (tsx watch, port 3001)
 cd frontend && npm run dev  # Frontend (Next.js, port 3000)
-cd agent-creator && npm run dev  # Agent Creator (Vite, port 5173)
 ```
 
-> **Do not** run `npm ci` inside `frontend/` or `agent-creator/` — the repo uses npm workspaces (ADR-0007) and the authoritative lockfile lives at the root. Per-app lockfiles are not maintained.
+> **Do not** run `npm ci` inside `frontend/` or any other workspace subdirectory — the repo uses npm workspaces (ADR-0007) and the authoritative lockfile lives at the root. Per-app lockfiles are not maintained.
 
 ---
 

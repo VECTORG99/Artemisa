@@ -98,6 +98,16 @@ Returns the model catalog (for agent platform targets).
 
 ---
 
+### `GET /docs`
+
+Returns a catalog of official documentation files with metadata (title, description, category, size). Allows AI agents to discover and consume the project's documentation programmatically.
+
+**Auth:** None
+
+**Response:** `200 application/json`
+
+---
+
 ### `POST /evaluate`
 
 Recalculates the decision tree from accumulated answers. Returns the next visible question, progress, recommendations, warnings and issues.

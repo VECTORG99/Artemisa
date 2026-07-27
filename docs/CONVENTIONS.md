@@ -12,7 +12,7 @@ Principles:
 - Put code next to the layer that owns it. Do not create shared utilities until at least two real call sites need the same behavior.
 - Preserve existing naming style in the target folder. Use PascalCase for classes and class-backed modules, camelCase for functions/values, kebab-case for docs/branch names.
 - Prefer small exported functions over large exported objects. Export only what tests or other modules import.
-- Keep side effects at edges: server startup, database writes, environment reads, network calls, and filesystem access should be easy to locate.
+- Keep I/O at edges: server startup, environment reads, and filesystem access (for loading schemas and docs) should be easy to locate. No database writes or network calls.
 - Avoid barrel files unless already present in the same area. Direct imports make impact analysis easier for agents.
 - Generated/build output stays out of source commits unless the repository already tracks that exact artifact type.
 
@@ -20,8 +20,8 @@ Recommended layout behavior:
 
 - `src/server.ts` / app bootstrap: wiring only. No business rules hidden in startup.
 - `src/routes` or route modules: HTTP parsing, validation, status codes, response shape.
-- Engine/service modules: deterministic business behavior; no Express request/response objects.
-- `src/creator/*`: deterministic catalog, decision tree and generation logic; no Express objects, no I/O.
+- Creator/service modules: deterministic business behavior; no Express request/response objects.
+- `src/creator/*`: deterministic catalog, decision tree and generation logic; valid modules are `catalog.ts`, `decisionTree.ts`, `generator.ts`, `agentProtocol.ts`, `mcpCatalog.ts`, `skillsCatalog.ts`, `modelsCatalog.ts`, and `docs-catalog.ts`; no Express objects, no I/O.
 - `src/kiro/schemas/*.json`: schemas for generated artifacts. Keep them valid and update tests when required.
 - `test/*.test.mjs`: node:test unit and contract checks. Keep fixtures inline unless reused.
 - `docs/*.md`: machine-readable operational documentation. Use concrete paths, rules, and update triggers.
@@ -29,11 +29,11 @@ Recommended layout behavior:
 Do:
 
 ```ts
-// route owns HTTP concerns; engine owns behavior
-app.post('/agents', async (req, res, next) => {
+// route owns HTTP concerns; creator owns behavior
+app.post('/api/v1/creator/evaluate', async (req, res, next) => {
   try {
-    const agent = await engine.createAgent(parseCreateAgent(req.body));
-    res.status(201).json(agent);
+    const result = await evaluateDecisionTree(parseCreatorInput(req.body));
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
@@ -43,10 +43,10 @@ app.post('/agents', async (req, res, next) => {
 Don't:
 
 ```ts
-// business logic, persistence, and HTTP mixed together
-app.post('/agents', async (req, res) => {
-  const id = Math.random().toString();
-  db.prepare('insert into agents ...').run(id, req.body.name);
+// business logic, validation, and HTTP mixed together
+app.post('/api/v1/creator/generate', async (req, res) => {
+  const bundle = generateAgentBundle(req.body);
+  fs.writeFileSync(`./generated/${bundle.id}.json`, JSON.stringify(bundle));
   res.json({ ok: true });
 });
 ```
@@ -74,25 +74,25 @@ export class StringHelperFactory {
 Compiler expectations:
 
 - Keep `tsc --noEmit` clean. Do not silence errors with broad casts.
-- Use explicit types at trust boundaries: request bodies, environment variables, JSON config, database rows, external provider results.
+- Use explicit types at trust boundaries: request bodies, environment variables, JSON config, generated artifact shapes, and external config values.
 - Let TypeScript infer obvious local variables and return types for tiny private helpers. Add return types to exported functions, public methods, and callbacks where inference hides the contract.
 - Avoid `any`. Use `unknown` at boundaries, narrow it, then convert into a typed internal shape.
-- Prefer discriminated unions for finite states and provider results. Avoid stringly-typed branching scattered across files.
+- Prefer discriminated unions for finite states and generation results. Avoid stringly-typed branching scattered across files.
 - Use `readonly` for arrays/objects passed as inputs when mutation is not part of the contract.
 - Avoid non-null assertions (`!`) except after a local guard that TypeScript cannot understand; prefer a small guard function.
 - Use `satisfies` for object literals checked against a type without widening values.
 - Prefer `const` and pure helpers. Use mutation only when it makes the code shorter and local.
-- No new runtime dependency for validation if a small guard covers the current input.
+- No new dependency for validation if a small guard covers the current input.
 
 Boundary parsing pattern:
 
 ```ts
-type CreateAgentInput = {
+type CreatorInput = {
   name: string;
   role: string;
 };
 
-export function parseCreateAgent(value: unknown): CreateAgentInput {
+export function parseCreatorInput(value: unknown): CreatorInput {
   if (!value || typeof value !== 'object') throw new Error('request body must be an object');
   const body = value as Record<string, unknown>;
   if (typeof body.name !== 'string' || body.name.trim() === '') throw new Error('name is required');
@@ -104,8 +104,8 @@ export function parseCreateAgent(value: unknown): CreateAgentInput {
 Do:
 
 ```ts
-type ProviderResult =
-  | { status: 'ok'; text: string }
+type GenerationResult =
+  | { status: 'ok'; bundle: unknown }
   | { status: 'rate_limited'; retryAfterMs: number }
   | { status: 'failed'; error: Error };
 ```
@@ -113,9 +113,9 @@ type ProviderResult =
 Don't:
 
 ```ts
-type ProviderResult = {
+type GenerationResult = {
   status: string;
-  text?: string;
+  bundle?: unknown;
   retryAfterMs?: number;
   error?: unknown;
 };
@@ -142,27 +142,27 @@ Goals:
 - Preserve enough context to debug failures without exposing secrets.
 - Return predictable API errors to clients.
 - Fail fast on invalid config, schema, request bodies, and impossible states.
-- Keep process-level crashes for startup/configuration problems; runtime request failures should go through route error handling.
+- Keep process-level crashes for startup/configuration problems; request failures should go through route error handling.
 
 Rules:
 
 - Throw `Error` instances, not strings or plain objects.
 - Add context at the boundary that understands the operation. Do not wrap the same error repeatedly at every stack frame.
-- Never log secrets, bearer tokens, API keys, raw `.env` values, or full provider payloads that may contain user data unless explicitly sanitized.
+- Never log secrets, bearer tokens, API keys, raw `.env` values, or full request payloads that may contain user data unless explicitly sanitized.
 - Use `unknown` in `catch`, then normalize with `error instanceof Error ? error : new Error(String(error))`.
 - For HTTP routes, map known validation/client failures to 4xx and unexpected failures to 500. Do not leak stack traces in responses.
-- For persistence, prefer database constraints for durable invariants and translate constraint failures only when the API needs a stable message.
+- For generated artifacts, enforce invariants at generation time and translate invariant failures only when the API needs a stable message.
 - Clean up resources with `finally` or ownership-specific close/dispose methods when the function opens them.
-- Include identifiers useful for correlation (`agentId`, `sessionId`, `provider`) but not secret values.
+- Include identifiers useful for correlation (`agentId`, `requestId`, `catalogItemId`) but not secret values.
 
 Do:
 
 ```ts
 try {
-  return await provider.generate(request);
+  return generateAgentBundle(request);
 } catch (error) {
   const cause = error instanceof Error ? error : new Error(String(error));
-  throw new Error(`provider generate failed: ${providerName}`, { cause });
+  throw new Error(`generate agent bundle failed: ${request.agentId}`, { cause });
 }
 ```
 
@@ -170,9 +170,9 @@ Don't:
 
 ```ts
 try {
-  return await provider.generate(request);
+  return generateAgentBundle(request);
 } catch (error) {
-  console.error('provider failed', request, process.env.OPENAI_API_KEY, error);
+  console.error('generate failed', request, process.env.EXTERNAL_API_KEY, error);
   throw error;
 }
 ```
@@ -180,8 +180,8 @@ try {
 Do:
 
 ```ts
-if (!session) {
-  res.status(404).json({ error: 'session not found' });
+if (!item) {
+  res.status(404).json({ error: 'item not found' });
   return;
 }
 ```
@@ -189,7 +189,7 @@ if (!session) {
 Don't:
 
 ```ts
-res.status(200).json({ error: 'session not found' });
+res.status(200).json({ error: 'item not found' });
 ```
 
 ## Testing
@@ -198,7 +198,7 @@ Default test stack: Node's built-in `node:test` plus `node:assert/strict`. Do no
 
 What to test:
 
-- New business logic branches, parsers, validators, persistence behavior, route contracts, and docs/config invariants.
+- New business logic branches, parsers, validators, generation behavior, route contracts, and docs/config invariants.
 - Regressions fixed by the issue. Add the smallest test that would fail before the fix.
 - Agent-consumed docs/config when requirements are structural, such as required headings or schema entries.
 
@@ -213,7 +213,7 @@ Rules:
 - Keep tests deterministic: no real network, no wall-clock assumptions without injection, no dependency on test order.
 - Use temporary directories/files for filesystem tests and clean them up.
 - Prefer inline fixtures. Move fixtures to files only when reuse or readability demands it.
-- Keep each test name behavior-oriented: `rejects missing agent name`, not `test parseCreateAgent`.
+- Keep each test name behavior-oriented: `rejects missing agent name`, not `test parseCreatorInput`.
 - Use exact assertions for stable shapes and `assert.match` for messages/markdown headings.
 - When adding reference docs under `docs/reference/`, test that JSON examples remain schema-valid if cheap.
 
@@ -224,7 +224,7 @@ import assert from 'node:assert/strict';
 import { it } from 'node:test';
 
 it('rejects missing agent name', () => {
-  assert.throws(() => parseCreateAgent({ role: 'planner' }), /name is required/);
+  assert.throws(() => parseCreatorInput({ role: 'planner' }), /name is required/);
 });
 ```
 
@@ -232,7 +232,7 @@ Don't:
 
 ```js
 it('works', () => {
-  parseCreateAgent({ role: 'planner' });
+  parseCreatorInput({ role: 'planner' });
 });
 ```
 
@@ -256,7 +256,7 @@ Route responsibilities:
 
 - Authenticate/authorize when applicable.
 - Parse and validate params, query, and body.
-- Call the smallest service/engine method needed.
+- Call the smallest creator function or service method needed.
 - Return stable status codes and JSON response shapes.
 - Pass unexpected errors to centralized error handling.
 
@@ -266,22 +266,22 @@ Route conventions:
 - Use correct HTTP methods: `GET` read, `POST` create/action, `PATCH` partial update, `DELETE` remove.
 - `201` for created resources, `200` for successful reads/actions with a body, `204` for successful deletion with no body.
 - Client input errors are `400`; missing resources `404`; conflicts `409`; auth failures `401`/`403`; unexpected errors `500`.
-- Validate route params before calling services. Do not let invalid IDs become SQL/provider calls.
-- Keep response objects explicit. Avoid returning raw database rows or provider SDK objects directly.
+- Validate route params before calling services. Do not let invalid IDs become filesystem or generator failures.
+- Keep response objects explicit. Avoid returning raw generated artifacts or request payloads directly.
 - Do not change public API response fields without updating tests and relevant docs/OpenAPI files.
 - Keep streaming/SSE/WebSocket behavior isolated from ordinary JSON routes.
 
 Do:
 
 ```ts
-app.get('/sessions/:sessionId', async (req, res, next) => {
+app.get('/catalog/:itemId', async (req, res, next) => {
   try {
-    const session = await engine.getSession(req.params.sessionId);
-    if (!session) {
-      res.status(404).json({ error: 'session not found' });
+    const item = await getCatalogItem(req.params.itemId);
+    if (!item) {
+      res.status(404).json({ error: 'item not found' });
       return;
     }
-    res.json({ session });
+    res.json({ item });
   } catch (error) {
     next(error);
   }
@@ -291,21 +291,21 @@ app.get('/sessions/:sessionId', async (req, res, next) => {
 Don't:
 
 ```ts
-app.get('/getSession', async (req, res) => {
-  res.json(await db.prepare(`select * from sessions where id = '${req.query.id}'`).get());
+app.get('/getCatalogItem', async (req, res) => {
+  res.json(JSON.parse(await fs.promises.readFile(`./catalog/${req.query.id}.json`, 'utf8')));
 });
 ```
 
 Do:
 
 ```ts
-res.status(201).json({ agent: toAgentResponse(agent) });
+res.status(201).json({ bundle: toAgentBundleResponse(bundle) });
 ```
 
 Don't:
 
 ```ts
-res.json({ ok: true, data: providerRawResponse });
+res.json({ ok: true, data: rawGenerationOutput });
 ```
 
 ## Git / PR conventions
