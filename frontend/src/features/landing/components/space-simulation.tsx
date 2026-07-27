@@ -206,14 +206,17 @@ export function SpaceSimulation({
     let stars: Star[] = [];
     let width = document.documentElement.clientWidth;
     let height = document.documentElement.clientHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
     const resize = () => {
       const prevWidth = width;
       const prevHeight = height;
       width = document.documentElement.clientWidth;
       height = document.documentElement.clientHeight;
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
       if (prevWidth > 0 && prevHeight > 0 && stars.length > 0) {
         for (const star of stars) {
           star.ox = (star.ox / prevWidth) * width;
@@ -276,12 +279,25 @@ export function SpaceSimulation({
       window.matchMedia &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    // Track frame times for adaptive quality
+    let slowFrames = 0;
+    let activeStarCount = stars.length;
+
     const animate = () => {
       const now = performance.now();
       const dt = lastTime ? Math.min(now - lastTime, 50) : 16.667;
       const frameScale = (dt || 16.667) / 16.667;
       lastTime = now;
 
+      // Adaptive quality: if frames are consistently slow (>20ms), reduce stars
+      if (dt > 20) slowFrames++;
+      else slowFrames = Math.max(0, slowFrames - 1);
+      if (slowFrames > 30 && activeStarCount > 150) {
+        activeStarCount = Math.max(150, activeStarCount - 50);
+      }
+
+      ctx.save();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.fillStyle = 'rgba(0, 0, 0, 1)';
       ctx.fillRect(0, 0, width, height);
 
@@ -305,7 +321,8 @@ export function SpaceSimulation({
       scrollVelocity = Math.max(rawScrollDelta, scrollVelocity * Math.pow(0.9, frameScale));
       const lightConsumption = clampOpacity(scrollVelocity / 40);
 
-      for (const star of stars) {
+      for (let si = 0; si < activeStarCount; si++) {
+        const star = stars[si];
         star.twinklePhase += star.twinkleSpeed * 16 * frameScale;
         const twinkle = Math.sin(star.twinklePhase);
         const baseOp = star.baseOpacity * (0.35 + Math.abs(twinkle) * 0.65);
@@ -740,6 +757,7 @@ export function SpaceSimulation({
       // Decay accretion energy over time
       accretionEnergyRef.current = Math.max(0, accretionEnergyRef.current - 0.004 * frameScale);
 
+      ctx.restore();
       animRef.current = requestAnimationFrame(animate);
     };
 
@@ -796,6 +814,11 @@ export function SpaceSimulation({
   }, []);
 
   return (
-    <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 z-[1] h-full w-full" aria-hidden="true" />
+    <canvas
+      ref={canvasRef}
+      className="pointer-events-none fixed inset-0 z-[1] h-full w-full"
+      style={{ willChange: 'contents', contain: 'strict' }}
+      aria-hidden="true"
+    />
   );
 }
