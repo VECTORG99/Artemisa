@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dynamicImport from 'next/dynamic';
-import { LuArrowLeft, LuArrowRight, LuKeyboard, LuMonitor, LuRotateCcw, LuSkipForward } from 'react-icons/lu';
+import { LuArrowLeft, LuArrowRight, LuKeyboard, LuMonitor, LuRotateCcw, LuSkipForward, LuX } from 'react-icons/lu';
 
 import {
   CompletionScreen,
@@ -196,6 +196,7 @@ export default function NewAgentPage() {
   const [busy, setBusy] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
+  const [draftNotice, setDraftNotice] = useState<{ mode: string; count: number } | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   const { phase, setPhase, run, enter } = usePanelTransition();
@@ -224,6 +225,7 @@ export default function NewAgentPage() {
         setVisited(draft.visited);
         setCurrentQuestionId(draft.currentQuestionId);
         setReviewing(draft.reviewing && initial.progress.complete);
+        setDraftNotice({ mode: draft.mode, count: Object.keys(initial.answers).length });
       } else {
         setCurrentQuestionId(initial.nextQuestion?.id ?? null);
       }
@@ -238,6 +240,13 @@ export default function NewAgentPage() {
   useEffect(() => {
     void bootstrap();
   }, [bootstrap]);
+
+  // Auto-dismiss draft notice after 5s
+  useEffect(() => {
+    if (!draftNotice) return;
+    const timer = setTimeout(() => setDraftNotice(null), 5000);
+    return () => clearTimeout(timer);
+  }, [draftNotice]);
 
   async function retryBootstrap() {
     setRetrying(true);
@@ -915,6 +924,38 @@ export default function NewAgentPage() {
               >
                 {busy ? 'Evaluando…' : returnToReview ? 'Guardar' : 'Continuar'}
                 <LuArrowRight className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+          )}
+
+          {/* Draft restored toast (#566) */}
+          {draftNotice && (
+            <div
+              className="fixed bottom-6 left-1/2 z-[80] flex -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-zinc-900/95 px-5 py-2.5 shadow-xl backdrop-blur-md"
+              role="status"
+              aria-live="polite"
+            >
+              <span className="text-sm text-zinc-300">
+                Borrador restaurado: {draftNotice.count} respuesta{draftNotice.count !== 1 ? 's' : ''} recuperada
+                {draftNotice.count !== 1 ? 's' : ''}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setDraftNotice(null);
+                  resetDraft();
+                }}
+                className="text-xs font-medium text-red-400 transition-colors hover:text-red-300"
+              >
+                Reiniciar
+              </button>
+              <button
+                type="button"
+                onClick={() => setDraftNotice(null)}
+                aria-label="Cerrar aviso"
+                className="text-zinc-500 transition-colors hover:text-white"
+              >
+                <LuX className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
           )}
