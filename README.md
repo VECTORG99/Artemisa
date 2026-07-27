@@ -14,7 +14,7 @@
 
 **Generador open-source de archivos de configuración para agentes de desarrollo y operación. Diseña mediante un árbol de decisiones, genera el bundle y explica por qué fue construido así.**
 
-Artemisa **sólo genera archivos de configuración** (Markdown + JSON). No ejecuta, no despliega, no hostea agentes. El Runtime anterior (motor ReAct, LLM, RAG, MCP, SQLite) se eliminó en el issue #584 — ver [ADR-0008](docs/adr/0008-remove-runtime-generator-only.md).
+Artemisa genera un bundle reproducible de archivos de configuración (Markdown + JSON): un blueprint canónico, manifest verificable, guía de instalación y explicación de decisiones. Aplicas el bundle manualmente en tu repositorio tras revisar cada artefacto.
 
 El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no modifica el proyecto del usuario. Sus preguntas, recomendaciones y artefactos son deterministas y auditables.
 
@@ -45,16 +45,13 @@ El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no 
 - Fondo espacial y estética "liquid glass" compartidos con el Landing.
 - Revisión de recomendaciones y advertencias antes de generar, con cada respuesta editable.
 - Descarga el bundle como ZIP (preservando rutas relativas), como JSON completo, o artefactos individuales.
-- `agent-creator/` (Vite) queda como app legacy, sin desarrollo activo de Creator.
-- **Login, cuentas y guardado de blueprints están en el roadmap; no están implementados.** El Creator es stateless por diseño.
+- El Creator es stateless: conserva el borrador en `sessionStorage` por versión de workflow, sin base de datos.
 
 ---
 
 ## Recorrido del usuario
 
 ```text
-[Login futuro]
-      ↓
 [Tutorial ficticio opcional]
       ↓ saltar o completar
 [Árbol de decisiones]
@@ -78,11 +75,7 @@ El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no 
 
 La experiencia se inspira en un workflow como n8n: cada respuesta abre o cierra nodos. No es un formulario fijo. El cliente conserva las respuestas y las reenvía; el backend recalcula el camino completo, progreso y siguiente pregunta.
 
-### 1. Login futuro
-
-La entrada con cuenta permitirá guardar agentes, versionarlos y compartirlos. No existe actualmente ninguna ruta de autenticación ni almacenamiento de sesiones del Creator. Esta decisión evita presentar como segura una sesión anónima que todavía no tiene identidad, ownership o autorización.
-
-### 2. Tutorial opcional
+### 1. Tutorial opcional
 
 `GET /api/v1/creator/tutorial` entrega una historia ficticia: rescatar una API en producción. Enseña cuatro ideas antes de crear un agente real:
 
@@ -93,7 +86,7 @@ La entrada con cuenta permitirá guardar agentes, versionarlos y compartirlos. N
 
 El tutorial se puede omitir sin crear estado en el backend.
 
-### 3. Creator guiado
+### 2. Creator guiado
 
 El árbol pregunta por:
 
@@ -114,7 +107,7 @@ El árbol pregunta por:
 
 Todas las selecciones de catálogo aceptan `custom:<slug>`. Una opción custom se conserva en el blueprint y genera una advertencia de adaptador pendiente; `WHY.md` documenta las decisiones custom que forman parte de sus secciones explicativas.
 
-### 4. Recomendaciones
+### 3. Recomendaciones
 
 Las recomendaciones son reglas deterministas. Algunos ejemplos:
 
@@ -128,7 +121,7 @@ Las recomendaciones son reglas deterministas. Algunos ejemplos:
 
 Cada recomendación incluye motivo, evidencia usada, beneficios, trade-offs y alternativas. El backend no presenta una decisión probabilística como si fuera conocimiento del modelo.
 
-### 5. Bundle listo para aplicar
+### 4. Bundle listo para aplicar
 
 Siempre se generan:
 
@@ -138,19 +131,21 @@ Siempre se generan:
 | `manifest.json`           | Inventario de archivos y hashes SHA-256.                    |
 | `docs/INSTALL.md`         | Tutorial para aplicar y validar el agente.                  |
 | `docs/WHY.md`             | Explicación del objetivo, stack, entorno y recomendaciones. |
+| `PROMPT.md`               | Prompt consolidado para copiar junto con el bundle.         |
 
-Según las respuestas se agregan:
+Según los destinos y opciones seleccionados se agregan:
 
-| Condición                            | Artefactos                                                                       |
-| ------------------------------------ | -------------------------------------------------------------------------------- |
-| Desarrollo, Kiro o portable          | `AGENTS.md`                                                                      |
-| Skills activadas                     | `skills/<agente>/SKILL.md`                                                       |
-| Target Artemisa                      | `artemisa/steering.json`, `security-policy.json`, `governance.json`, `mcps.json` |
-| Target Artemisa + RAG activado       | `artemisa/rag.json`                                                              |
-| Target Artemisa + PR review activado | `artemisa/pr-review.json`                                                        |
-| Target Kiro                          | `.kiro/steering/<agente>.md`                                                     |
-| Kiro + hooks                         | `.kiro/hooks/<agente>-quality.json`                                              |
-| Kiro + skills                        | `.kiro/skills/<agente>/SKILL.md`                                                 |
+| Destino / Opción     | Artefactos                                                                                          |
+| -------------------- | --------------------------------------------------------------------------------------------------- |
+| `agents-md`          | `AGENTS.md`                                                                                         |
+| `portable`           | `skills/<agente>/SKILL.md`                                                                          |
+| `cursor`             | `.cursorrules`, `.cursor/rules/<agente>.mdc`                                                        |
+| `devin-desktop`      | `.windsurfrules`, `.windsurf/rules/<agente>.md`                                                     |
+| `coderabbit`         | `.coderabbit.yaml`                                                                                  |
+| `kilo-code`          | `.kilocodemodes`, `.kilocode/rules/<agente>.md`                                                     |
+| `kiro`               | `.kiro/steering/<agente>.md`, `.kiro/hooks/<agente>-quality.json`, `.kiro/skills/<agente>/SKILL.md` |
+| Skills seleccionados | `skills/<id>/SKILL.md`                                                                              |
+| MCPs seleccionados   | `mcp.json`                                                                                          |
 
 El bundle se devuelve como JSON. Artemisa no escribe estos archivos automáticamente: el usuario debe revisarlos y copiarlos al proyecto destino. Para aplicarlos de forma segura, ver [`docs/reference/`](docs/reference/README.md): guías de `security-policy.json`, `steering.json` y la implementación de referencia de hooks.
 
@@ -208,14 +203,21 @@ Para EC2, Artemisa recomienda documentar además el proceso de servicio, parcheo
 ### Por qué el Creator es stateless
 
 - Permite volver atrás cambiando respuestas y recalcular el camino.
-- Evita sesiones anónimas y estado huérfano antes de implementar login.
+- Evita sesiones anónimas y estado huérfano.
 - Facilita reproducibilidad, pruebas y versionado.
 - El mismo input produce el mismo blueprint, contenido y hash.
 - Escala horizontalmente sin coordinar sesiones ni compartir estado.
 
-### Por qué Artemisa sólo genera y no ejecuta
+### Cómo aplicar el bundle
 
-Generar configuración no debe iniciar procesos, llamar un LLM, cargar archivos, consultar URLs ni usar credenciales. El preview es una compilación pura. Ejecutar un agente requiere controles de autenticación, sandbox, autorización, cuotas y auditoría que están fuera del alcance de un generador. Quien aplique el bundle es responsable de esos controles; `docs/reference/` documenta cómo.
+1. Descarga el ZIP o los artefactos individuales desde la pantalla final.
+2. Copia los archivos respetando las rutas relativas del `manifest.json`.
+3. Revisa `artemisa.blueprint.json`, `docs/INSTALL.md` y `docs/WHY.md` con el equipo.
+4. Valida los hashes SHA-256 del manifest antes de aplicar cambios.
+5. Configura secretos e integraciones con mínimo privilegio.
+6. Prueba el agente en modo asesor antes de activar acciones con efectos.
+
+Para detalles de allowlists y hooks, ver [`docs/reference/`](docs/reference/README.md).
 
 ---
 
@@ -413,7 +415,7 @@ Las configuraciónes MCP generadas son sugerencias. Antes de producción deben f
 
 ## Artefactos de referencia
 
-El Runtime anterior usaba configuraciones reales que ahora sirven como referencia curada para los bundles que genera el Creator. Viven en [`docs/reference/`](docs/reference/README.md) y **no se cargan en tiempo de ejecución**:
+La carpeta [`docs/reference/`](docs/reference/README.md) contiene ejemplos curados y guías para aplicar los artefactos que genera el Creator. Se usan como documentación y **no se cargan en tiempo de ejecución**:
 
 - `steering-roles.json` — los 7 roles de steering con system prompt, herramientas y temperatura.
 - `security-policy.example.json` — política allowlist real.
@@ -462,8 +464,6 @@ cd frontend && npm run dev
 
 - Creator: `http://localhost:3000/agents/new`
 
-`agent-creator/` (Vite, `http://localhost:5173`) sigue en el workspace como app legacy sin desarrollo activo del Creator; no recibe nuevas features.
-
 ### Docker
 
 ```bash
@@ -492,7 +492,7 @@ La suite cubre:
 - RAG, PR review, hooks, skills y `AGENTS.md`;
 - determinismo y hashes;
 - árbol incompleto y secretos literales;
-- contratos HTTP y ausencia de rutas del Runtime eliminado.
+- contratos HTTP y validación de respuestas.
 
 ---
 
@@ -516,7 +516,7 @@ src/
 ├── config.ts             # Sólo configuración del servidor
 └── server.ts
 
-docs/reference/           # Artefactos de referencia (no se cargan en runtime)
+docs/reference/           # Artefactos de referencia (no se cargan en el servidor)
 test/
 ├── CreatorDecisionTree.test.mjs
 ├── CreatorGenerator.test.mjs
@@ -538,23 +538,6 @@ test/
 - [x] Atajos de teclado y panel de ayuda.
 - [ ] Implementar el tutorial visual skippable tipo juego. El contenido existe en `GET /api/v1/creator/tutorial`; la interfaz todavía no lo renderiza.
 - [ ] Añadir exportación ZIP validada y comparación visual de revisiones.
-
-### Identidad y persistencia
-
-- [ ] Login mediante OIDC/OAuth.
-- [ ] Organizaciones, ownership y roles.
-- [ ] Guardar blueprints versionados y comparar revisiones.
-- [ ] Reanudar borradores de forma autenticada.
-- [ ] Auditoría de generación.
-
-### Aplicación y ejecución segura (fuera del producto actual)
-
-- [ ] Aplicación del bundle mediante PR revisable.
-- [ ] Servicio de ejecución separado y security-reviewed (sandbox, autorización, cuotas, audit).
-- [ ] Despliegue controlado en EC2, contenedores y Kubernetes.
-
-> [!IMPORTANT]
-> Artemisa no ejecuta agentes. La ejecución segura requiere un servicio aparte con sandboxing, autorización, cuotas y auditoría — fuera del alcance del generador (ADR-0008).
 
 ---
 
