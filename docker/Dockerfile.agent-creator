@@ -17,7 +17,7 @@ RUN addgroup -g 1001 -S appgroup && \
     adduser -S appuser -u 1001 -G appgroup
 
 COPY --from=builder --chown=appuser:appgroup /app/dist /srv
-COPY Caddyfile.agent-creator /etc/caddy/Caddyfile
+COPY docker/Caddyfile.agent-creator /etc/caddy/Caddyfile
 
 # Caddy's default data/config dirs must be writable by the non-root user
 RUN mkdir -p /config/caddy /data/caddy && \

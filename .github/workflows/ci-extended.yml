@@ -37,7 +37,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile.backend
+          file: docker/Dockerfile.backend
           tags: artemisa-backend:test
           load: true
           cache-from: type=gha,scope=backend
@@ -45,11 +45,11 @@ jobs:
       - name: Build frontend image
         uses: docker/build-push-action@v6
         with:
-          # Build context must be the repo root — Dockerfile.frontend
+          # Build context must be the repo root — docker/Dockerfile.frontend
           # copies frontend/package.json and packages/types (monorepo
           # workspaces), not just the frontend/ subdirectory.
           context: .
-          file: Dockerfile.frontend
+          file: docker/Dockerfile.frontend
           tags: artemisa-frontend:test
           load: true
           cache-from: type=gha,scope=frontend
@@ -59,7 +59,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile.agent-creator
+          file: docker/Dockerfile.agent-creator
           tags: artemisa-creator:test
           load: true
           cache-from: type=gha,scope=agent-creator

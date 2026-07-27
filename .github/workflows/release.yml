@@ -30,14 +30,14 @@ jobs:
       - name: Get next version
         id: version
         run: |
-          RAW_VERSION=$(git-cliff --bumped-version)
+          RAW_VERSION=$(git-cliff --config .github/cliff.toml --bumped-version)
           # git-cliff may return with or without 'v' prefix — normalize
           CLEAN_VERSION="${RAW_VERSION#v}"
           echo "version=$CLEAN_VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$CLEAN_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Generate CHANGELOG.md
-        run: git-cliff -o CHANGELOG.md
+        run: git-cliff --config .github/cliff.toml -o docs/CHANGELOG.md
 
       - name: Update package.json version
         run: |
@@ -51,7 +51,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md package.json
+          git add docs/CHANGELOG.md package.json
           git diff --cached --quiet || git commit -m "chore(release): v${{ steps.version.outputs.version }}"
           git tag ${{ steps.version.outputs.tag }}
           git push origin HEAD --tags
@@ -62,4 +62,4 @@ jobs:
         run: |
           gh release create ${{ steps.version.outputs.tag }} \
             --title "v${{ steps.version.outputs.version }}" \
-            --notes "$(git-cliff --latest --strip header)"
+            --notes "$(git-cliff --config .github/cliff.toml --latest --strip header)"

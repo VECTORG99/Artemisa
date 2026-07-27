@@ -33,18 +33,18 @@ test-integration: ## Run backend integration tests
 
 docker-build: ## Build all Docker images
 	@echo "Building Docker images..."
-	docker compose build
+	docker compose -f docker/docker-compose.yml build
 
 docker-up: ## Start Docker containers in detached mode
 	@echo "Starting Docker containers..."
-	docker compose up -d
+	docker compose -f docker/docker-compose.yml up -d
 
 docker-down: ## Stop and remove Docker containers
 	@echo "Stopping Docker containers..."
-	docker compose down
+	docker compose -f docker/docker-compose.yml down
 
 docker-logs: ## Tail logs from running Docker containers
-	docker compose logs -f
+	docker compose -f docker/docker-compose.yml logs -f
 
 clean: ## Remove build artifacts (dist, .next, agent-creator/dist)
 	@echo "Cleaning build artifacts..."

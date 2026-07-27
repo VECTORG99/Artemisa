@@ -37,8 +37,8 @@ const sections: DocSection[] = [
       { path: 'README.md', label: 'README' },
       { path: 'AGENTS.md', label: 'AGENTS.md' },
       { path: 'CONTEXT.md', label: 'CONTEXT.md' },
-      { path: 'CONTRIBUTING.md', label: 'CONTRIBUTING.md' },
-      { path: 'CHANGELOG.md', label: 'CHANGELOG.md' },
+      { path: 'docs/CONTRIBUTING.md', label: 'CONTRIBUTING.md' },
+      { path: 'docs/CHANGELOG.md', label: 'CHANGELOG.md' },
     ],
   },
   {

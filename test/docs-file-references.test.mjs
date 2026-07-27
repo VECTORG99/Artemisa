@@ -9,7 +9,7 @@ import { describe, it } from 'node:test';
 
 const DOCS_TO_SCAN = [
   'README.md',
-  'CONTRIBUTING.md',
+  'docs/CONTRIBUTING.md',
   'AGENTS.md',
   'CONTEXT.md',
   'docs/deployment.md',
@@ -20,7 +20,8 @@ const DOCS_TO_SCAN = [
 
 // Match `src/...` or `frontend/src/...` or `agent-creator/src/...` paths in
 // backticks or plain text. Skip paths inside ADR references (adr/...).
-const PATH_REGEX = /(?<![a-zA-Z0-9/_-])((?:src|frontend\/src|agent-creator\/src)\/[a-zA-Z0-9/_-]+\.(?:ts|tsx|js|jsx|mjs|json))(?![a-zA-Z0-9/_-])/g;
+const PATH_REGEX =
+  /(?<![a-zA-Z0-9/_-])((?:src|frontend\/src|agent-creator\/src)\/[a-zA-Z0-9/_-]+\.(?:ts|tsx|js|jsx|mjs|json))(?![a-zA-Z0-9/_-])/g;
 
 // Files known to have been removed; if cited, the test fails.
 const REMOVED_FILES = [
@@ -44,10 +45,7 @@ describe('docs reference only existing files (#573)', () => {
 
     it(`${docPath} does not cite removed files`, () => {
       for (const removed of REMOVED_FILES) {
-        assert.ok(
-          !content.includes(removed),
-          `${docPath} references removed file: ${removed}`,
-        );
+        assert.ok(!content.includes(removed), `${docPath} references removed file: ${removed}`);
       }
     });
 
@@ -56,16 +54,12 @@ describe('docs reference only existing files (#573)', () => {
       const missing = matches.filter((p) => !fs.existsSync(p));
       // De-duplicate for cleaner output
       const uniqueMissing = [...new Set(missing)];
-      assert.deepEqual(
-        uniqueMissing,
-        [],
-        `${docPath} cites non-existent source paths: ${uniqueMissing.join(', ')}`,
-      );
+      assert.deepEqual(uniqueMissing, [], `${docPath} cites non-existent source paths: ${uniqueMissing.join(', ')}`);
     });
   }
 
   it('docs do not instruct running npm ci inside subdirectories', () => {
-    for (const docPath of ['docs/deployment.md', 'README.md', 'CONTRIBUTING.md']) {
+    for (const docPath of ['docs/deployment.md', 'README.md', 'docs/CONTRIBUTING.md']) {
       if (!fs.existsSync(docPath)) continue;
       const content = fs.readFileSync(docPath, 'utf8');
       // Look for patterns like "cd frontend && npm ci" or "cd ../agent-creator && npm ci"

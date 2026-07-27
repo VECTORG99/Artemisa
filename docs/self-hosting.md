@@ -165,7 +165,7 @@ npm run start
 ## Docker (self-hosted)
 
 ```bash
-docker build -f Dockerfile.backend -t artemisa-backend .
+docker build -f docker/Dockerfile.backend -t artemisa-backend .
 docker run -d \
   --name artemisa \
   -p 127.0.0.1:3001:3001 \

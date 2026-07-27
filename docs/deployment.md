@@ -96,7 +96,7 @@ The Creator is stateless, but `/api/v1/creator/evaluate|preview|generate` are pr
 
 Defaults per environment:
 
-- **Docker Compose**: `http://backend:3001` (set in `docker-compose.yml` build args)
+- **Docker Compose**: `http://backend:3001` (set in `docker/docker-compose.yml` build args)
 - **Local dev**: `http://localhost:3001`
 - **Render / production**: your backend deployment URL
 
@@ -127,16 +127,15 @@ All services share the `artemisa-network` bridge network.
 
 ```bash
 # Backend
-docker build -f Dockerfile.backend -t artemisa-backend .
+docker build -f docker/Dockerfile.backend -t artemisa-backend .
 
 # Frontend (must pass build-arg)
-docker build -f Dockerfile.frontend \
+docker build -f docker/Dockerfile.frontend \
   --build-arg NEXT_PUBLIC_API_URL=http://localhost:3001 \
-  -t artemisa-frontend \
-  ./frontend
+  -t artemisa-frontend .
 
 # Agent Creator (optional)
-docker build -f Dockerfile.agent-creator -t artemisa-agent-creator .
+docker build -f docker/Dockerfile.agent-creator -t artemisa-agent-creator .
 ```
 
 > The backend Docker image no longer requires `python3 make g++` or a `better-sqlite3` native rebuild: the build is a pure `npm ci` + `tsc` + `npm prune`.
@@ -154,7 +153,7 @@ services:
     name: artemisa-backend
     plan: starter
     runtime: docker
-    dockerfilePath: ./Dockerfile.backend
+    dockerfilePath: ./docker/Dockerfile.backend
     healthCheckPath: /api/health
     envVars:
       - key: PORT
@@ -224,7 +223,7 @@ The backend health endpoint reports process-level signals only (memory, disk, up
 
 ### Resource Limits (Docker)
 
-No resource constraints are set in `docker-compose.yml`. For production, consider adding:
+No resource constraints are set in `docker/docker-compose.yml`. For production, consider adding:
 
 ```yaml
 services:

@@ -291,8 +291,9 @@ artemisa/
 ├── test/                           # node:test (unit + contrato HTTP)
 ├── e2e/                            # Playwright
 ├── .env.example
-├── Dockerfile.backend
-└── docker-compose.yml
+├── docker/                        # Dockerfiles y compose files
+├── scripts/                       # Scripts auxiliares
+└── Makefile
 ```
 
 ---

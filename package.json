@@ -1,7 +1,7 @@
 {
   "name": "artemisa",
-  "version": "1.0.0",
-  "description": "Plataforma open-source para dise\u00f1ar agentes de desarrollo y operaci\u00f3n mediante un arbol de decisiones",
+  "version": "1.2.1",
+  "description": "Plataforma open-source para diseñar agentes de desarrollo y operación mediante un arbol de decisiones",
   "license": "MPL-2.0",
   "private": true,
   "engines": {
@@ -27,10 +27,10 @@
     "format:check": "prettier --check .",
     "lint": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "docker:build": "docker compose build",
-    "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs -f",
+    "docker:build": "docker compose -f docker/docker-compose.yml build",
+    "docker:up": "docker compose -f docker/docker-compose.yml up -d",
+    "docker:down": "docker compose -f docker/docker-compose.yml down",
+    "docker:logs": "docker compose -f docker/docker-compose.yml logs -f",
     "prepare": "husky",
     "dev:all": "npm run dev & npm run dev:frontend & npm run dev:agent-creator",
     "install:all": "npm install && cd frontend && npm install && cd ../agent-creator && npm install",
@@ -72,6 +72,45 @@
     "*.{ts,js,mjs,json,md}": [
       "prettier --check"
     ]
+  },
+  "knip": {
+    "$schema": "https://unpkg.com/knip@5/schema.json",
+    "workspaces": {
+      ".": {
+        "entry": [
+          "src/server.ts",
+          "src/creator/router.ts"
+        ],
+        "project": [
+          "src/**/*.ts"
+        ],
+        "ignore": [
+          "src/engine/migrations/**"
+        ],
+        "ignoreDependencies": [
+          "pino-pretty"
+        ]
+      },
+      "frontend": {
+        "entry": [
+          "src/app/layout.tsx",
+          "src/app/page.tsx",
+          "next.config.ts"
+        ],
+        "project": [
+          "src/**/*.{ts,tsx}"
+        ]
+      },
+      "agent-creator": {
+        "entry": [
+          "src/main.jsx",
+          "vite.config.js"
+        ],
+        "project": [
+          "src/**/*.{js,jsx,ts,tsx}"
+        ]
+      }
+    }
   },
   "overrides": {
     "postcss": "^8.5.23",
