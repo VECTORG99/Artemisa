@@ -4,17 +4,21 @@ import { useEffect } from 'react';
 
 /**
  * Randomly assigns the brand accent (`--color-accent`) to one of the 7 RGB
- * rainbow colours. The colour is **not** on a timer — it stays fixed until
- * the user interacts with the page again:
+ * rainbow colours. The colour stays fixed until the user hovers over a
+ * **different** interactive element:
  *
- * - On mount (page load / refresh): picks a random colour.
- * - On hover over any interactive element (button, link, option card,
- *   input, label): picks a new random colour.
+ * - On mount (page load / refresh): picks a random colour and holds it.
+ * - On mouseenter of an interactive element: picks a new random colour.
+ * - While the mouse stays within the same element (or moves between a
+ *   parent and its children): the colour does NOT change.
+ * - On mouseleave: the colour does NOT change — it holds until the next
+ *   mouseenter on a different element.
  *
- * This makes the accent feel alive and playful without being distracting:
- * the colour only changes when the user does something, and holds steady
- * the rest of the time. Derived shades follow automatically via `color-mix`
- * in globals.css.
+ * This prevents the rapid flickering that happened with `mouseover` (which
+ * bubbles and fires on every child element transition). `mouseenter` does
+ * not bubble and fires exactly once per element entry, so nested
+ * interactive elements (a checkbox inside a label, a span inside a button)
+ * don't trigger repeated colour changes.
  *
  * Respects `prefers-reduced-motion`: picks one colour on mount and never
  * changes it.
@@ -48,21 +52,37 @@ export function AccentColorCycler() {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) return;
 
-    // Track which interactive element the mouse is currently inside so we
-    // only pick a new colour when entering a *different* interactive element,
-    // not on every pixel of mouse movement within the same one.
-    let currentElement: Element | null = null;
+    const applyColour = () => {
+      index = nextIndex(index);
+      root.style.setProperty('--color-accent', RAINBOW[index]);
+    };
 
-    const handleMouseOver = (event: MouseEvent) => {
-      const target = event.target as Element | null;
+    // `mouseover` fires on every element transition (bubbles), but we only
+    // want to change the colour when the mouse enters a *different* top-level
+    // interactive element — not when moving between a parent and its child
+    // (e.g. a label and the checkbox inside it). We track the outermost
+    // interactive ancestor and skip if the new one contains or is contained
+    // by the previous one.
+    let currentEl: Element | null = null;
+
+    const handleMouseOver = (e: MouseEvent) => {
+      const target = e.target as Element | null;
       if (!target || !target.closest) return;
-      const interactive = target.closest(INTERACTIVE_SELECTOR);
-      if (interactive === currentElement) return;
-      currentElement = interactive;
-      if (interactive) {
-        index = nextIndex(index);
-        root.style.setProperty('--color-accent', RAINBOW[index]);
+      const el = target.closest(INTERACTIVE_SELECTOR);
+      if (!el) return;
+
+      // Same element — no change.
+      if (el === currentEl) return;
+
+      // Nested: moving between a parent interactive and its child interactive
+      // (e.g. label → checkbox inside it). Don't change the colour.
+      if (currentEl && (currentEl.contains(el) || el.contains(currentEl))) {
+        currentEl = el;
+        return;
       }
+
+      currentEl = el;
+      applyColour();
     };
 
     document.addEventListener('mouseover', handleMouseOver);
