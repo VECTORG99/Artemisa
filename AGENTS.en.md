@@ -14,8 +14,8 @@ Audience: AI agents changing this repository. Keep this file as the entrypoint; 
 
 - Multi-app repo using npm workspaces (`packages/*`, `frontend`, `agent-creator`); root `package.json` owns backend scripts/tests and hoists shared deps.
 - Backend: root Express/TypeScript app; entrypoint `src/server.ts` -> `src/app.ts`; root `package.json` owns backend scripts/tests.
-- Backend scope is generation only (ADR-0008): the Runtime (ReAct engine, LLM, RAG, MCP, SQLite, agent execution) was removed in #584. Do not reintroduce execution, persistence or network calls.
-- Reference artifacts from the removed runtime live in `docs/reference/` as documentation; they are never loaded by the server.
+- Backend scope is generation only: it produces configuration files, never executes agents, makes network calls or writes to disk.
+- Reference artifacts in `docs/reference/` are documentation-only examples for generated bundles; they are never loaded by the server.
 - Frontend: `frontend/` Next app; hosts the landing page (`/`) and the Creator (`/agents/new`); separate dependency domain.
 - `agent-creator/` Vite app: legacy, no longer the active Creator UI (superseded by `frontend/agents/new`, see issue #390). Kept in the workspace but not part of active feature work; do not add new Creator features there.
 - Docs: root docs plus `docs/`, `docs/adr/`; docs are machine-readable for agents.

@@ -1,6 +1,6 @@
 # Deployment Guide
 
-> The Runtime was removed in #584 (ADR-0008). The backend only generates configuration files: there is no database, LLM provider, MCP pool, RAG index or persistent disk. This guide reflects the simplified deployment.
+> The backend only generates configuration files: there is no database, external API keys, persistent disk or vector store. This guide reflects the simplified deployment.
 
 ## 1. Prerequisites
 
@@ -128,7 +128,7 @@ docker build -f docker/Dockerfile.frontend \
 
 ```
 
-> The backend Docker image no longer requires `python3 make g++` or a `better-sqlite3` native rebuild: the build is a pure `npm ci` + `tsc` + `npm prune`.
+> The backend Docker image requires only `npm ci` + `tsc` + `npm prune`.
 
 ---
 
@@ -197,7 +197,7 @@ services:
           memory: 256M
 ```
 
-> The stateless Creator uses significantly less memory than the previous runtime. 256M is a reasonable starting ceiling; tune based on observed usage.
+> The stateless Creator uses little memory. 256M is a reasonable starting ceiling; tune based on observed usage.
 
 ### Post-Deploy Verification
 

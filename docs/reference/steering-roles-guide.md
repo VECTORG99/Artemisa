@@ -1,6 +1,6 @@
 # Guía: los 7 roles de steering de referencia
 
-[`steering-roles.json`](steering-roles.json) conserva los roles que usaba el runtime eliminado. Sirven como ejemplo de un `steering.json` bien formado: cada rol declara para qué existe, con qué herramientas trabaja, qué se le pide en el system prompt y con qué temperatura.
+[`steering-roles.json`](steering-roles.json) contiene siete roles de referencia. Sirven como ejemplo de un `steering.json` bien formado: cada rol declara para qué existe, con qué herramientas trabaja, qué se le pide en el system prompt y con qué temperatura.
 
 El Creator genera `artemisa/steering.json` a partir de las respuestas del usuario. Este archivo no se carga en ninguna ejecución; se usa para comparar y enriquecer lo generado.
 
