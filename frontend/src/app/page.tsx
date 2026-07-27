@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { HeroSection, ContentSections } from '@/features/landing';
+import { HeroSection } from '@/features/landing';
 import { LandingModalProvider } from '@/features/landing/components/landing-modal';
 
 const SpaceSimulation = dynamic(
@@ -16,6 +16,11 @@ const StickyHeader = dynamic(() => import('@/features/landing/components/sticky-
 const StickyFooter = dynamic(() => import('@/features/landing/components/sticky-nav').then((m) => m.StickyFooter), {
   ssr: false,
 });
+
+const ContentSections = dynamic(
+  () => import('@/features/landing/components/content-sections').then((m) => m.ContentSections),
+  { ssr: false },
+);
 
 export default function HomePage() {
   return (

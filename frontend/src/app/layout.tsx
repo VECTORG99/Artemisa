@@ -1,6 +1,13 @@
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import { ServiceWorkerRegister } from '@/components/service-worker-register';
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 const siteUrl = 'https://huascar.vercel.app';
 
@@ -36,8 +43,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className="dark">
-      <body className="bg-zinc-950 text-zinc-100 antialiased">
+    <html lang="es" className={`dark ${inter.variable}`}>
+      <body className="font-sans bg-zinc-950 text-zinc-100 antialiased">
         {children}
         <ServiceWorkerRegister />
       </body>

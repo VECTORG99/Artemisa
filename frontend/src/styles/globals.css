@@ -15,6 +15,8 @@
   confirmation without introducing the emerald/teal palette #384 removes.
 */
 @theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
   --color-accent: #f50b0b;
   --color-accent-hover: #ca0b0b;
   --color-accent-active: #ac0505;
