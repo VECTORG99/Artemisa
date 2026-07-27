@@ -45,7 +45,7 @@ export function HeroSection() {
           {t.heroTitle}
         </h1>
 
-        <p className="mx-auto mt-6 max-w-xl whitespace-nowrap text-base leading-relaxed text-white text-shadow-[0_2px_4px_rgba(0,0,0,0.85)] sm:text-lg">
+        <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white text-shadow-[0_2px_4px_rgba(0,0,0,0.85)] sm:text-lg">
           {t.heroDescription}
         </p>
 
@@ -87,21 +87,21 @@ interface ValueProp {
 
 const valueProps: ValueProp[] = [
   {
-    title: 'Árbol de decisiones',
+    title: 'Árbol de decisiones determinista',
     description:
-      'Preguntas que se adaptan a tu contexto. Cada respuesta desbloquea lo relevante y oculta lo que no aplica.',
+      '32 preguntas stateless que se adaptan a tu contexto: desarrollo, producción o ambos. Sin un LLM decidiendo la arquitectura por ti.',
     hue: 200,
   },
   {
-    title: 'Recomendaciones explicables',
+    title: 'Recomendaciones con evidencia',
     description:
-      'Reglas deterministas con motivo, evidencia y alternativas. Sabes por qué se sugiere algo, no solo qué.',
+      'Cada sugerencia incluye motivo, trade-offs y alternativas. Sabes por qué se elige cada opción, no solo qué elegir.',
     hue: 280,
   },
   {
-    title: 'Bundle reproducible',
+    title: 'Bundle listo para aplicar',
     description:
-      'Blueprint, manifest y hashes SHA-256. El mismo input siempre genera el mismo output — verificable y auditable.',
+      'Blueprint, manifest, hashes SHA-256, INSTALL.md y WHY.md. Reproducible, auditable y seguro desde el primer commit.',
     hue: 160,
   },
 ];
