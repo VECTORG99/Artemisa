@@ -18,6 +18,18 @@ describe('HeroSection', () => {
 });
 
 describe('ContentSections', () => {
+  it('renders the compatibility stats section before the value propositions', () => {
+    render(
+      <LandingModalProvider>
+        <ContentSections />
+      </LandingModalProvider>,
+    );
+
+    expect(screen.getByRole('heading', { name: 'Compatible con tu stack' })).toBeInTheDocument();
+    expect(screen.getByText('32')).toBeInTheDocument();
+    expect(screen.getByText('419')).toBeInTheDocument();
+  });
+
   it('renders the three value propositions with updated copy', () => {
     render(
       <LandingModalProvider>
