@@ -175,6 +175,7 @@ export default function NewAgentPage() {
   const [error, setError] = useState('');
   const [draftNotice, setDraftNotice] = useState<{ mode: string; count: number } | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   const { phase, setPhase, run, enter } = usePanelTransition();
 
@@ -781,10 +782,10 @@ export default function NewAgentPage() {
             </div>
           )}
 
-          {/* Reset — top right while a draft exists */}
+          {/* Reset — top right while a draft exists (#564 confirmation) */}
           {status === 'ready' && mode && (
             <div className="absolute right-4 top-6 z-20 flex items-center gap-2 sm:right-8">
-              <GlassIconButton onClick={resetDraft} label="Reiniciar borrador" icon={LuRotateCcw} />
+              <GlassIconButton onClick={() => setConfirmReset(true)} label="Reiniciar borrador" icon={LuRotateCcw} />
             </div>
           )}
 
@@ -971,6 +972,47 @@ export default function NewAgentPage() {
           )}
 
           <ShortcutsOverlay open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+
+          {/* Reset confirmation dialog (#564) */}
+          {confirmReset && (
+            <div
+              className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="reset-title"
+              aria-describedby="reset-desc"
+            >
+              <div className="w-full max-w-sm rounded-2xl border border-white/[0.08] bg-zinc-950/95 p-6 shadow-2xl backdrop-blur-xl">
+                <h2 id="reset-title" className="text-lg font-bold text-white">
+                  ¿Reiniciar borrador?
+                </h2>
+                <p id="reset-desc" className="mt-2 text-sm text-zinc-400">
+                  Se eliminarán {Object.keys(answers).length} respuesta{Object.keys(answers).length !== 1 ? 's' : ''}.
+                  Esta acción no se puede deshacer.
+                </p>
+                <div className="mt-5 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    autoFocus
+                    onClick={() => setConfirmReset(false)}
+                    className="rounded-lg border border-white/10 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-white/5"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmReset(false);
+                      resetDraft();
+                    }}
+                    className="rounded-lg bg-red-600/80 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
+                  >
+                    Reiniciar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </>
