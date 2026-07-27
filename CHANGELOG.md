@@ -2,9 +2,25 @@
 
 All notable changes to this project are documented here.
 
+### Documentation
+
+- Clean up outdated defensive statements and Runtime history (#674) _(readme)_
+
+### Refactor
+
+- Remove remaining Huascar references and complete rename (#632) _(repo)_
+
+- Optimize AI-facing artifacts (#667) _(generator)_
+
+## [v1.2.0] - 2026-07-27
+
 ### Bug Fixes
 
 - Pin Render starter plan, add CORS and health check, align Vercel auth _(deploy)_
+
+### Chores
+
+- V1.2.0 _(release)_
 
 ### Documentation
 
