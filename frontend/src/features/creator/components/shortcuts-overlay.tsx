@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { LuKeyboard, LuX } from 'react-icons/lu';
 import { glassPanel, glassPill } from '@/lib/glass';
+import { useFocusTrap } from '@/hooks/use-focus-trap';
 
 interface Shortcut {
   keys: string[];
@@ -40,6 +41,8 @@ interface ShortcutsOverlayProps {
  * the flow can be completed without touching the mouse.
  */
 export function ShortcutsOverlay({ open, onClose }: ShortcutsOverlayProps) {
+  const trapRef = useFocusTrap(open);
+
   useEffect(() => {
     if (!open) return;
     function onKeyDown(event: KeyboardEvent) {
@@ -59,18 +62,21 @@ export function ShortcutsOverlay({ open, onClose }: ShortcutsOverlayProps) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
-      aria-label="Atajos de teclado"
+      aria-labelledby="shortcuts-title"
       onClick={onClose}
     >
       <div
+        ref={trapRef}
+        tabIndex={-1}
         className={glassPanel('w-full max-w-lg rounded-3xl p-6')}
         onClick={(event) => event.stopPropagation()}
-        role="document"
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <LuKeyboard className="h-5 w-5 text-zinc-400" aria-hidden="true" />
-            <h2 className="text-lg font-semibold text-white">Atajos de teclado</h2>
+            <h2 id="shortcuts-title" className="text-lg font-semibold text-white">
+              Atajos de teclado
+            </h2>
           </div>
           <button
             type="button"

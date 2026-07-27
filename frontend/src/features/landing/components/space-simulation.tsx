@@ -767,11 +767,34 @@ export function SpaceSimulation({
     const onVisibility = () => {
       if (document.hidden) {
         cancelAnimationFrame(animRef.current);
-      } else if (!prefersReducedMotion) {
+      } else if (!prefersReducedMotion && isIntersecting) {
         animRef.current = requestAnimationFrame(animate);
       }
     };
     document.addEventListener('visibilitychange', onVisibility);
+
+    // #580: pause the animation when the canvas scrolls out of viewport via
+    // IntersectionObserver. This complements (does not replace) the
+    // visibilitychange handler above. Reduced-motion users get one static
+    // frame on (re)entry instead of resuming the loop.
+    let isIntersecting = true;
+    const onIntersect: IntersectionObserverCallback = (entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      isIntersecting = entry.isIntersecting;
+      if (!isIntersecting) {
+        cancelAnimationFrame(animRef.current);
+      } else if (prefersReducedMotion) {
+        // Render a single static frame; no RAF loop.
+        animate();
+        cancelAnimationFrame(animRef.current);
+      } else {
+        animRef.current = requestAnimationFrame(animate);
+      }
+    };
+    const intersectionObserver =
+      typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(onIntersect, { threshold: 0 }) : null;
+    intersectionObserver?.observe(canvas);
 
     if (prefersReducedMotion) {
       // Render a single frame; no RAF loop.
@@ -786,6 +809,7 @@ export function SpaceSimulation({
       window.removeEventListener('resize', resize);
       scrollContainer?.removeEventListener('scroll', handleScroll);
       document.removeEventListener('visibilitychange', onVisibility);
+      intersectionObserver?.disconnect();
     };
   }, []);
 

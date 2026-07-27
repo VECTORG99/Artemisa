@@ -17,8 +17,8 @@ export default function NotFound() {
           <p className="text-sm font-medium uppercase tracking-[0.3em] text-red-400">Error 404</p>
           <h1 className="mt-3 text-4xl font-bold tracking-tight text-zinc-50">Página no encontrada</h1>
           <p className="mt-4 text-sm text-zinc-400">
-            La ruta que buscas no existe o fue movida. Huascar es un generador de configuración, no un hosting de
-            agentes; algunas rutas legacy pudieron desaparecer.
+            La ruta que buscas no existe o fue movida. Huascar genera archivos de configuración, no aloja agentes;
+            algunas rutas anteriores pudieron desaparecer.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link

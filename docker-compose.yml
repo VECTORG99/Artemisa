@@ -8,8 +8,6 @@ services:
     env_file: .env
     environment:
       - NODE_ENV=production
-    volumes:
-      - huascar-data:/app/data
     restart: unless-stopped
     healthcheck:
       test:
@@ -90,9 +88,6 @@ services:
         max-file: '3'
     networks:
       - huascar-network
-
-volumes:
-  huascar-data:
 
 networks:
   huascar-network:

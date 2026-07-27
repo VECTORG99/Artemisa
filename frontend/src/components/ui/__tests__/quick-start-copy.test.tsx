@@ -17,14 +17,21 @@ describe('QuickStartCopy', () => {
 
   it('renderiza el prompt con la URL', () => {
     render(<QuickStartCopy url="https://example.com/startup" />);
-    const textbox = screen.getByRole('textbox') as HTMLInputElement;
+    const textbox = screen.getByRole('textbox') as HTMLTextAreaElement;
     expect(textbox.value).toMatch(/https:\/\/example\.com\/startup/);
     expect(textbox.value).toMatch(/Huascar/);
   });
 
-  it('muestra el título "Inicio rapido: Pega en tu chat de IA"', () => {
+  it('muestra el título "Inicio Rápido: Pega en tu chat de IA" con tilde (#554)', () => {
     render(<QuickStartCopy url="https://example.com/startup" />);
-    expect(screen.getByRole('heading', { name: /Inicio rapido: Pega en tu chat de IA/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Inicio Rápido: Pega en tu chat de IA/i })).toBeInTheDocument();
+  });
+
+  it('renderiza el prompt completo en un textarea multilínea legible (#572)', () => {
+    render(<QuickStartCopy url="https://example.com/startup" />);
+    const textbox = screen.getByRole('textbox') as HTMLTextAreaElement;
+    expect(textbox.tagName).toBe('TEXTAREA');
+    expect(textbox.rows).toBeGreaterThanOrEqual(2);
   });
 
   it('botón de copiar llama navigator.clipboard.writeText con el prompt completo', async () => {
@@ -35,11 +42,14 @@ describe('QuickStartCopy', () => {
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('Huascar')));
   });
 
-  it('muestra feedback "¡Copiado!" al copiar', async () => {
+  it('muestra feedback "¡Copiado!" una sola vez vía aria-live (#572)', async () => {
     render(<QuickStartCopy url="https://example.com/startup" />);
     const button = screen.getByRole('button', { name: /copiar/i });
     fireEvent.click(button);
-    await waitFor(() => expect(screen.getAllByText('¡Copiado!').length).toBeGreaterThanOrEqual(2));
+    await waitFor(() => expect(screen.getByText('¡Copiado!')).toBeInTheDocument());
+    // El botón no cambia su etiqueta — sólo un canal de anuncio para SR.
+    expect(screen.getAllByText('¡Copiado!')).toHaveLength(1);
+    expect(button).toHaveAccessibleName('Copiar prompt de inicio rápido');
   });
 
   it('es accesible (aria labels presentes)', () => {

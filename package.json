@@ -1,9 +1,12 @@
 {
   "name": "huascar",
-  "version": "0.1.0",
-  "description": "Plataforma open-source para diseñar agentes de desarrollo y operación mediante un arbol de decisiones",
+  "version": "1.0.0",
+  "description": "Plataforma open-source para dise\u00f1ar agentes de desarrollo y operaci\u00f3n mediante un arbol de decisiones",
   "license": "MPL-2.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "workspaces": [
     "packages/*",
     "frontend",
@@ -19,13 +22,11 @@
     "test:unit": "node --import tsx/esm --test --test-concurrency=4 test/*.test.mjs",
     "test:all": "npm run test:unit && npm test",
     "test:e2e": "cd e2e && npx playwright test",
-    "eval": "node --import tsx/esm scripts/eval.mjs",
-    "repl": "node --import tsx/esm scripts/repl.mjs",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "tsc --noEmit",
-    "clean": "rm -rf dist data/*.db",
+    "clean": "rm -rf dist",
     "docker:build": "docker compose build",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
@@ -41,7 +42,6 @@
     "dead-code:fix": "npx knip --fix --no-exit-code"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/json-schema": "^7.0.15",
@@ -55,12 +55,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@ai-sdk/anthropic": "^4.0.18",
-    "@ai-sdk/openai": "^4.0.16",
-    "@modelcontextprotocol/sdk": "^1.29.0",
     "@types/compression": "1.8.1",
-    "ai": "^7.0.32",
-    "better-sqlite3": "^13.0.1",
     "compression": "1.8.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -81,8 +76,5 @@
   "overrides": {
     "postcss": "^8.5.23",
     "sharp": "^0.35.3"
-  },
-  "allowScripts": {
-    "better-sqlite3@13.0.1": true
   }
 }

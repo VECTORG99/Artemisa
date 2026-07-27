@@ -2,16 +2,15 @@
 # Stage 1: Builder — install all deps, compile TypeScript, then prune to production deps
 FROM node:22-alpine AS builder
 WORKDIR /app
-RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci --ignore-scripts && npm rebuild better-sqlite3
+    npm ci --ignore-scripts
 COPY . .
 RUN npx tsc
-# Prune devDependencies in-place so the runner stage can copy a single,
-# already-native-rebuilt node_modules instead of installing it twice.
+# Prune devDependencies in-place so the runner stage can copy a single
+# node_modules instead of installing it twice.
 RUN --mount=type=cache,target=/root/.npm \
-    npm prune --omit=dev --ignore-scripts && npm rebuild better-sqlite3
+    npm prune --omit=dev --ignore-scripts
 
 # Stage 2: Runner — production image (no build tools)
 FROM node:22-alpine AS runner
@@ -21,8 +20,6 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./
-COPY --from=builder /app/src/kiro ./src/kiro
-RUN mkdir -p /data /app/data && chown -R huascar:huascar /data /app/data
 USER huascar
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \

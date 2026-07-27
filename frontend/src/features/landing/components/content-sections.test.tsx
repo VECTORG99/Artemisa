@@ -10,9 +10,9 @@ describe('HeroSection', () => {
     render(<HeroSection />);
 
     expect(screen.getByRole('heading', { level: 1, name: 'Huascar' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Generar agente/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Generar configuración/ })).toBeInTheDocument();
     expect(
-      screen.getByText(/Diseña agentes de IA deterministas con bundles reproducibles y decisiones explicables/),
+      screen.getByText(/Genera archivos de configuración para agentes de desarrollo y operación/),
     ).toBeInTheDocument();
   });
 });
@@ -25,8 +25,10 @@ describe('ContentSections', () => {
       </LandingModalProvider>,
     );
 
-    expect(screen.getByRole('heading', { name: '¿Listo para construir tu agente?' })).toBeInTheDocument();
-    expect(screen.getByText('El creador te guía paso a paso. Sin sorpresas, sin caja negra.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '¿Listo para configurar tu agente?' })).toBeInTheDocument();
+    expect(
+      screen.getByText('El creador te guía paso a paso hasta un bundle de archivos listo para copiar a tu proyecto.'),
+    ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Iniciar creador →' })).toBeInTheDocument();
   });
 });

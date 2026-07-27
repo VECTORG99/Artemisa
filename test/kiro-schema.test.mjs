@@ -3,11 +3,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, it } from 'node:test';
 
+// The runtime was removed (#584); the configs survive as documented reference
+// artifacts under docs/reference/ and must still match the Kiro schemas.
 const cases = [
-  ['security-policy.json', 'security-policy.schema.json'],
-  ['rag.json', 'rag.schema.json'],
-  ['mcps.json', 'mcps.schema.json'],
-  ['steering.json', 'steering.schema.json'],
+  ['security-policy.example.json', 'security-policy.schema.json'],
+  ['rag.example.json', 'rag.schema.json'],
+  ['mcps.example.json', 'mcps.schema.json'],
+  ['steering-roles.json', 'steering.schema.json'],
 ];
 
 function readJson(file) {
@@ -52,8 +54,8 @@ function validate(schema, value, at = '$') {
 
 describe('Kiro JSON schemas', () => {
   for (const [configFile, schemaFile] of cases) {
-    it(`validates src/kiro/${configFile}`, () => {
-      const config = readJson(`src/kiro/${configFile}`);
+    it(`validates docs/reference/${configFile}`, () => {
+      const config = readJson(`docs/reference/${configFile}`);
       const schema = readJson(`src/kiro/schemas/${schemaFile}`);
       assert.deepEqual(validate(schema, config), []);
     });
