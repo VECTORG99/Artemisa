@@ -8,7 +8,7 @@
   </a>
   &nbsp;
   <a href="LICENSE">
-    <img src="https://img.shields.io/github/license/VECTORG99/Huascar?style=for-the-badge" alt="License" />
+    <img src="https://img.shields.io/badge/License-MPL--2.0-8b5cf6?style=for-the-badge" alt="License: MPL-2.0" />
   </a>
   &nbsp;
   <a href="https://huascar.vercel.app">
@@ -22,6 +22,7 @@ Huascar **sólo genera archivos de configuración** (Markdown + JSON). No ejecut
 
 El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no modifica el proyecto del usuario. Sus preguntas, recomendaciones y artefactos son deterministas y auditables.
 
+> [!IMPORTANT]
 > Documentación en español. Lectores LLM: leer AGENTS.md y CONTEXT.md para el contexto completo del proyecto.
 
 ![Flujo del Creator — de problema a bundle de configuración reproducible](docs/images/creator-flow.svg)
@@ -380,6 +381,7 @@ Estos endpoints son públicos y están diseñados para que agentes de IA (Claude
 | `GET /api/metrics`      | GET    | Métricas HTTP (protegido por `METRICS_SECRET`).  |
 | `GET /api/openapi.json` | GET    | Documento OpenAPI 3.1.                           |
 
+> [!IMPORTANT]
 > Referencia completa de la API en [`docs/api-reference.md`](docs/api-reference.md).
 
 ### Versionado y errores
@@ -456,6 +458,7 @@ curl http://localhost:3001/api/v1/creator/workflow
 curl http://localhost:3001/api/v1/creator/tutorial
 ```
 
+> [!IMPORTANT]
 > El backend no requiere `OPENAI_API_KEY`, base de datos ni disco persistente. Sólo necesita `HUASCAR_API_KEYS` y `BYPASS_SECRET` en producción (ver [`docs/deployment.md`](docs/deployment.md)).
 
 ### Frontend
@@ -557,6 +560,7 @@ test/
 - [ ] Servicio de ejecución separado y security-reviewed (sandbox, autorización, cuotas, audit).
 - [ ] Despliegue controlado en EC2, contenedores y Kubernetes.
 
+> [!IMPORTANT]
 > Huascar no ejecuta agentes. La ejecución segura requiere un servicio aparte con sandboxing, autorización, cuotas y auditoría — fuera del alcance del generador (ADR-0008).
 
 ---
