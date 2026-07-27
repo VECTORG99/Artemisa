@@ -1,32 +1,27 @@
-# Stage 1: Builder — install all deps + compile TypeScript
+# syntax=docker/dockerfile:1
+# Stage 1: Builder — install all deps, compile TypeScript, then prune to production deps
 FROM node:22-alpine AS builder
 WORKDIR /app
-RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts && npm rebuild better-sqlite3
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --ignore-scripts
 COPY . .
 RUN npx tsc
+# Prune devDependencies in-place so the runner stage can copy a single
+# node_modules instead of installing it twice.
+RUN --mount=type=cache,target=/root/.npm \
+    npm prune --omit=dev --ignore-scripts
 
-# Stage 2: Deps — production-only node_modules
-FROM node:22-alpine AS deps
-WORKDIR /app
-RUN apk add --no-cache python3 make g++
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts && npm rebuild better-sqlite3
-
-# Stage 3: Runner — production image (no build tools)
+# Stage 2: Runner — production image (no build tools)
 FROM node:22-alpine AS runner
 ENV NODE_ENV=production
-RUN apk add --no-cache wget
 RUN addgroup -S huascar && adduser -S huascar -G huascar
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./
-COPY --from=builder /app/src/kiro ./src/kiro
-RUN mkdir -p /data /app/data && chown -R huascar:huascar /data /app/data
 USER huascar
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD wget -qO- http://localhost:3001/api/health || exit 1
+  CMD node -e "const h=require('http');h.get('http://localhost:3001/api/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
 CMD ["node", "dist/server.js"]

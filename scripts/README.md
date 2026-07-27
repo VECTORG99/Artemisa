@@ -1,7 +1,6 @@
 # Scripts Utilitarios
 
-| Comando                  | Funcion                                                                                                                   |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| `npm run repl`           | REPL interactivo para probar el motor HuascarEngine sin HTTP. Comandos: `.role`, `.task`, `.execute`, `.last`, `.history` |
-| `npm run eval`           | Ejecuta suites de evaluacion contra el motor. `npm run eval -- --suite <nombre>` para una suite especifica                |
-| `./scripts/backup-db.sh` | Backup timestamped de la base SQLite. Uso: `./scripts/backup-db.sh [ruta_db] [dir_backup]`                                |
+El Runtime fue eliminado (#584), y con el los scripts de ejecucion (`repl`, `eval`) y de backup de SQLite.
+El backend solo genera archivos de configuracion, asi que no queda ningun script utilitario propio.
+
+Comandos de desarrollo vigentes: ver `package.json` (`npm run dev`, `npm run test:unit`, `npm run typecheck`, `npm run build`).

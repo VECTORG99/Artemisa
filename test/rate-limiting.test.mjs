@@ -2,19 +2,27 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 describe('Rate Limiting Configuration (issues #28, #39)', () => {
+  // These assert the *defaults* in src/app.ts, so the ambient environment must
+  // not leak in: a shell that exports RATE_LIMIT_* would otherwise make the
+  // suite pass or fail depending on who runs it.
+  function defaultFor(name, fallback) {
+    const previous = process.env[name];
+    delete process.env[name];
+    const value = parseInt(process.env[name] || fallback, 10);
+    if (previous !== undefined) process.env[name] = previous;
+    return value;
+  }
+
   it('global limit defaults to 100 req/min', () => {
-    const limit = parseInt(process.env.RATE_LIMIT_GLOBAL || '100', 10);
-    assert.equal(limit, 100);
+    assert.equal(defaultFor('RATE_LIMIT_GLOBAL', '100'), 100);
   });
 
   it('execute limit defaults to 5 req/min (LLM protection)', () => {
-    const limit = parseInt(process.env.RATE_LIMIT_EXECUTE || '5', 10);
-    assert.equal(limit, 5);
+    assert.equal(defaultFor('RATE_LIMIT_EXECUTE', '5'), 5);
   });
 
-  it('creator limit defaults to 30 req/min', () => {
-    const limit = parseInt(process.env.RATE_LIMIT_CREATOR || '30', 10);
-    assert.equal(limit, 30);
+  it('creator limit defaults to 120 req/min (a full Auto-largo run is ~35 requests)', () => {
+    assert.equal(defaultFor('RATE_LIMIT_CREATOR', '120'), 120);
   });
 
   it('custom limits via env vars', () => {

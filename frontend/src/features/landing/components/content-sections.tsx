@@ -7,22 +7,23 @@ import {
   SiEslint,
   SiExpress,
   SiGithubactions,
-  SiModelcontextprotocol,
   SiNextdotjs,
   SiNodedotjs,
   SiNpm,
   SiPrettier,
   SiReact,
   SiRender,
-  SiSqlite,
   SiTailwindcss,
   SiTypescript,
-  SiVercel,
   SiVite,
   SiVitest,
 } from 'react-icons/si';
 import { glassStyle, Modal, useLandingModal } from './landing-modal';
 import { useTranslations } from '@/i18n';
+import { glassButton, glassCard } from '@/lib/glass';
+import { apiUrl } from '@/lib/api';
+import { QuickStartCopy } from '@/components/ui/quick-start-copy';
+import { useSectionFadeIn } from '../hooks/use-section-fade-in';
 
 // ─── Hero ───────────────────────────────────────────────────────────────────
 // Minimal by design: one headline, one subheadline, one call to action.
@@ -30,36 +31,41 @@ import { useTranslations } from '@/i18n';
 // so a first-time visitor gets the value proposition in a single glance
 // instead of scrolling through secondary information.
 
+const STARTUP_URL = `${apiUrl}/api/v1/creator/startup`;
+
 export function HeroSection() {
   const t = useTranslations('landing');
 
   return (
-    <section className="flex h-screen snap-start flex-col items-center justify-center px-6">
+    <section
+      id="contenido-principal"
+      className="flex h-screen snap-start snap-always flex-col items-center justify-center px-6"
+    >
       <div className="relative z-10 max-w-3xl text-center">
-        <h1 className="text-6xl font-bold tracking-tight text-white sm:text-7xl lg:text-8xl">
-          <span className="bg-gradient-to-r from-white via-zinc-300 to-zinc-500 bg-clip-text text-transparent">
-            {t.heroTitle}
-          </span>
+        <h1 className="text-5xl font-bold tracking-tight text-white text-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-6xl lg:text-7xl xl:text-8xl">
+          {t.heroTitle}
         </h1>
+
+        <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white text-shadow-[0_2px_4px_rgba(0,0,0,0.85)] sm:text-lg">
+          {t.heroDescription}
+        </p>
+
+        <div className="mt-8 max-w-lg mx-auto">
+          <div className={glassCard('rounded-3xl p-5')}>
+            <QuickStartCopy url={STARTUP_URL} size="md" />
+          </div>
+        </div>
+
+        <p className="mx-auto mt-4 block w-fit text-sm text-white text-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
+          ── o configura manualmente ──
+        </p>
 
         <Link
           href="/agents/new"
-          className="group relative mt-6 inline-flex items-center gap-3 overflow-hidden rounded-full px-8 py-4 text-lg font-medium text-white/85 transition-colors hover:text-white"
-          style={glassStyle}
+          className={glassButton('mt-4 inline-flex items-center gap-2 text-sm font-medium text-white hover:text-white')}
         >
           <span>{t.heroCta}</span>
-          <svg
-            className="h-4 w-4 transition-transform group-hover:translate-x-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-          </svg>
         </Link>
-
-        <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">{t.heroDescription}</p>
       </div>
 
       {/* Scroll hint */}
@@ -78,59 +84,66 @@ interface ValueProp {
   title: string;
   description: string;
   hue: number;
+  icon: string;
 }
 
 const valueProps: ValueProp[] = [
   {
-    title: 'Árbol de decisiones',
+    title: 'Árbol de decisiones determinista',
     description:
-      'Preguntas que se adaptan a tu contexto. Cada respuesta desbloquea lo relevante y oculta lo que no aplica.',
+      '32 preguntas stateless que se adaptan a tu contexto: desarrollo, producción o ambos. Sin un LLM decidiendo la arquitectura por ti.',
     hue: 200,
+    icon: '/images/arbol.svg',
   },
   {
-    title: 'Recomendaciones explicables',
+    title: 'Recomendaciones con evidencia',
     description:
-      'Reglas deterministas con motivo, evidencia y alternativas. Sabes por qué se sugiere algo, no solo qué.',
+      'Cada sugerencia incluye motivo, trade-offs y alternativas. Sabes por qué se elige cada opción, no solo qué elegir.',
     hue: 280,
+    icon: '/images/recomendaciones.svg',
   },
   {
-    title: 'Bundle reproducible',
+    title: 'Bundle listo para aplicar',
     description:
-      'Blueprint, manifest y hashes SHA-256. El mismo input siempre genera el mismo output — verificable y auditable.',
+      'Blueprint, manifest, hashes SHA-256, INSTALL.md y WHY.md. Reproducible, auditable y seguro desde el primer commit.',
     hue: 160,
+    icon: '/images/bundle.svg',
   },
 ];
 
-function PlanetIcon({ hue }: { hue: number }) {
+function GlassIcon({ src, alt }: { src: string; alt: string; hue: number }) {
   return (
-    <div className="relative mx-auto h-14 w-14 shrink-0">
-      <div className="absolute inset-0 rounded-full border" style={{ borderColor: `hsla(${hue}, 80%, 60%, 0.25)` }} />
-      <div
-        className="absolute inset-2 rounded-full"
-        style={{
-          background: `radial-gradient(circle at 35% 35%, hsla(${hue}, 70%, 60%, 0.6), hsla(${hue}, 60%, 30%, 0.8))`,
-          boxShadow: `0 0 16px hsla(${hue}, 100%, 60%, 0.4), inset 0 0 8px rgba(0,0,0,0.4)`,
-        }}
+    <div className="relative mx-auto h-40 w-40 shrink-0">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt}
+        width={512}
+        height={512}
+        className="h-full w-full object-contain"
+        style={{ mixBlendMode: 'screen' }}
       />
     </div>
   );
 }
 
 function ValuePropsSection() {
+  const ref = useSectionFadeIn<HTMLDivElement>();
   return (
-    <section className="flex h-screen snap-start items-center justify-center px-6">
-      <div className="relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
+    <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
+      <h2 className="sr-only">Características principales</h2>
+      <div ref={ref} className="section-content relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
         {valueProps.map((prop) => (
           <div
             key={prop.title}
             className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
             style={glassStyle}
           >
-            <PlanetIcon hue={prop.hue} />
-            <h2 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
+            <GlassIcon src={prop.icon} alt={prop.title} hue={prop.hue} />
+            <h3 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
               {prop.title}
-            </h2>
-            <p className="relative mt-2 text-sm leading-relaxed text-zinc-200">{prop.description}</p>
+            </h3>
+            <p className="relative mt-2 text-sm leading-relaxed text-white/90">{prop.description}</p>
           </div>
         ))}
       </div>
@@ -156,9 +169,6 @@ const techGroups: { title: string; items: TechItem[] }[] = [
       { label: 'Node.js', url: 'https://nodejs.org', Icon: SiNodedotjs },
       { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript },
       { label: 'Express', url: 'https://expressjs.com', Icon: SiExpress },
-      { label: 'SQLite (better-sqlite3)', url: 'https://www.sqlite.org', Icon: SiSqlite },
-      { label: 'Vercel AI SDK', url: 'https://sdk.vercel.ai', Icon: SiVercel },
-      { label: 'Model Context Protocol', url: 'https://modelcontextprotocol.io', Icon: SiModelcontextprotocol },
     ],
   },
   {
@@ -194,20 +204,23 @@ const techGroups: { title: string; items: TechItem[] }[] = [
 ];
 
 function TechStackSection() {
+  const ref = useSectionFadeIn<HTMLDivElement>();
   return (
-    <section id="tecnologia" className="flex h-screen snap-start items-center justify-center px-6">
-      <div className="relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10" style={glassStyle}>
-        <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400/80">
-          Stack real del proyecto
-        </span>
+    <section id="tecnologia" className="flex h-screen snap-start snap-always items-center justify-center px-6">
+      <div
+        ref={ref}
+        className="section-content relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10"
+        style={glassStyle}
+      >
+        <span className="text-xs font-semibold uppercase tracking-wider text-white/80">Stack real del proyecto</span>
         <h2 className="mt-2 text-3xl font-bold text-white">Tecnología que usamos</h2>
-        <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400">
+        <p className="mx-auto mt-2 max-w-xl text-sm text-white/80">
           Huascar es open source. Este es el stack exacto con el que está construido.
         </p>
         <div className="mt-8 grid gap-6 text-center sm:grid-cols-2">
           {techGroups.map((group) => (
             <div key={group.title}>
-              <h3 className="text-center text-sm font-semibold text-zinc-300">{group.title}</h3>
+              <h3 className="text-center text-sm font-semibold text-white/80">{group.title}</h3>
               <ul className="mt-2 flex flex-wrap justify-center gap-2">
                 {group.items.map((item) => (
                   <li key={item.label}>
@@ -215,7 +228,7 @@ function TechStackSection() {
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs text-zinc-300 transition-colors hover:text-white"
+                      className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs text-white/80 transition-colors hover:text-white"
                       style={{
                         backdropFilter: 'blur(6px)',
                         background: 'rgba(255,255,255,0.03)',
@@ -240,15 +253,20 @@ function TechStackSection() {
 
 function FinalCtaSection() {
   const t = useTranslations('landing');
+  const ref = useSectionFadeIn<HTMLDivElement>();
 
   return (
-    <section className="flex h-screen snap-start items-center justify-center px-6">
-      <div className="relative z-10 w-full max-w-2xl rounded-3xl p-10 text-center" style={glassStyle}>
+    <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
+      <div
+        ref={ref}
+        className="section-content relative z-10 w-full max-w-2xl rounded-3xl p-10 text-center"
+        style={glassStyle}
+      >
         <h2 className="text-3xl font-bold text-white">{t.ctaTitle}</h2>
-        <p className="mt-3 max-w-md mx-auto text-zinc-400">{t.ctaDescription}</p>
+        <p className="mt-3 max-w-md mx-auto text-white/80">{t.ctaDescription}</p>
         <Link
           href="/agents/new"
-          className="mt-8 inline-flex items-center gap-2 rounded-full px-7 py-3 font-medium text-white/85 transition-colors hover:text-white"
+          className="mt-8 inline-flex items-center gap-2 rounded-full px-7 py-3 font-medium text-white transition-colors hover:text-white"
           style={glassStyle}
         >
           {t.ctaButton}
@@ -283,35 +301,35 @@ const useCases: UseCase[] = [
   {
     title: 'Scaffolding de proyectos',
     description:
-      'Genera estructuras base de proyectos, módulos y componentes siguiendo las convenciones definidas en el blueprint.',
+      'Configura un agente orientado a proponer estructuras base, módulos y componentes según las convenciones del proyecto.',
   },
   {
     title: 'Pruebas automáticas',
     description:
-      'Escribe tests unitarios y de integración a partir del código existente y del criterio de éxito definido en el árbol de decisiones.',
+      'Configura un agente orientado a proponer pruebas unitarias y de integración según el código y los criterios definidos.',
   },
   {
     title: 'Revisión de Pull Requests',
     description:
-      'Analiza cambios, detecta riesgos y explica hallazgos priorizados con evidencia, sin hacer merge por sí mismo.',
+      'Genera archivos para configurar revisiones de cambios, riesgos y hallazgos con evidencia, sin habilitar merges automáticos.',
   },
 ];
 
 function UseCasesModalContent() {
   return (
     <>
-      <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400/80">
+      <span className="text-xs font-semibold uppercase tracking-wider text-white/80">
         Productividad del desarrollador
       </span>
       <h2 className="mt-2 text-3xl font-bold text-white">Casos de uso</h2>
-      <p className="mt-2 max-w-xl text-sm text-zinc-400">
-        Automatización de tareas repetitivas, definida por el propio agente que generas.
+      <p className="mt-2 max-w-xl text-sm text-white/80">
+        Configuraciones reproducibles para agentes especializados en tareas de desarrollo.
       </p>
       <div className="mt-8 flex flex-col gap-4">
         {useCases.map((useCase) => (
           <div key={useCase.title} className="rounded-xl p-5" style={glassStyle}>
-            <h3 className="text-base font-semibold text-zinc-100">{useCase.title}</h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">{useCase.description}</p>
+            <h3 className="text-base font-semibold text-white">{useCase.title}</h3>
+            <p className="mt-1.5 text-sm leading-relaxed text-white/80">{useCase.description}</p>
           </div>
         ))}
       </div>
@@ -322,16 +340,16 @@ function UseCasesModalContent() {
 function LegalModalContent() {
   return (
     <>
-      <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Información legal</span>
+      <span className="text-xs font-semibold uppercase tracking-wider text-white/70">Información legal</span>
       <h2 className="mt-2 text-3xl font-bold text-white">Licencia y uso</h2>
-      <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-zinc-400">
+      <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-white/80">
         <p>
           Huascar se distribuye bajo la{' '}
           <a
             href="https://github.com/VECTORG99/Huascar/blob/development/LICENSE"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-zinc-200 underline underline-offset-2 hover:text-white"
+            className="text-white/90 underline underline-offset-2 hover:text-white"
           >
             Mozilla Public License 2.0 (MPL-2.0)
           </a>
@@ -341,17 +359,16 @@ function LegalModalContent() {
         </p>
         <p>
           El creador no ejecuta código, no realiza llamadas de red ni usa credenciales durante la generación de
-          configuración: es una compilación pura, determinista y auditable. La ejecución de agentes vía{' '}
-          <code className="rounded bg-white/[0.06] px-1.5 py-0.5 text-xs text-zinc-300">/api/agent/execute</code> es un
-          componente separado, sujeto a los controles de autenticación y autorización del backend.
+          configuración: es una compilación pura, determinista y auditable. Huascar sólo genera archivos de
+          configuración; aplicarlos y ejecutar el agente queda siempre del lado del usuario.
         </p>
-        <p className="text-zinc-500">
+        <p className="text-white/70">
           Código fuente completo, historial de cambios, autores y reporte de issues disponibles en{' '}
           <a
             href="https://github.com/VECTORG99/Huascar"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-zinc-300 underline underline-offset-2 hover:text-white"
+            className="text-white/80 underline underline-offset-2 hover:text-white"
           >
             github.com/VECTORG99/Huascar
           </a>

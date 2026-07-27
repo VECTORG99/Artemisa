@@ -1,10 +1,21 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import { CATALOG_VERSION, getCreatorCatalog } from './catalog.js';
 import { CreatorInputError } from './domain.js';
 import { creatorTutorial, evaluateDecisionTree, getWorkflowDefinition, WORKFLOW_VERSION } from './decisionTree.js';
 import { generateAgentBundle } from './generator.js';
 import { getSkillsCatalog } from './skillsCatalog.js';
 import { getMcpCatalog } from './mcpCatalog.js';
+import { getModelsCatalog } from './modelsCatalog.js';
+import { sendWithEtag } from './etag.js';
+import {
+  generateAgentBundle as generateAgentBundleProtocol,
+  getAgentProtocol,
+  getAgentStart,
+  getStartupDocument,
+  processAgentAnswer,
+} from './agentProtocol.js';
+import { listDocumentationFiles } from './docs-catalog.js';
 
 interface CreatorRequestBody {
   answers?: unknown;
@@ -79,39 +90,74 @@ function creatorErrorHandler(
   next(err);
 }
 
+const agentLimiter = rateLimit({
+  windowMs: 60_000,
+  max: Number(process.env.RATE_LIMIT_AGENT) || 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { type: 'rate-limit', title: 'Too many requests', status: 429 },
+  keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
+});
+
+function deriveBaseUrl(req: express.Request): string {
+  const forwardedHost = req.get('X-Forwarded-Host');
+  if (forwardedHost) {
+    const proto = req.get('X-Forwarded-Proto') || 'https';
+    return `${proto}://${forwardedHost}/api/v1/creator`;
+  }
+  const origin = req.get('Origin');
+  if (origin) return `${origin}/api/v1/creator`;
+  const host = req.get('host') || 'localhost';
+  return `${req.protocol}://${host}/api/v1/creator`;
+}
+
 creatorPublicRouter.use(versionHeaders);
 creatorProtectedRouter.use(versionHeaders);
+creatorPublicRouter.use('/agent', agentLimiter);
 
 creatorPublicRouter.get('/catalog', (req, res) => {
   const category = typeof req.query.category === 'string' ? req.query.category : undefined;
   const environment = typeof req.query.environment === 'string' ? req.query.environment : undefined;
   const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
-  res.set('Cache-Control', 'public, max-age=300');
-  res.json(getCreatorCatalog({ category, environment, q }));
+  const payload = getCreatorCatalog({ category, environment, q });
+  if (sendWithEtag(req, res, payload)) return;
+  res.json(payload);
 });
 
-creatorPublicRouter.get('/workflow', (_req, res) => {
-  res.set('Cache-Control', 'public, max-age=300');
-  res.json(getWorkflowDefinition());
+creatorPublicRouter.get('/workflow', (req, res) => {
+  const payload = getWorkflowDefinition();
+  if (sendWithEtag(req, res, payload)) return;
+  res.json(payload);
 });
 
-creatorPublicRouter.get('/tutorial', (_req, res) => {
-  res.set('Cache-Control', 'public, max-age=300');
+creatorPublicRouter.get('/tutorial', (req, res) => {
+  if (sendWithEtag(req, res, creatorTutorial)) return;
   res.json(creatorTutorial);
 });
 
 creatorPublicRouter.get('/skills', (req, res) => {
   const focus = typeof req.query.focus === 'string' ? req.query.focus.slice(0, 50) : undefined;
   const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
-  res.set('Cache-Control', 'public, max-age=300');
-  res.json(getSkillsCatalog({ focus, q }));
+  const payload = getSkillsCatalog({ focus, q });
+  if (sendWithEtag(req, res, payload)) return;
+  res.json(payload);
 });
 
 creatorPublicRouter.get('/mcps', (req, res) => {
   const category = typeof req.query.category === 'string' ? req.query.category.slice(0, 50) : undefined;
   const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
-  res.set('Cache-Control', 'public, max-age=300');
-  res.json(getMcpCatalog({ category, q }));
+  const payload = getMcpCatalog({ category, q });
+  if (sendWithEtag(req, res, payload)) return;
+  res.json(payload);
+});
+
+creatorPublicRouter.get('/models', (req, res) => {
+  const provider = typeof req.query.provider === 'string' ? req.query.provider.slice(0, 50) : undefined;
+  const tier = typeof req.query.tier === 'string' ? req.query.tier.slice(0, 20) : undefined;
+  const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
+  const payload = getModelsCatalog({ provider, tier, q });
+  if (sendWithEtag(req, res, payload)) return;
+  res.json(payload);
 });
 
 creatorProtectedRouter.post('/evaluate', (req, res, next) => {
@@ -143,6 +189,63 @@ function previewHandler(req: express.Request, res: express.Response, next: expre
 
 creatorProtectedRouter.post('/preview', previewHandler);
 creatorProtectedRouter.post('/generate', previewHandler);
+
+// Agent protocol endpoints (public, machine-friendly)
+creatorPublicRouter.get('/agent', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=300');
+  res.json(getAgentProtocol(deriveBaseUrl(req)));
+});
+
+creatorPublicRouter.get('/agent/start', (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=300');
+  res.json(getAgentStart());
+});
+
+creatorPublicRouter.post('/agent/answer', (req, res) => {
+  const result = processAgentAnswer(req.body);
+  if (result.issues.length > 0 && result.next_question === undefined) {
+    res.status(400).json(result);
+    return;
+  }
+  res.json(result);
+});
+
+creatorPublicRouter.post('/agent/generate', (req, res, next) => {
+  try {
+    res.json(generateAgentBundleProtocol(req.body));
+  } catch (error: unknown) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/v1/creator/docs — Returns a catalog of official documentation
+ * files with metadata (title, description, category, size). Allows AI agents
+ * to discover and consume the project's documentation programmatically.
+ * Deterministic: same repo state, same output.
+ */
+creatorPublicRouter.get('/docs', (_req, res) => {
+  const docs = listDocumentationFiles();
+  res.json({
+    version: '1.0.0',
+    count: docs.length,
+    documents: docs,
+  });
+});
+
+creatorPublicRouter.get('/startup', (req, res) => {
+  const baseUrl = deriveBaseUrl(req);
+  const accept = req.get('Accept') || '';
+  const doc = getStartupDocument(baseUrl);
+
+  if (accept.includes('application/json')) {
+    res.json({ content: doc, mediaType: 'text/markdown' });
+  } else {
+    res.set('Content-Type', 'text/markdown; charset=utf-8');
+    res.set('Cache-Control', 'public, max-age=300');
+    res.send(doc);
+  }
+});
 
 // Attach error handler after all routes
 creatorPublicRouter.use(creatorErrorHandler);

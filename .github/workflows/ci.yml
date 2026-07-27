@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm install
+      - run: npm ci --ignore-scripts
       - name: Type check
         run: npx tsc --noEmit
       - name: Format check
@@ -24,17 +24,24 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm install
+      - run: npm ci
       - run: cp .env.example .env
-      - name: Unit tests
-        run: npm run test:unit
+      - name: Unit tests (shard ${{ matrix.shard }}/3)
+        run: |
+          files=$(ls test/*.test.mjs | awk "NR % 3 == ${{ matrix.shard }} - 1")
+          node --import tsx/esm --test --test-concurrency=4 $files
       - name: Integration tests
+        if: matrix.shard == 1
         run: npm test
 
   security:
@@ -45,6 +52,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - run: npm ci --ignore-scripts
       # npm's legacy quick-audit endpoint (/-/npm/v1/security/audits/quick)
       # has been retired server-side; older npm CLI versions still call it
       # and get errors unrelated to this repo's dependencies. Newer npm only
@@ -52,7 +60,6 @@ jobs:
       # command or its blocking behavior.
       - name: Update npm
         run: npm install -g npm@latest
-      - run: npm install
       - name: Audit dependencies (with retry)
         run: |
           max_attempts=3

@@ -1,18 +1,6 @@
 import { config } from './config.js';
-import { mcpConnectionPool } from './engine/McpConnectionPool.js';
 import { logger } from './logger.js';
-import { app, store } from './app.js';
-import { clearApprovalTimers } from './services/approvals.js';
-import { waitForInFlight } from './shutdown.js';
-
-if (config.retention.cleanupOnStart) {
-  try {
-    const report = store.cleanupRetention();
-    logger.info({ retention: report }, 'retention cleanup completed');
-  } catch (err) {
-    logger.error({ err }, 'retention cleanup failed');
-  }
-}
+import { app } from './app.js';
 
 // Production startup security warnings
 if (process.env.NODE_ENV === 'production' && !process.env.BYPASS_SECRET) {
@@ -28,6 +16,10 @@ const server = app.listen(config.server.port, config.server.host, () => {
 
 let shuttingDown = false;
 
+/**
+ * Graceful shutdown (#584): the Creator is stateless, so shutdown only stops
+ * accepting connections and drains the ones already open.
+ */
 async function gracefulShutdown(signal: string, exitCode: number): Promise<void> {
   if (shuttingDown) return;
   shuttingDown = true;
@@ -36,18 +28,12 @@ async function gracefulShutdown(signal: string, exitCode: number): Promise<void>
   const timeout = setTimeout(() => {
     logger.error({ signal }, 'shutdown timeout, forcing exit');
     process.exit(1);
-  }, 45_000); // Hard timeout extended to 45s to allow 30s drain
+  }, 15_000);
   timeout.unref();
 
-  // Stop accepting new connections
+  // Stop accepting new connections and let in-flight requests finish
   await new Promise<void>((resolve) => server.close(() => resolve()));
 
-  // Wait for in-flight executions to complete (up to 30s hard timeout) (#285)
-  await waitForInFlight(30_000);
-
-  clearApprovalTimers();
-  await mcpConnectionPool.closeAll();
-  if (store.isOpen()) store.close();
   clearTimeout(timeout);
   process.exit(exitCode);
 }

@@ -1,29 +1,31 @@
+# syntax=docker/dockerfile:1
 # Stage 1: Install dependencies and build
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY agent-creator/package.json agent-creator/package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 COPY agent-creator/ ./
 RUN npm run build
 
-# Stage 2: Serve static files as non-root user
-FROM node:22-alpine AS runner
-WORKDIR /app
-
-# Install serve as a local dependency (not global) with exact version
-RUN npm init -y && npm install --save-exact serve@14.2.4
-
-# Create non-root user
+# Stage 2: Serve static files with Caddy — replaces `npx serve` (a full
+# Node.js runtime + dev-oriented static server) with a native, compiled
+# static file server. Smaller image, near-zero idle RAM, automatic
+# gzip/zstd compression and HTTP/2 out of the box.
+FROM caddy:2-alpine AS runner
 RUN addgroup -g 1001 -S appgroup && \
     adduser -S appuser -u 1001 -G appgroup
 
-# Copy built assets
-COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
+COPY --from=builder --chown=appuser:appgroup /app/dist /srv
+COPY Caddyfile.agent-creator /etc/caddy/Caddyfile
 
-# Switch to non-root user
+# Caddy's default data/config dirs must be writable by the non-root user
+RUN mkdir -p /config/caddy /data/caddy && \
+    chown -R appuser:appgroup /config /data /etc/caddy
+
 USER appuser
 
 EXPOSE 5173
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD wget -qO- http://localhost:5173/ || exit 1
-CMD ["npx", "serve", "-s", "dist", "-l", "5173"]
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

@@ -5,14 +5,13 @@
 > Construido para el Hackathon Kiro x Código Facilito 2026.
 > Documentación en español. Lectores LLM: leer AGENTS.md y CONTEXT.md para el contexto completo del proyecto.
 
-**Plataforma open-source para diseñar agentes de desarrollo y operación mediante un árbol de decisiones, generar su configuración y explicar por qué fue construida de esa manera.**
+**Generador open-source de archivos de configuración para agentes de desarrollo y operación. Diseña mediante un árbol de decisiones, genera el bundle y explica por qué fue construido así.**
 
-Huascar separa dos responsabilidades:
-
-1. **Creator:** acompaña al usuario desde el problema hasta un bundle de configuración reproducible.
-2. **Runtime:** ejecuta tareas con el motor ReAct, RAG, hooks y servidores MCP existentes.
+Huascar **sólo genera archivos de configuración** (Markdown + JSON). No ejecuta, no despliega, no hostea agentes. El Runtime anterior (motor ReAct, LLM, RAG, MCP, SQLite) se eliminó en el issue #584 — ver [ADR-0008](docs/adr/0008-remove-runtime-generator-only.md).
 
 El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no modifica el proyecto del usuario. Sus preguntas, recomendaciones y artefactos son deterministas y auditables.
+
+![Flujo del Creator — de problema a bundle de configuración reproducible](docs/images/creator-flow.svg)
 
 ---
 
@@ -21,24 +20,26 @@ El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no 
 ### Implementado en el backend
 
 - Catálogo tecnológico versionado con lenguajes, frameworks, bases de datos, arquitecturas, cloud, CI/CD, IaC, contenedores, observabilidad, seguridad, repositorios, conocimiento y plataformas de agentes.
-- Árbol de decisiones **stateless** de 26 preguntas con ramas diferentes para desarrollo y producción.
+- Árbol de decisiones **stateless** de 32 preguntas (28 obligatorias, 4 opcionales) con ramas diferentes para desarrollo y producción.
 - Recomendaciones explicables con evidencia, beneficios, trade-offs y alternativas.
 - Preview de un bundle con blueprint, manifest, hashes SHA-256, instalación y justificación.
 - Generación condicional de Huascar, RAG, PR review, `AGENTS.md`, hooks, skills y configuración Kiro.
 - Tutorial ficticio y skippable disponible como contenido de API.
-- Pruebas unitarias e integración para ramas, validación, determinismo y compatibilidad legacy.
+- Pruebas unitarias e integración para ramas, validación, determinismo y contrato HTTP.
 
 ### Implementado en la interfaz
 
 - `frontend/agents/new` carga catálogo, workflow, skills y MCPs directamente desde `/api/v1/creator`.
-- Cuatro modos de entrada: **Auto-corto** (subconjunto curado de preguntas con valores por defecto seguros), **Auto-largo** (árbol de decisiones completo), **Presets** (configuraciones completas listas para revisar y ajustar) y **Avanzado** (panel de control denso con switches, proveedores de modelo, RAG y selección directa de skills/MCPs).
+- Cuatro modos de entrada: **Auto-corto** (8 preguntas curadas más valores por defecto seguros para el resto), **Auto-largo** (recorre todas las preguntas visibles, incluidas las 4 opcionales, que se pueden omitir), **Presets** (8 configuraciones completas listas para revisar y ajustar) y **Avanzado** (panel denso con todas las preguntas del árbol agrupadas por sección, buscador global y rail de respuestas obligatorias pendientes).
+- Buscador, contador de máximo, chips de selección y entrada `custom:<slug>` en cada pregunta de catálogo, en los cuatro modos.
+- Atajos de teclado (`Enter`, `Alt+←`, `1-9`, `S`/`N`, `Esc`, `?`) con panel de ayuda.
+- Borrador conservado en `sessionStorage` por versión de workflow, con acción explícita de reinicio.
 - Renderiza preguntas y ramas del backend sin codificar el orden en React.
 - Fondo espacial y estética "liquid glass" compartidos con el Landing.
 - Revisión de recomendaciones y advertencias antes de generar, con cada respuesta editable.
-- Descarga el bundle JSON completo o artefactos individuales del preview.
+- Descarga el bundle como ZIP (preservando rutas relativas), como JSON completo, o artefactos individuales.
 - `agent-creator/` (Vite) queda como app legacy, sin desarrollo activo de Creator.
-- **Login, cuentas y multiusuario están documentados como roadmap; no están implementados.**
-- La descarga ZIP, escritura automática en repositorios y despliegue se dejan para una fase posterior.
+- **Login, cuentas y guardado de blueprints están en el roadmap; no están implementados.** El Creator es stateless por diseño.
 
 ---
 
@@ -144,7 +145,7 @@ Según las respuestas se agregan:
 | Kiro + hooks                        | `.kiro/hooks/<agente>-quality.json`                                             |
 | Kiro + skills                       | `.kiro/skills/<agente>/SKILL.md`                                                |
 
-El bundle se devuelve como JSON. Huascar no escribe estos archivos automáticamente: el usuario debe revisarlos y copiarlos al proyecto destino.
+El bundle se devuelve como JSON. Huascar no escribe estos archivos automáticamente: el usuario debe revisarlos y copiarlos al proyecto destino. Para aplicarlos de forma segura, ver [`docs/reference/`](docs/reference/README.md): guías de `security-policy.json`, `steering.json` y la implementación de referencia de hooks.
 
 ---
 
@@ -195,11 +196,6 @@ Para EC2, Huascar recomienda documentar además el proceso de servicio, parcheo,
 │                                ↓                           │
 │       Bundle JSON + manifest + INSTALL + WHY               │
 └────────────────────────────────────────────────────────────┘
-
-┌────────────────────────────────────────────────────────────┐
-│ Runtime legacy separado                                    │
-│ /api/agent/execute → HuascarEngine → RAG/MCP/Hooks/LLM     │
-└────────────────────────────────────────────────────────────┘
 ```
 
 ### Por qué el Creator es stateless
@@ -208,11 +204,11 @@ Para EC2, Huascar recomienda documentar además el proceso de servicio, parcheo,
 - Evita sesiones anónimas y estado huérfano antes de implementar login.
 - Facilita reproducibilidad, pruebas y versionado.
 - El mismo input produce el mismo blueprint, contenido y hash.
-- Escala horizontalmente sin coordinar sesiones.
+- Escala horizontalmente sin coordinar sesiones ni compartir estado.
 
-### Por qué generación y ejecución están separadas
+### Por qué Huascar sólo genera y no ejecuta
 
-Generar configuración no debe iniciar procesos, llamar un LLM, cargar archivos, consultar URLs ni usar credenciales. El preview es una compilación pura. La ejecución permanece en `/api/agent/execute` y requiere controles de autenticación, sandbox y autorización antes de exponerse como servicio real.
+Generar configuración no debe iniciar procesos, llamar un LLM, cargar archivos, consultar URLs ni usar credenciales. El preview es una compilación pura. Ejecutar un agente requiere controles de autenticación, sandbox, autorización, cuotas y auditoría que están fuera del alcance de un generador. Quien aplique el bundle es responsable de esos controles; `docs/reference/` documenta cómo.
 
 ---
 
@@ -273,8 +269,8 @@ Respuesta resumida:
   },
   "progress": {
     "answered": 4,
-    "total": 18,
-    "percent": 22,
+    "total": 19,
+    "percent": 21,
     "complete": false
   },
   "recommendations": [],
@@ -292,6 +288,30 @@ Exige un árbol completo y devuelve blueprint, artefactos, manifest, guía y war
 ### `POST /generate`
 
 Alias semántico de `/preview`. También genera únicamente el bundle en memoria; no escribe archivos ni ejecuta el agente.
+
+### Endpoints para Agentes IA
+
+Estos endpoints son públicos y están diseñados para que agentes de IA (Claude, GPT, Copilot, Devin, etc.) consuman el Creator sin autenticación. Devuelven JSON excepto `GET /startup`, que responde Markdown por defecto o JSON si se envía `Accept: application/json`.
+
+| Ruta              | Método | Descripción                                    |
+| ----------------- | ------ | ---------------------------------------------- |
+| `/agent`          | GET    | Protocolo de onboarding completo               |
+| `/agent/start`    | GET    | Primera pregunta + catálogo resumido           |
+| `/agent/answer`   | POST   | Envía answers, recibe siguiente pregunta       |
+| `/agent/generate` | POST   | Genera bundle con instrucciones de aplicación  |
+| `/startup`        | GET    | Documento Markdown de onboarding autocontenido |
+
+### Otros endpoints
+
+| Ruta                    | Método | Descripción                                      |
+| ----------------------- | ------ | ------------------------------------------------ |
+| `GET /api/health`       | GET    | Deep health check (memoria, disco, uptime).      |
+| `GET /api/health/live`  | GET    | Liveness probe (siempre 200 si el proceso vive). |
+| `GET /api/health/ready` | GET    | Readiness probe (200 si puede servir requests).  |
+| `GET /api/metrics`      | GET    | Métricas HTTP (protegido por `METRICS_SECRET`).  |
+| `GET /api/openapi.json` | GET    | Documento OpenAPI 3.1.                           |
+
+> Referencia completa de la API en [`docs/api-reference.md`](docs/api-reference.md).
 
 ### Versionado y errores
 
@@ -323,24 +343,21 @@ El Creator:
 - calcula SHA-256 para cada artefacto;
 - no usa filesystem, red, SQLite, LLM, MCP ni shell.
 
-Las configuraciónes MCP generadas son sugerencias. Antes de producción deben fijarse versiones exactas, aplicarse allowlists y ejecutarse en sandbox.
+Las configuraciónes MCP generadas son sugerencias. Antes de producción deben fijarse versiones exactas, aplicarse allowlists y ejecutarse en sandbox. La guía [`docs/reference/security-policy-guide.md`](docs/reference/security-policy-guide.md) documenta cómo implementar la allowlist; [`docs/reference/steering-roles-guide.md`](docs/reference/steering-roles-guide.md) documenta cómo adaptar los roles.
 
 ---
 
-## Runtime existente
+## Artefactos de referencia
 
-El runtime mantiene las rutas anteriores:
+El Runtime anterior usaba configuraciones reales que ahora sirven como referencia curada para los bundles que genera el Creator. Viven en [`docs/reference/`](docs/reference/README.md) y **no se cargan en tiempo de ejecución**:
 
-| Ruta                           | Función                              |
-| ------------------------------ | ------------------------------------ |
-| `GET /api/health`              | Salud del backend.                   |
-| `GET /api/history`             | Historial SQLite.                    |
-| `POST /api/agent/execute`      | Ejecuta una tarea con HuascarEngine. |
-| `/api/hooks/commit-approval/*` | Prototipo de aprobación.             |
+- `steering-roles.json` — los 7 roles de steering con system prompt, herramientas y temperatura.
+- `security-policy.example.json` — política allowlist real.
+- `hooks-implementation.ts` — implementación de referencia de `before_action` y `validateCommand`.
+- `mcps.example.json`, `rag.example.json` — ejemplos de declaración de servidores MCP y fuentes RAG.
+- `prompts/` — parciales de prompt (`_safety_prefix`, `_context_section`, `_output_format`).
 
-`HuascarEngine` carga steering, fuentes RAG, servidores MCP y ejecuta un bucle ReAct. Sin API key o con `LLM_MOCK_MODE=true`, usa modo simulado.
-
-> El runtime legacy no hereda automáticamente un blueprint generado. La instalación y ejecución versionada de bundles es una fase posterior.
+Los esquemas JSON que validan estos archivos siguen en `src/kiro/schemas/` porque el Creator genera artefactos con la misma forma.
 
 ---
 
@@ -370,13 +387,14 @@ curl http://localhost:3001/api/v1/creator/workflow
 curl http://localhost:3001/api/v1/creator/tutorial
 ```
 
+> El backend no requiere `OPENAI_API_KEY`, base de datos ni disco persistente. Sólo necesita `HUASCAR_API_KEYS` y `BYPASS_SECRET` en producción (ver [`docs/deployment.md`](docs/deployment.md)).
+
 ### Frontend
 
 ```bash
-cd frontend && npm ci && npm run dev
+cd frontend && npm run dev
 ```
 
-- Dashboard: `http://localhost:3000/dashboard`
 - Creator: `http://localhost:3000/agents/new`
 
 `agent-creator/` (Vite, `http://localhost:5173`) sigue en el workspace como app legacy sin desarrollo activo del Creator; no recibe nuevas features.
@@ -409,7 +427,7 @@ La suite cubre:
 - RAG, PR review, hooks, skills y `AGENTS.md`;
 - determinismo y hashes;
 - árbol incompleto y secretos literales;
-- contratos HTTP y compatibilidad legacy.
+- contratos HTTP y ausencia de rutas del Runtime eliminado.
 
 ---
 
@@ -423,14 +441,17 @@ src/
 │   ├── decisionTree.ts  # Preguntas, condiciones y recomendaciones
 │   ├── generator.ts     # Blueprint y artefactos puros
 │   └── router.ts        # API /api/v1/creator
-├── engine/
-│   ├── HuascarEngine.ts
-│   ├── RagEngine.ts
-│   └── Store.ts
-├── kiro/                # Configuración runtime actual de Huascar
-├── config.ts
+├── routes/
+│   ├── health.ts        # /api/health (stateless)
+│   ├── metrics.ts       # /api/metrics
+│   ├── openapi.ts       # /api/openapi.json
+│   └── debug.ts         # /api/debug/* (sólo dev)
+├── middleware/           # auth, sanitize, validation, errorHandler
+├── kiro/schemas/         # Esquemas JSON de artefactos generados
+├── config.ts             # Sólo configuración del servidor
 └── server.ts
 
+docs/reference/           # Artefactos de referencia (no se cargan en runtime)
 test/
 ├── CreatorDecisionTree.test.mjs
 ├── CreatorGenerator.test.mjs
@@ -446,9 +467,11 @@ test/
 
 - [x] Renderizar preguntas dinámicas desde `/workflow`.
 - [x] Conservar answers en `sessionStorage` y llamar `/evaluate` por paso.
-- [x] Implementar tutorial visual skippable tipo juego.
-- [x] Mostrar recomendaciones y warnings antes de generar.
-- [x] Descargar el bundle JSON y artefactos individuales.
+- [x] Mostrar recomendaciones y warnings antes de generar, con evidencia, beneficios, trade-offs y alternativas.
+- [x] Editar cualquier respuesta desde la revisión sin reiniciar el flujo.
+- [x] Descargar el bundle JSON y artefactos individuales, con manifest, hashes y guía de aplicación.
+- [x] Atajos de teclado y panel de ayuda.
+- [ ] Implementar el tutorial visual skippable tipo juego. El contenido existe en `GET /api/v1/creator/tutorial`; la interfaz todavía no lo renderiza.
 - [ ] Añadir exportación ZIP validada y comparación visual de revisiones.
 
 ### Identidad y persistencia
@@ -457,26 +480,29 @@ test/
 - [ ] Organizaciones, ownership y roles.
 - [ ] Guardar blueprints versionados y comparar revisiones.
 - [ ] Reanudar borradores de forma autenticada.
-- [ ] Auditoría de generación y ejecución.
+- [ ] Auditoría de generación.
 
-### Ejecución segura
+### Aplicación y ejecución segura (fuera del producto actual)
 
-- [ ] Autenticación y autorización de toda la API runtime.
-- [ ] Sandbox por agente y allowlists de herramientas.
-- [ ] HITL unificado y reanudable.
-- [ ] Namespaces RAG por agente.
-- [ ] Rate limiting, cuotas y presupuestos.
 - [ ] Aplicación del bundle mediante PR revisable.
+- [ ] Servicio de ejecución separado y security-reviewed (sandbox, autorización, cuotas, audit).
 - [ ] Despliegue controlado en EC2, contenedores y Kubernetes.
+
+> Huascar no ejecuta agentes. La ejecución segura requiere un servicio aparte con sandboxing, autorización, cuotas y auditoría — fuera del alcance del generador (ADR-0008).
 
 ---
 
 ## Documentación adicional
 
-- [`docs/architecture.md`](docs/architecture.md): motor y arquitectura interna.
+- [`docs/api-reference.md`](docs/api-reference.md): referencia completa de la API del Creator.
+- [`docs/architecture.md`](docs/architecture.md): arquitectura interna del Creator.
 - [`docs/deployment.md`](docs/deployment.md): despliegue local, Docker y Render.
+- [`docs/self-hosting.md`](docs/self-hosting.md): guía de self-hosting en VPS/bare metal.
+- [`docs/troubleshooting.md`](docs/troubleshooting.md): troubleshooting del Creator.
+- [`docs/apply-bundle.md`](docs/apply-bundle.md): cómo aplicar y validar un bundle generado.
 - [`docs/use_cases.md`](docs/use_cases.md): casos de uso.
-- [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md): ejemplo de conocimiento versionado.
+- [`docs/reference/`](docs/reference/README.md): artefactos de referencia y guías de aplicación.
+- [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md): convenciones de código y docs.
 - OpenAPI spec: disponible en `/api/openapi.json` al ejecutar el backend.
 
 ## Licencia

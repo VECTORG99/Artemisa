@@ -17,12 +17,18 @@ export const developmentAnswers = {
   knowledge_sources: ['repository-docs', 'source-code'],
   pr_review_enabled: true,
   pr_review_focus: ['correctness', 'security', 'tests', 'architecture'],
-  agent_targets: ['huascar', 'kiro', 'portable'],
+  agent_targets: ['agents-md', 'cursor', 'devin-desktop', 'coderabbit', 'kilo-code', 'kiro', 'portable'],
   hooks_enabled: true,
   skills_enabled: true,
-  skills_focus: 'development',
+  skills_focus: 'custom',
+  // Ids for `skills_selection` come from the curated skills catalog, which is
+  // the source of the catalog's `skill` category (see src/creator/catalog.ts).
+  skills_selection: ['debug-diagnose', 'security-code-review'],
   mcps_enabled: true,
-  mcps_selection: ['github-mcp']
+  // Ids for `mcps_selection` come from the curated MCP catalog, which is the
+  // source of the catalog's `mcp` category (see src/creator/catalog.ts).
+  mcps_selection: ['github-mcp-server'],
+  testing_tools: ['unit-tests', 'e2e-tests', 'sast'],
 };
 
 export const productionAnswers = {
@@ -47,7 +53,7 @@ export const productionAnswers = {
   knowledge_enabled: true,
   knowledge_sources: ['repository-docs', 'runbooks'],
   pr_review_enabled: false,
-  agent_targets: ['huascar', 'portable'],
+  agent_targets: ['agents-md', 'devin-desktop', 'coderabbit', 'portable'],
   hooks_enabled: true,
   skills_enabled: true,
   skills_focus: 'operations',

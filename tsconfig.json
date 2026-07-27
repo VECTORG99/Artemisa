@@ -11,7 +11,10 @@
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "exactOptionalPropertyTypes": false
+    "exactOptionalPropertyTypes": false,
+    "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
-  "exclude": ["node_modules", "frontend", "packages", "agent-creator", "e2e", "sdk"]
+  "include": ["src"],
+  "exclude": ["node_modules", "frontend", "packages", "agent-creator", "e2e", "sdk", "docs"]
 }

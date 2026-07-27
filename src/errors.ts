@@ -1,14 +1,4 @@
 export const ErrorCodes = {
-  MCP_CONNECTION_FAILED: 'MCP_CONNECTION_FAILED',
-  MCP_TOOL_TIMEOUT: 'MCP_TOOL_TIMEOUT',
-  MCP_TOOL_ERROR: 'MCP_TOOL_ERROR',
-  RAG_SOURCE_NOT_FOUND: 'RAG_SOURCE_NOT_FOUND',
-  RAG_EMBEDDING_FAILED: 'RAG_EMBEDDING_FAILED',
-  RAG_SSRF_BLOCKED: 'RAG_SSRF_BLOCKED',
-  ENGINE_CONFIG_INVALID: 'ENGINE_CONFIG_INVALID',
-  ENGINE_ROLE_NOT_FOUND: 'ENGINE_ROLE_NOT_FOUND',
-  STORE_QUERY_FAILED: 'STORE_QUERY_FAILED',
-  STORE_MIGRATION_FAILED: 'STORE_MIGRATION_FAILED',
   API_VALIDATION_ERROR: 'API_VALIDATION_ERROR',
   API_RATE_LIMITED: 'API_RATE_LIMITED',
   CREATOR_INPUT_ERROR: 'CREATOR_INPUT_ERROR',
@@ -16,9 +6,9 @@ export const ErrorCodes = {
   INTERNAL_ERROR: 'INTERNAL_ERROR',
 } as const;
 
-export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
+type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 
-export class AppError extends Error {
+class AppError extends Error {
   constructor(
     readonly code: ErrorCode,
     message: string,
@@ -31,10 +21,6 @@ export class AppError extends Error {
   }
 }
 
-export class McpError extends AppError {}
-export class RagError extends AppError {}
-export class EngineError extends AppError {}
-export class StoreError extends AppError {}
 export class ApiError extends AppError {}
 export class CreatorError extends AppError {}
 

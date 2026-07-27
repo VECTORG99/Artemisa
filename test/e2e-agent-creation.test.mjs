@@ -1,18 +1,3 @@
-/**
- * E2E Agent Creation Demo Test
- *
- * This test demonstrates the COMPLETE flow of creating an agent through the API,
- * exactly as a real user would. It shows:
- *
- * 1. Loading the catalog and workflow
- * 2. Progressive evaluation (adding answers one by one)
- * 3. Tree branching (dev vs prod questions)
- * 4. Generating a full bundle with all artifacts
- * 5. Verifying content quality and personalization
- *
- * Run: AUTH_REQUIRED=false npm run start & sleep 3 && node test/e2e-agent-creation.test.mjs
- * Or:  node --import tsx/esm --test test/e2e-agent-creation.test.mjs
- */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateAgentBundle } from '../src/creator/generator.js';
@@ -22,14 +7,13 @@ import { getCreatorCatalog } from '../src/creator/catalog.js';
 describe('E2E: Full Agent Creation — TypeScript Security Reviewer (Development)', () => {
   const answers = {};
   let evaluation;
+  const slug = 'security-code-reviewer';
 
   it('Step 1: Load catalog — verify technologies available', () => {
     const catalog = getCreatorCatalog();
     assert.ok(catalog.items.length > 200, `Catalog has ${catalog.items.length} items`);
     assert.ok(catalog.categories.length >= 20, `${catalog.categories.length} categories`);
-
-    // Verify key technologies exist
-    const ids = catalog.items.map(i => i.id);
+    const ids = catalog.items.map((i) => i.id);
     for (const tech of ['typescript', 'python', 'react', 'fastapi', 'postgresql', 'kubernetes', 'terraform']) {
       assert.ok(ids.includes(tech), `${tech} should be in catalog`);
     }
@@ -80,10 +64,9 @@ describe('E2E: Full Agent Creation — TypeScript Security Reviewer (Development
   it('Step 7: Choose development → unlocks dev-specific questions', () => {
     answers.environment = 'development';
     evaluation = evaluateDecisionTree(answers);
-    // Should get development_setup or ci_cd next (dev branch)
     assert.ok(
       ['development_setup', 'testing_tools', 'ci_cd'].includes(evaluation.nextQuestion.id),
-      `Got: ${evaluation.nextQuestion.id}`
+      `Got: ${evaluation.nextQuestion.id}`,
     );
     console.log(`    ✓ Dev branch unlocked → next: ${evaluation.nextQuestion.id}`);
   });
@@ -102,7 +85,6 @@ describe('E2E: Full Agent Creation — TypeScript Security Reviewer (Development
     answers.human_approval = true;
     evaluation = evaluateDecisionTree(answers);
     console.log(`    ✓ Capabilities: ${answers.capabilities.join(', ')}`);
-    console.log(`    ✓ Autonomy: supervised with human approval`);
   });
 
   it('Step 10: Enable knowledge/RAG', () => {
@@ -120,9 +102,11 @@ describe('E2E: Full Agent Creation — TypeScript Security Reviewer (Development
   });
 
   it('Step 12: Select targets and features → tree complete', () => {
-    answers.agent_targets = ['huascar', 'kiro', 'portable'];
+    answers.agent_targets = ['agents-md', 'cursor', 'devin-desktop', 'coderabbit', 'kilo-code', 'kiro', 'portable'];
     answers.hooks_enabled = true;
     answers.skills_enabled = true;
+    answers.skills_focus = 'security';
+    answers.mcps_enabled = false;
     evaluation = evaluateDecisionTree(answers);
     assert.equal(evaluation.progress.complete, true, `Not complete — next: ${evaluation.nextQuestion?.id}`);
     console.log(`    ✓ TREE COMPLETE — ${evaluation.progress.answered} questions answered`);
@@ -130,73 +114,65 @@ describe('E2E: Full Agent Creation — TypeScript Security Reviewer (Development
 
   it('Step 13: Generate bundle — verify all expected artifacts', () => {
     const bundle = generateAgentBundle(answers);
-    const paths = bundle.artifacts.map(a => a.path);
+    const paths = bundle.artifacts.map((a) => a.path);
 
     console.log(`    ✓ Bundle: ${bundle.artifacts.length} artifacts generated`);
     console.log(`    ✓ Targets: ${bundle.blueprint.agent.targets.join(', ')}`);
 
-    // Core artifacts always present
-    assert.ok(paths.includes('huascar.blueprint.json'));
-    assert.ok(paths.includes('manifest.json'));
-    assert.ok(paths.includes('docs/INSTALL.md'));
-    assert.ok(paths.includes('docs/WHY.md'));
-
-    // Huascar target artifacts
-    assert.ok(paths.includes('huascar/steering.json'));
-    assert.ok(paths.includes('huascar/security-policy.json'));
-    assert.ok(paths.includes('huascar/governance.json'));
-    assert.ok(paths.includes('huascar/mcps.json'));
-    assert.ok(paths.includes('huascar/rag.json'));
-    assert.ok(paths.includes('huascar/pr-review.json'));
-
-    // Kiro target artifacts
-    assert.ok(paths.includes('.kiro/steering/security-code-reviewer.md'));
-    assert.ok(paths.includes('.kiro/hooks/security-code-reviewer-quality.json'));
-    assert.ok(paths.includes('.kiro/skills/security-code-reviewer/SKILL.md'));
-
-    // Portable artifacts
-    assert.ok(paths.includes('AGENTS.md'));
-    assert.ok(paths.includes('skills/security-code-reviewer/SKILL.md'));
+    for (const expected of [
+      'blueprint.json',
+      'manifest.json',
+      'docs/INSTALL.md',
+      'docs/WHY.md',
+      'AGENTS.md',
+      `.cursor/rules/${slug}.mdc`,
+      '.cursorrules',
+      `.windsurf/rules/${slug}.md`,
+      '.windsurfrules',
+      '.coderabbit.yaml',
+      `.kilocode/rules/${slug}.md`,
+      '.kilocodemodes',
+      `.kiro/steering/${slug}.md`,
+      `.kiro/hooks/${slug}-quality.json`,
+      `.kiro/skills/${slug}/SKILL.md`,
+      `skills/${slug}/SKILL.md`,
+    ]) assert.ok(paths.includes(expected), `missing ${expected}`);
 
     console.log('    ✓ All expected artifact paths present');
   });
 
   it('Step 14: Verify steering is personalized to security + TypeScript', () => {
     const bundle = generateAgentBundle(answers);
-    const steering = bundle.artifacts.find(a => a.path === 'huascar/steering.json');
-    const content = JSON.parse(steering.content);
-    const prompt = Object.values(content.roles)[0].system_prompt;
+    const steering = bundle.artifacts.find((a) => a.path === `.windsurf/rules/${slug}.md`);
+    const content = steering.content;
 
-    assert.match(prompt, /vulnerabilidad|seguridad|OWASP/i);
-    assert.match(prompt, /TypeScript|typescript/);
-    assert.match(prompt, /scan vulnerabilities|review pr|scan-vulnerabilities|review-pr/);
+    assert.match(content, /vulnerabilidad|seguridad|OWASP/i);
+    assert.match(content, /TypeScript|typescript/);
+    assert.match(content, /scan vulnerabilities|review pr|scan-vulnerabilities|review-pr/i);
     console.log(`    ✓ Steering mentions security focus and TypeScript stack`);
   });
 
-  it('Step 15: Verify RAG config uses TypeScript patterns', () => {
+  it('Step 15: Verify AGENTS.md includes structured sections', () => {
     const bundle = generateAgentBundle(answers);
-    const rag = bundle.artifacts.find(a => a.path === 'huascar/rag.json');
-    const content = JSON.parse(rag.content);
-    const sourceCode = content.knowledge_bases.find(kb => kb.path === './src');
-
-    assert.ok(sourceCode, 'RAG should include ./src directory');
-    assert.match(sourceCode.pattern, /\*\.ts/);
-    console.log(`    ✓ RAG source-code pattern: ${sourceCode.pattern}`);
+    const agents = bundle.artifacts.find((a) => a.path === 'AGENTS.md');
+    assert.match(agents.content, /## Mission/);
+    assert.match(agents.content, /## Stack/);
+    assert.match(agents.content, /## Knowledge Sources/);
+    console.log(`    ✓ AGENTS.md has Mission, Stack, Knowledge Sources`);
   });
 
-  it('Step 16: Verify security-policy is strict for security agent', () => {
+  it('Step 16: Verify CodeRabbit YAML is well-formed', () => {
     const bundle = generateAgentBundle(answers);
-    const policy = bundle.artifacts.find(a => a.path === 'huascar/security-policy.json');
-    const content = JSON.parse(policy.content);
-
-    assert.ok(content.blocked_tool_patterns.length > 0);
-    assert.ok(content.blocked_args_substrings);
-    console.log(`    ✓ Security policy: ${content.blocked_tool_patterns.length} blocked patterns`);
+    const yaml = bundle.artifacts.find((a) => a.path === '.coderabbit.yaml');
+    assert.ok(yaml.content.includes('language: es'));
+    assert.ok(yaml.content.includes('reviews:'));
+    assert.ok(yaml.content.includes('path_instructions:'));
+    console.log(`    ✓ CodeRabbit config has required YAML sections`);
   });
 
   it('Step 17: Verify WHY.md explains decisions with evidence', () => {
     const bundle = generateAgentBundle(answers);
-    const why = bundle.artifacts.find(a => a.path === 'docs/WHY.md');
+    const why = bundle.artifacts.find((a) => a.path === 'docs/WHY.md');
 
     assert.match(why.content, /Problema y éxito|Objetivo/);
     assert.match(why.content, /Contexto técnico|Stack/);
@@ -211,8 +187,8 @@ describe('E2E: Full Agent Creation — TypeScript Security Reviewer (Development
     const second = generateAgentBundle(structuredClone(answers));
 
     assert.deepEqual(
-      first.artifacts.map(a => a.sha256),
-      second.artifacts.map(a => a.sha256),
+      first.artifacts.map((a) => a.sha256),
+      second.artifacts.map((a) => a.sha256),
     );
     console.log('    ✓ Deterministic: identical SHA-256 hashes on regeneration');
   });
@@ -226,17 +202,15 @@ describe('E2E: Full Agent Creation — TypeScript Security Reviewer (Development
     }
   });
 
-  it('Step 20: Verify GitHub MCP generated for review-pr + scan-vulnerabilities', () => {
+  it('Step 20: Verify manifest lists all selected targets and kinds', () => {
     const bundle = generateAgentBundle(answers);
-    const mcps = bundle.artifacts.find(a => a.path === 'huascar/mcps.json');
-    const content = JSON.parse(mcps.content);
-
-    assert.ok(content.mcpServers['github-integration'], 'GitHub MCP should be generated');
-    assert.match(
-      content.mcpServers['github-integration'].args.join(' '),
-      /@modelcontextprotocol\/server-github@/,
-    );
-    console.log('    ✓ GitHub MCP with pinned version generated');
+    const manifest = JSON.parse(bundle.artifacts.find((a) => a.path === 'manifest.json').content);
+    assert.deepEqual(manifest.targets.sort(), bundle.blueprint.agent.targets.sort());
+    const kinds = new Set(manifest.files.map((f) => f.kind));
+    for (const kind of ['cursor-rules', 'devin-rules', 'coderabbit-config', 'kilocode-rules', 'agents-md', 'configuration']) {
+      assert.ok(kinds.has(kind), `manifest should include kind ${kind}`);
+    }
+    console.log('    ✓ Manifest lists all targets and artifact kinds');
   });
 });
 
@@ -264,9 +238,11 @@ describe('E2E: Full Agent Creation — Python ML Ops (Production)', () => {
       knowledge_enabled: true,
       knowledge_sources: ['repository-docs', 'runbooks', 'source-code'],
       pr_review_enabled: false,
-      agent_targets: ['huascar'],
+      agent_targets: ['agents-md', 'devin-desktop'],
       hooks_enabled: false,
       skills_enabled: true,
+      skills_focus: 'data-ai',
+      mcps_enabled: false,
     };
 
     const evaluation = evaluateDecisionTree(answers);
@@ -274,40 +250,30 @@ describe('E2E: Full Agent Creation — Python ML Ops (Production)', () => {
 
     const bundle = generateAgentBundle(answers);
     console.log(`    ✓ ML Production agent: ${bundle.artifacts.length} artifacts`);
+    const paths = bundle.artifacts.map((a) => a.path);
+    const slug = bundle.blueprint.identity.slug;
 
-    // Verify production characteristics
     assert.ok(bundle.blueprint.agent.requireHumanApproval);
     assert.equal(bundle.blueprint.environments.target, 'production');
     assert.equal(bundle.blueprint.environments.deploymentTarget, 'aws-eks');
 
-    // RAG uses Python patterns
-    const rag = JSON.parse(bundle.artifacts.find(a => a.path === 'huascar/rag.json').content);
-    const sourceCode = rag.knowledge_bases.find(kb => kb.path === './src');
-    assert.match(sourceCode.pattern, /\*\.py/);
-    console.log(`    ✓ RAG pattern: ${sourceCode.pattern} (Python)`);
+    assert.ok(paths.includes('AGENTS.md'));
+    assert.ok(paths.includes(`.windsurf/rules/${slug}.md`));
+    assert.ok(!paths.some((p) => p.startsWith('.kiro/')));
+    assert.ok(!paths.some((p) => p.startsWith('.cursor/')));
 
-    // Steering mentions ML + production
-    const steering = JSON.parse(bundle.artifacts.find(a => a.path === 'huascar/steering.json').content);
-    const prompt = Object.values(steering.roles)[0].system_prompt;
-    assert.match(prompt, /producción|mínimo privilegio|rollback/);
-    assert.match(prompt, /train-models|deploy|analyze-data/);
-    console.log('    ✓ Steering: production-aware with ML capabilities');
+    const agents = bundle.artifacts.find((a) => a.path === 'AGENTS.md');
+    assert.match(agents.content, /pytest/);
+    assert.match(agents.content, /ruff/);
+    console.log(`    ✓ AGENTS.md includes Python test and lint commands`);
 
-    // Production warnings present
-    assert.ok(bundle.warnings.some(w => w.includes('producción')));
+    assert.ok(bundle.warnings.some((w) => w.includes('producción')));
     console.log('    ✓ Production warnings present');
 
-    // Recommendations fired for microservices + production
     assert.ok(bundle.blueprint.recommendations.length >= 2);
     console.log(`    ✓ ${bundle.blueprint.recommendations.length} recommendations fired`);
     for (const rec of bundle.blueprint.recommendations) {
       console.log(`      - [${rec.severity}] ${rec.title}`);
     }
-
-    // No local-fs or bash-terminal in production
-    const mcps = JSON.parse(bundle.artifacts.find(a => a.path === 'huascar/mcps.json').content);
-    assert.ok(!mcps.mcpServers['local-fs'], 'No local-fs in production');
-    assert.ok(!mcps.mcpServers['bash-terminal'], 'No bash-terminal in production');
-    console.log('    ✓ No unsafe dev MCPs in production bundle');
   });
 });

@@ -3,11 +3,11 @@
  * Provides request inspector and timing breakdown for development.
  *
  * Security: case-insensitive production check, auto-purge after TTL,
- * replay endpoint removed (use /api/agent/execute directly).
+ * no replay endpoint (Creator requests are pure and can be re-sent by the client).
  */
 import { Router, type RequestHandler } from 'express';
 
-export interface DebugRequest {
+interface DebugRequest {
   id: string;
   method: string;
   path: string;

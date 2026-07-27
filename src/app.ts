@@ -3,39 +3,23 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import compression from 'compression';
 import { config } from './config.js';
-import { createStore, Store } from './engine/Store.js';
 import { creatorProtectedRouter, creatorPublicRouter } from './creator/router.js';
 import { requireAuth } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFound } from './middleware/notFound.js';
 import { enforceJsonContentType, validatePathParams } from './middleware/validation.js';
 import { sanitizeRequestBody } from './middleware/sanitize.js';
-import { agentRouter } from './routes/agent.js';
-import { agentsRouter } from './routes/agents.js';
 import { createHealthRouter } from './routes/health.js';
-import { historyRouter } from './routes/history.js';
-import { hooksRouter } from './routes/hooks.js';
 import { createMetricsState, metricsMiddleware, metricsRouter } from './routes/metrics.js';
 import { openApiRouter } from './routes/openapi.js';
-import { ragRouter } from './routes/rag.js';
-import { rolesRouter } from './routes/roles.js';
-import { mcpStatusRouter } from './routes/mcpStatus.js';
-import { toolsRouter } from './routes/tools.js';
-import { createConfigsRouter } from './routes/configs.js';
-import { memoryRouter } from './routes/memory.js';
-import { pipelineRouter } from './routes/pipeline.js';
 import { createDebugState, debugMiddleware, debugRouter } from './routes/debug.js';
-import { ConfigStore } from './engine/ConfigStore.js';
-import { ExecutionContext } from './engine/ExecutionContext.js';
 import { logger } from './logger.js';
-import { commitApprovals } from './services/approvals.js';
 
 export const app = express();
-export const store: Store = createStore();
-export const metricsState = createMetricsState();
-export const debugState = createDebugState();
-export const executionContext = new ExecutionContext(store);
+const metricsState = createMetricsState();
+const debugState = createDebugState();
 
 // Security headers (XSS, clickjacking, MIME sniffing protection)
 app.use(
@@ -47,6 +31,20 @@ app.use(
 
 // Strict Content-Type enforcement for mutation requests (#249 — handles charset params)
 app.use(enforceJsonContentType);
+
+// HTTP compression (#404) — gzip/brotli for JSON responses (catalog ~34KB,
+// workflow ~52KB compress ~70-85%). threshold=1KB skips tiny responses.
+app.use(
+  compression({
+    level: 6,
+    threshold: 1024,
+    filter: (req, res) => {
+      // Don't compress if the client explicitly opts out.
+      if (req.headers['x-no-compression']) return false;
+      return compression.filter(req, res);
+    },
+  }),
+);
 
 const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:5173')
   .split(',')
@@ -92,18 +90,13 @@ const globalLimiter = rateLimit({
   keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
 });
 
-const executeLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_EXECUTE || '5', 10),
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Execution rate limit exceeded. Max 5 requests per minute.' },
-  keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
-});
-
+// The Creator re-evaluates the whole decision tree on every step. Auto-largo
+// walks 32 questions, so a single completed agent costs ~35 requests; at 30/min
+// a normal user was rate limited mid-flow. These calls are pure CPU (no I/O, no
+// LLM) and already capped at 128 KB per body, so a higher ceiling is safe.
 const creatorLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_CREATOR || '30', 10),
+  max: parseInt(process.env.RATE_LIMIT_CREATOR || '120', 10),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Creator API rate limit exceeded' },
@@ -111,7 +104,6 @@ const creatorLimiter = rateLimit({
 });
 
 app.use(globalLimiter);
-export { executeLimiter, creatorLimiter };
 
 // Global request timeout — applies to ALL routes including creator public
 app.use((_req, res, next) => {
@@ -129,10 +121,8 @@ app.use('/api/v1/creator', creatorLimiter, creatorPublicRouter);
 app.use(metricsMiddleware(metricsState));
 if (debugState.enabled) app.use(debugMiddleware(debugState));
 app.use('/api', metricsRouter(metricsState));
-app.use('/api', createHealthRouter(store));
-app.use('/api', mcpStatusRouter);
+app.use('/api', createHealthRouter());
 app.use('/api', openApiRouter);
-app.use('/api', toolsRouter());
 
 app.use('/api', (req, res, next) => {
   // Health and metrics are already handled above
@@ -140,18 +130,7 @@ app.use('/api', (req, res, next) => {
   requireAuth(req, res, next);
 });
 
-app.use('/api', historyRouter(store));
 app.use('/api/v1/creator', creatorProtectedRouter);
-app.use('/api', ragRouter(store));
-app.use('/api', rolesRouter());
-app.use('/api', agentsRouter(store));
-// Apply stricter rate limit to agent execution endpoint BEFORE the router
-app.use('/api/agent/execute', executeLimiter);
-app.use('/api', agentRouter(store));
-app.use('/api', createConfigsRouter(new ConfigStore(store.getDatabase())));
-app.use('/api', hooksRouter(commitApprovals));
-app.use('/api', memoryRouter(executionContext));
-app.use('/api', pipelineRouter(store));
 if (debugState.enabled) app.use('/api', debugRouter(debugState));
 
 app.use(notFound);

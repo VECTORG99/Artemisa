@@ -334,11 +334,12 @@ export const creatorQuestions: DecisionQuestion[] = [
     id: 'agent_targets',
     section: 'Salida',
     prompt: '¿Para qué plataformas se generará la configuración?',
-    description: 'Huascar genera su formato nativo, Kiro usa `.kiro/` y Portable usa AGENTS.md/skills.',
+    description:
+      'Selecciona uno o más targets reales. Puedes generar artefactos nativos para varias plataformas simultáneamente.',
     type: 'catalog-multiselect',
     required: true,
     catalogCategories: ['agent-platform'],
-    maxSelections: 3,
+    maxSelections: 7,
   },
   {
     id: 'hooks_enabled',
@@ -501,7 +502,7 @@ function validateQuestionAnswer(question: DecisionQuestion, value: CreatorAnswer
   return issues;
 }
 
-export function parseCreatorAnswers(input: unknown): {
+function parseCreatorAnswers(input: unknown): {
   answers: CreatorAnswers;
   issues: AnswerIssue[];
   warnings: string[];
@@ -727,6 +728,97 @@ function buildRecommendations(answers: CreatorAnswers): CreatorRecommendation[] 
         ['Diagnóstico proactivo', 'Capacity planning', 'SLA medibles'],
         ['Volumen de datos de telemetría', 'Complejidad de correlación'],
         ['Monitoreo básico con ping y uptime checks'],
+      ),
+    );
+  }
+
+  if (purpose === 'research') {
+    result.push(
+      recommendation(
+        'research-reproducibility',
+        'recommended',
+        'Garantizar reproducibilidad con seeds, versiones fijas y resultados intermedios',
+        'Investigación no reproducible no puede validarse ni extenderse. Fijar seeds, versiones de dependencias, datos de entrada y guardar checkpoints intermedios permite verificación independiente.',
+        ['purpose=research'],
+        ['Verificación por terceros', 'Extensión de resultados', 'Publicabilidad'],
+        ['Overhead de versionado de datos', 'Almacenamiento de artefactos intermedios'],
+        ['Documentar configuración manualmente sin automatización'],
+      ),
+    );
+    result.push(
+      recommendation(
+        'research-rag-domain',
+        'recommended',
+        'Configurar RAG sobre papers, documentación y datos del dominio',
+        'Un agente de investigación es más efectivo con acceso indexado a literatura relevante, papers previos y documentación del dominio. RAG evita alucinaciones y ancla respuestas en evidencia.',
+        ['purpose=research'],
+        ['Respuestas ancladas en evidencia', 'Descubrimiento de conexiones', 'Reducción de alucinaciones'],
+        ['Curación y actualización del corpus', 'Costo de indexación'],
+        ['Búsqueda manual sin indexación'],
+      ),
+    );
+    result.push(
+      recommendation(
+        'research-notebooks-versioned',
+        'info',
+        'Versionar notebooks como artefactos reproducibles',
+        'Los notebooks tienden a acumular estado oculto y output no reproducible. Versionarlos con output limpio y ejecutarlos en CI garantiza que los resultados son actuales.',
+        ['purpose=research'],
+        ['Colaboración sin ambigüedad', 'CI de resultados', 'Historial de evolución'],
+        ['Disciplina de limpiar output antes de commit', 'Tiempo de CI para notebooks largos'],
+        ['Exportar resultados como Markdown o PDF estáticos'],
+      ),
+    );
+  }
+  if (purpose === 'documentation') {
+    result.push(
+      recommendation(
+        'docs-style-guide',
+        'recommended',
+        'Definir style guide y voz consistente para toda la documentación',
+        'Documentación sin estilo definido diverge entre autores y confunde a lectores. Un style guide fija tono, terminología, formato y estructura esperada.',
+        ['purpose=documentation'],
+        ['Consistencia para el lector', 'Onboarding más rápido', 'Revisión objetiva'],
+        ['Tiempo inicial de definición', 'Enforcement manual sin tooling'],
+        ['Revisión ad-hoc sin criterios explícitos'],
+      ),
+    );
+    result.push(
+      recommendation(
+        'docs-versioned-with-code',
+        'recommended',
+        'Versionar documentación junto al código y validar en CI',
+        'Docs separadas del código se desactualizan silenciosamente. Co-locación y validación en CI (links rotos, ejemplos ejecutables) mantienen la documentación viva.',
+        ['purpose=documentation'],
+        ['Docs siempre actualizadas', 'Detección de roturas', 'Ejemplos verificables'],
+        ['Más archivos en el repo', 'CI más lento por validación de docs'],
+        ['Wiki externa sin validación automática'],
+      ),
+    );
+    result.push(
+      recommendation(
+        'docs-stale-detection',
+        'info',
+        'Detectar documentación obsoleta comparando con cambios del código',
+        'Cuando el código cambia y la documentación no, el lector recibe información incorrecta. Detectar docs afectadas por un diff permite actualización proactiva.',
+        ['purpose=documentation'],
+        ['Reducción de docs incorrectas', 'Priorización de actualizaciones', 'Confianza del lector'],
+        ['Heurísticas imperfectas', 'Falsos positivos en detección'],
+        ['Revisión manual de docs en cada release'],
+      ),
+    );
+  }
+  if (purpose === 'custom') {
+    result.push(
+      recommendation(
+        'custom-purpose-review',
+        'warning',
+        'Propósito custom sin recomendaciones predefinidas — revisar el bundle con cuidado',
+        'El propósito seleccionado no tiene reglas de recomendación específicas en el motor. El bundle se genera correctamente pero sin validación de dominio. Revisa steering, permisos y scope manualmente.',
+        ['purpose=custom'],
+        ['Flexibilidad total', 'Sin restricciones de dominio'],
+        ['Sin guidance específica', 'Mayor responsabilidad de revisión manual'],
+        ['Elegir el propósito predefinido más cercano para obtener recomendaciones'],
       ),
     );
   }
@@ -1158,16 +1250,20 @@ export function evaluateDecisionTree(input: unknown): DecisionEvaluation {
   };
 }
 
+// #407: the workflow definition is immutable per deploy, so pre-compute it once
+// instead of rebuilding the object on every /workflow request.
+const workflowDefinition = Object.freeze({
+  id: 'agent-builder',
+  version: WORKFLOW_VERSION,
+  catalogVersion: CATALOG_VERSION,
+  mode: 'stateless',
+  description: 'Árbol de decisiones guiado para generar configuraciones de agentes de desarrollo y producción.',
+  answersContract: 'El cliente reenvía todas las respuestas acumuladas en cada evaluación.',
+  questions: creatorQuestions,
+});
+
 export function getWorkflowDefinition() {
-  return {
-    id: 'agent-builder',
-    version: WORKFLOW_VERSION,
-    catalogVersion: CATALOG_VERSION,
-    mode: 'stateless',
-    description: 'Árbol de decisiones guiado para generar configuraciones de agentes de desarrollo y producción.',
-    answersContract: 'El cliente reenvía todas las respuestas acumuladas en cada evaluación.',
-    questions: creatorQuestions,
-  };
+  return workflowDefinition;
 }
 
 export function describeCatalogSelection(id: string): string {

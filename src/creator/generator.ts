@@ -7,8 +7,10 @@ import {
   GeneratedArtifact,
 } from './domain.js';
 import { describeCatalogSelection, evaluateDecisionTree } from './decisionTree.js';
+import { getSkillById } from './skillsCatalog.js';
+import { getMcpById } from './mcpCatalog.js';
 
-export const GENERATOR_VERSION = '1.0.0';
+const GENERATOR_VERSION = '1.0.0';
 
 /** Shell command allowlist entry, matching src/kiro/schemas/security-policy.schema.json. */
 interface AllowedCommandEntry {
@@ -16,7 +18,7 @@ interface AllowedCommandEntry {
   allowed_args: string[];
 }
 
-function stableValue(value: unknown): unknown {
+export function stableValue(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stableValue);
   if (value && typeof value === 'object') {
     return Object.fromEntries(
@@ -36,7 +38,7 @@ function sha256(content: string): string {
   return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
 }
 
-function slugify(value: string): string {
+export function slugify(value: string): string {
   const slug = value
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -123,8 +125,7 @@ function markdownArtifact(
   return makeArtifact(path, kind, 'text/markdown', description, normalized);
 }
 
-function buildBlueprint(answers: CreatorAnswers): AgentBlueprint {
-  const evaluation = evaluateDecisionTree(answers);
+function buildBlueprint(answers: CreatorAnswers, evaluation: ReturnType<typeof evaluateDecisionTree>): AgentBlueprint {
   if (!evaluation.progress.complete || evaluation.issues.length > 0) {
     const issues =
       evaluation.issues.length > 0
@@ -147,6 +148,39 @@ function buildBlueprint(answers: CreatorAnswers): AgentBlueprint {
   const capabilities = listAnswer(answers, 'capabilities');
   const production = target === 'production' || target === 'both';
   const development = target === 'development' || target === 'both';
+
+  const skillsEnabled = boolAnswer(answers, 'skills_enabled');
+  const skillsFocus = stringAnswer(answers, 'skills_focus');
+  const mcpsEnabled = boolAnswer(answers, 'mcps_enabled');
+
+  // Resolve the effective skill selection. Only the 'custom' focus exposes
+  // `skills_selection` in the tree; the curated profiles preselect skills in
+  // the UI but do not persist a per-skill list, so we only consume the
+  // explicit selection here.
+  const skillItems =
+    skillsEnabled && skillsFocus === 'custom'
+      ? listAnswer(answers, 'skills_selection')
+          .map((id) => getSkillById(id))
+          .filter((item): item is NonNullable<typeof item> => Boolean(item))
+          .map((item) => ({
+            id: item.id,
+            name: item.name,
+            focus: item.focus,
+            sourceUrl: item.sourceUrl,
+          }))
+      : [];
+
+  const mcpItems = mcpsEnabled
+    ? listAnswer(answers, 'mcps_selection')
+        .map((id) => getMcpById(id))
+        .filter((item): item is NonNullable<typeof item> => Boolean(item))
+        .map((item) => ({
+          id: item.id,
+          name: item.name,
+          category: item.category,
+          sourceUrl: item.sourceUrl,
+        }))
+    : [];
 
   return {
     schemaVersion: '1.0.0',
@@ -201,14 +235,25 @@ function buildBlueprint(answers: CreatorAnswers): AgentBlueprint {
       hooks: boolAnswer(answers, 'hooks_enabled'),
       skills: boolAnswer(answers, 'skills_enabled'),
       steering: true,
-      agentsMd: development || targets.includes('portable') || targets.includes('kiro'),
+      agentsMd: targets.includes('agents-md'),
       kiro: targets.includes('kiro'),
+    },
+    skills: {
+      enabled: skillsEnabled,
+      focus: skillsFocus,
+      items: skillItems,
+    },
+    testing: {
+      tools: listAnswer(answers, 'testing_tools'),
+    },
+    integrations: {
+      mcps: mcpItems,
     },
     recommendations: evaluation.recommendations,
   };
 }
 
-function inferCloudProvider(target: string): string | null {
+export function inferCloudProvider(target: string): string | null {
   if (target.startsWith('aws-')) return 'aws';
   if (target.startsWith('azure-')) return 'azure';
   if (target.startsWith('gcp-')) return 'gcp';
@@ -244,36 +289,16 @@ function buildSystemPrompt(blueprint: AgentBlueprint): string {
 }
 
 /**
- * Map blueprint capabilities to the MCP tool names the agent is allowed to call.
- * Conservative by design: a capability only unlocks the tools it strictly needs,
- * and no capability grants write/exec tools implicitly.
- */
-const CAPABILITY_ALLOWED_TOOLS: Record<string, string[]> = {
-  'read-repository': ['read_file', 'list_directory', 'search_files', 'get_file_info'],
-  'edit-code': ['read_file', 'list_directory', 'search_files', 'write_file', 'edit_file'],
-  'run-tests': ['read_file', 'list_directory', 'execute_bash'],
-  'review-pr': ['read_file', 'list_directory', 'search_files', 'get_pull_request', 'create_pull_request_comment'],
-  'manage-issues': ['get_issue', 'list_issues', 'create_issue', 'update_issue'],
-  'inspect-infrastructure': ['read_file', 'list_directory', 'describe_resources', 'get_metrics', 'get_logs'],
-  'operate-production': ['read_file', 'describe_resources', 'get_metrics', 'get_logs', 'execute_bash'],
-  deploy: ['read_file', 'describe_resources', 'execute_bash'],
-  'analyze-data': ['read_file', 'list_directory', 'search_files', 'execute_bash'],
-  'train-models': ['read_file', 'list_directory', 'execute_bash'],
-  'scan-vulnerabilities': ['read_file', 'list_directory', 'search_files', 'execute_bash'],
-  pentest: ['read_file', 'list_directory', 'search_files', 'execute_bash'],
-  'manage-network': ['read_file', 'describe_resources', 'get_metrics', 'execute_bash'],
-  'automate-workflows': ['read_file', 'list_directory', 'write_file', 'execute_bash'],
-  'audit-compliance': ['read_file', 'list_directory', 'search_files', 'get_file_info'],
-  'generate-reports': ['read_file', 'list_directory', 'search_files', 'write_file'],
-};
-
-/**
  * Map blueprint capabilities to allowlisted shell commands. Only capabilities
  * that genuinely need shell access contribute entries, and argument allowlists
  * stay narrow (read-only or quality-gate commands) so the generated policy is
  * safe to apply before review.
  */
-function buildAllowedCommands(capabilities: string[], languages: string[]): AllowedCommandEntry[] {
+function buildAllowedCommands(
+  capabilities: string[],
+  languages: string[],
+  testingTools: string[],
+): AllowedCommandEntry[] {
   const entries = new Map<string, Set<string>>();
   const add = (binary: string, args: string[]) => {
     const existing = entries.get(binary) ?? new Set<string>();
@@ -306,6 +331,20 @@ function buildAllowedCommands(capabilities: string[], languages: string[]): Allo
     if (hasJava) add('mvn', ['test', 'verify']);
   }
 
+  // Testing tools from the catalog enrich allowed commands with specific runners.
+  if (testingTools.length > 0) {
+    if (testingTools.includes('e2e-tests')) {
+      add('npx', ['playwright test', 'cypress run']);
+    }
+    if (testingTools.includes('sast')) {
+      add('npx', ['eslint .', 'semgrep scan']);
+    }
+    if (testingTools.includes('dependency-scan')) {
+      add('npm', ['audit']);
+      add('npx', ['snyk test']);
+    }
+  }
+
   if (capabilities.includes('inspect-infrastructure') || capabilities.includes('operate-production')) {
     add('kubectl', ['get', 'describe', 'logs']);
     add('docker', ['ps', 'logs', 'inspect']);
@@ -314,167 +353,6 @@ function buildAllowedCommands(capabilities: string[], languages: string[]): Allo
   return [...entries.entries()]
     .map(([binary, args]) => ({ binary, allowed_args: [...args].sort() }))
     .sort((a, b) => a.binary.localeCompare(b.binary));
-}
-
-function buildSecurityPolicy(blueprint: AgentBlueprint): Record<string, unknown> {
-  const autonomy = blueprint.agent.autonomy;
-  const target = blueprint.environments.target;
-  const capabilities = blueprint.agent.capabilities;
-  const isProduction = target === 'production' || target === 'both';
-  const isDevelopment = target === 'development' || target === 'both';
-
-  // Base blocked patterns
-  const blockedTools: string[] = ['sudo'];
-  const blockedArgs: string[] = ['rm -rf', 'git push --force', 'mkfs', 'dd if='];
-
-  // Autonomous agents: stricter blocklist
-  if (autonomy === 'autonomous') {
-    blockedTools.push('shell');
-    blockedArgs.push('deploy', 'DROP TABLE', 'DELETE FROM', 'TRUNCATE', 'ALTER TABLE');
-  } else {
-    blockedTools.push('shell');
-  }
-
-  // Production: block filesystem writes, restrict to read-only by default
-  if (isProduction) {
-    blockedArgs.push('> /etc/', 'chmod 777', 'chown root', 'systemctl stop');
-    if (!capabilities.includes('deploy')) {
-      blockedArgs.push('docker push', 'kubectl apply', 'terraform apply');
-    }
-  }
-
-  // Development: allow more commands (fewer blocks)
-  if (isDevelopment && !isProduction) {
-    // Remove shell from blocked tools for dev-only agents that can run tests
-    if (capabilities.includes('run-tests')) {
-      const shellIndex = blockedTools.indexOf('shell');
-      if (shellIndex !== -1) blockedTools.splice(shellIndex, 1);
-    }
-  }
-
-  // Capability-aware: deploy capability allowed with approval requirement
-  const approvalRequired: string[] = [];
-  if (capabilities.includes('deploy')) {
-    approvalRequired.push('deploy', 'promote', 'release');
-  }
-  if (capabilities.includes('operate-production')) {
-    approvalRequired.push('restart', 'scale', 'rollback');
-  }
-
-  // Allowlist derived from capabilities. The runtime (src/kiro/hooks.ts) loads
-  // this against src/kiro/schemas/security-policy.schema.json and fails closed
-  // on an invalid shape, so version/mode/allowed_tools/allowed_commands must all
-  // be present or the applied policy silently blocks every tool.
-  const allowedTools = [
-    ...new Set(capabilities.flatMap((capability) => CAPABILITY_ALLOWED_TOOLS[capability] ?? [])),
-  ].sort();
-
-  const policy: Record<string, unknown> = {
-    version: '1.0.0',
-    mode: 'allowlist',
-    description: `Generated allowlist policy for ${blueprint.identity.name}. Review and tighten before production use.`,
-    allowed_tools: allowedTools,
-    allowed_commands: {
-      description: 'Commands derived from the selected agent capabilities and project stack.',
-      entries: buildAllowedCommands(capabilities, blueprint.project.technologies),
-    },
-    blocked_tool_patterns: blockedTools,
-    blocked_args_substrings: {
-      execute_bash: blockedArgs,
-    },
-  };
-
-  if (approvalRequired.length > 0) {
-    policy.require_approval_patterns = approvalRequired;
-  }
-
-  if (isProduction) {
-    policy.default_filesystem_mode = 'read-only';
-  }
-
-  return policy;
-}
-
-function mapRagSources(sourceIds: string[], languages: string[]): unknown[] {
-  return sourceIds.map((source) => {
-    if (source === 'repository-docs') return { type: 'local_directory', path: './docs', pattern: '*.md' };
-    if (source === 'source-code')
-      return { type: 'local_directory', path: './src', pattern: inferSourcePattern(languages) };
-    if (source === 'runbooks') return { type: 'local_directory', path: './runbooks', pattern: '*.md' };
-    if (source === 'web-documentation')
-      return { type: 'inline', content: 'Configura únicamente URLs de documentación aprobadas en el entorno destino.' };
-    if (source === 'tickets')
-      return {
-        type: 'inline',
-        content: 'Conecta el proveedor de tickets mediante un MCP de sólo lectura y credenciales de mínimo privilegio.',
-      };
-    if (source === 'rag-vector-store')
-      return {
-        type: 'inline',
-        content: 'Configura el namespace vectorial del proyecto y su política de retención antes de indexar.',
-      };
-    return { type: 'inline', content: `Fuente personalizada pendiente de adaptar: ${source}` };
-  });
-}
-
-/** Map language selections to source file glob patterns. */
-function inferSourcePattern(languages: string[]): string {
-  const extensionMap: Record<string, string> = {
-    typescript: '*.ts',
-    javascript: '*.js',
-    python: '*.py',
-    java: '*.java',
-    kotlin: '*.kt',
-    go: '*.go',
-    rust: '*.rs',
-    csharp: '*.cs',
-    ruby: '*.rb',
-    php: '*.php',
-    swift: '*.swift',
-    scala: '*.scala',
-    elixir: '*.ex',
-    haskell: '*.hs',
-    cpp: '*.cpp',
-    c: '*.c',
-  };
-  const patterns = languages.map((lang) => extensionMap[lang.replace('custom:', '')]).filter(Boolean);
-  if (patterns.length === 0) return '*.*';
-  if (patterns.length === 1) return patterns[0]!;
-  return `*.{${patterns.map((p) => p!.replace('*.', '')).join(',')}}`;
-}
-
-function buildMcpConfig(blueprint: AgentBlueprint): Record<string, unknown> {
-  const servers: Record<string, unknown> = {};
-  const repository = blueprint.project.repositoryProvider;
-  const capabilities = blueprint.agent.capabilities;
-  if (
-    repository === 'github' &&
-    (blueprint.prReview.enabled || capabilities.includes('manage-issues') || capabilities.includes('review-pr'))
-  ) {
-    servers['github-integration'] = {
-      command: 'npx',
-      args: ['-y', '@modelcontextprotocol/server-github@0.6.2'],
-      env: { GITHUB_PERSONAL_ACCESS_TOKEN: '${GITHUB_TOKEN}' },
-      description:
-        'Integración GitHub; usa un token de mínimo privilegio y fija la versión del paquete antes de producción.',
-    };
-  }
-  const developmentOnly = blueprint.environments.target === 'development';
-  if (developmentOnly && capabilities.includes('read-repository')) {
-    servers['local-fs'] = {
-      command: 'npx',
-      args: ['-y', '@modelcontextprotocol/server-filesystem@0.6.2', './target-repo'],
-      description: 'Acceso limitado al workspace del repositorio.',
-    };
-  }
-  if (developmentOnly && capabilities.includes('run-tests')) {
-    servers['bash-terminal'] = {
-      command: 'npx',
-      args: ['-y', 'mcp-server-bash@0.1.1'],
-      description: 'Sólo para comandos de build/test allowlisted dentro de un sandbox.',
-    };
-  }
-  return { mcpServers: servers };
 }
 
 function buildWhy(blueprint: AgentBlueprint): string {
@@ -636,7 +514,7 @@ Copia únicamente los archivos del target que utilizarás. Conserva las rutas re
 
 ## 3. Validar localmente
 
-1. Revisa \`huascar.blueprint.json\` y \`docs/WHY.md\`.
+1. Revisa \`blueprint.json\` y \`docs/WHY.md\`.
 2. Ajusta rutas RAG al workspace permitido.
 3. Fija versiones exactas de servidores MCP.
 4. Ejecuta lint, tests y una prueba en modo asesor.
@@ -645,34 +523,139 @@ Copia únicamente los archivos del target que utilizarás. Conserva las rutas re
 ${stackSection}${devSection}${prodSection}`;
 }
 
+function buildProjectCommand(technologies: string[], type: 'build' | 'test' | 'lint'): string {
+  const hasNode = technologies.some((t) => ['typescript', 'javascript', 'nodejs', 'nextjs', 'react'].includes(t));
+  const hasPython = technologies.includes('python');
+  const hasGo = technologies.includes('go');
+  const hasRust = technologies.includes('rust');
+  const hasJava = technologies.some((t) => ['java', 'kotlin', 'spring-boot'].includes(t));
+  if (type === 'build') {
+    if (hasNode) return 'npm ci && npm run build';
+    if (hasPython) return 'pip install -r requirements.txt';
+    if (hasGo) return 'go build ./...';
+    if (hasRust) return 'cargo build';
+    if (hasJava) return './mvnw package -DskipTests';
+    return '<comando de build del proyecto>';
+  }
+  if (type === 'test') {
+    if (hasNode) return 'npm run test';
+    if (hasPython) return 'pytest';
+    if (hasGo) return 'go test ./...';
+    if (hasRust) return 'cargo test';
+    if (hasJava) return './mvnw test';
+    return '<comando de test del proyecto>';
+  }
+  if (type === 'lint') {
+    if (hasNode) return 'npm run lint';
+    if (hasPython) return 'ruff check .';
+    if (hasGo) return 'gofmt -w . && go vet ./...';
+    if (hasRust) return 'cargo clippy';
+    if (hasJava) return './mvnw spotless:apply';
+    return '<comando de lint del proyecto>';
+  }
+  return '';
+}
+
 function buildAgentsMd(blueprint: AgentBlueprint): string {
+  const technologies = blueprint.project.technologies;
+  const stack = technologies.map(describeCatalogSelection).join(', ') || 'No especificado';
+  const architecture = describeCatalogSelection(blueprint.project.architecture);
+  const buildCommand = buildProjectCommand(technologies, 'build');
+  const testCommand = buildProjectCommand(technologies, 'test');
+  const lintCommand = buildProjectCommand(technologies, 'lint');
+  const securityRules =
+    blueprint.devops.compliance.length > 0
+      ? blueprint.devops.compliance
+          .map(describeCatalogSelection)
+          .map((r) => `- ${r}`)
+          .join('\n')
+      : '- No incluyas secretos, credenciales ni datos sensibles en el código.\n- Solicita aprobación humana antes de deploy o acciones con efectos.';
+  const prReview = blueprint.prReview.enabled
+    ? `Se habilitó revisión de PR con enfoque en: ${blueprint.prReview.focus.join(', ')}.`
+    : 'No se habilitó revisión automática de PR.';
+  const knowledgeSources = blueprint.knowledge.enabled
+    ? blueprint.knowledge.sources
+        .map(describeCatalogSelection)
+        .map((s) => `- ${s}`)
+        .join('\n')
+    : '- No se configuraron fuentes de conocimiento adicionales.';
+  const mcpSection =
+    blueprint.integrations.mcps.length > 0
+      ? blueprint.integrations.mcps.map((mcp) => `- **${mcp.name}** (${mcp.category}): ${mcp.sourceUrl}`).join('\n')
+      : '- No se habilitaron integraciones MCP.';
+  const conventions = [
+    `Arquitectura: ${architecture}. Respeta sus límites y convenciones de capas.`,
+    `Cambios pequeños, reversibles y acompañados de pruebas cuando sea posible.`,
+    `Explica evidencia, riesgos, supuestos y trade-offs antes de proponer soluciones.`,
+    blueprint.agent.requireHumanApproval
+      ? 'Solicita aprobación humana explícita antes de merge, deploy o acciones con efectos.'
+      : 'Trabaja en modo asesor sin ejecutar acciones con efectos.',
+  ];
   return `# AGENTS.md
 
-## Misión
+## Mission
 
 ${blueprint.purpose.objective}
 
-## Criterio de éxito
+## Success Criteria
 
 ${blueprint.purpose.successCriteria}
 
-## Stack y arquitectura
+## Stack
 
-- Arquitectura: ${describeCatalogSelection(blueprint.project.architecture)}
-- Tecnologías: ${blueprint.project.technologies.map(describeCatalogSelection).join(', ')}
+${stack}
 
-## Forma de trabajar
+## Architecture
 
-1. Lee la documentación y convenciones antes de proponer cambios.
-2. Mantén los límites de la arquitectura existente.
-3. Realiza cambios pequeños, reversibles y acompañados de pruebas.
-4. Explica evidencia, riesgos y trade-offs.
-5. No incluyas secretos, credenciales o datos sensibles.
-6. No hagas merge, deploy ni acciones de producción sin aprobación explícita.
+${architecture}
 
-## Verificación
+## Build Commands
 
-Antes de finalizar, ejecuta únicamente los comandos de lint, test y build permitidos por el proyecto y documenta cualquier validación que no pueda realizarse.
+- ${buildCommand}
+
+## Test Commands
+
+- ${testCommand}
+
+## Lint Commands
+
+- ${lintCommand}
+
+## Dependencies
+
+- Stack principal: ${stack}.
+- Proveedor de repositorio: ${describeCatalogSelection(blueprint.project.repositoryProvider)}.
+${blueprint.environments.deploymentTarget ? `- Destino de despliegue: ${describeCatalogSelection(blueprint.environments.deploymentTarget)}.` : ''}
+
+## Testing & Quality
+${
+  blueprint.testing.tools.length > 0
+    ? blueprint.testing.tools
+        .map(describeCatalogSelection)
+        .map((t) => `- ${t}`)
+        .join('\n')
+    : '- Sin herramientas de testing específicas configuradas. Usar los comandos de test del stack.'
+}
+
+## Conventions
+
+${conventions.map((c) => `- ${c}`).join('\n')}
+
+## Security Rules
+
+${securityRules}
+
+## PR Review
+
+${prReview}
+
+## Knowledge Sources
+
+${knowledgeSources}
+
+## MCP Integrations
+
+${mcpSection}
 `;
 }
 
@@ -741,42 +724,414 @@ function inferKiroHookPatterns(technologies: string[]): string[] {
   return patterns.length > 0 ? patterns : ['src/**/*'];
 }
 
-function buildPrReview(blueprint: AgentBlueprint): { config: Record<string, unknown>; warning: string | null } {
-  const provider = blueprint.project.repositoryProvider;
-  const config: Record<string, unknown> = {
-    enabled: true,
-    provider,
-    trigger: 'pull_request',
-    focus: blueprint.prReview.focus,
-    output: {
-      format: 'markdown',
-      includeEvidence: true,
-      severities: ['critical', 'high', 'medium', 'low', 'info'],
-      deduplicateFindings: true,
-    },
-    permissions: {
-      readRepository: true,
-      comment: blueprint.agent.capabilities.includes('review-pr'),
-      merge: false,
-    },
-    requireHumanApproval: true,
-    limitations: {
-      mcpSupported: ['github'],
-      note: 'El servidor MCP de PR review sólo soporta GitHub actualmente. Otros proveedores requieren un adaptador personalizado.',
-    },
+function inferStackGlobs(technologies: string[]): string[] {
+  const patterns: string[] = [];
+  const langPatterns: Record<string, string[]> = {
+    typescript: ['src/**/*.{ts,tsx}', 'test/**/*.{ts,tsx}'],
+    javascript: ['src/**/*.{js,jsx}', 'test/**/*.{js,jsx}'],
+    python: ['src/**/*.py', 'tests/**/*.py'],
+    go: ['**/*.go'],
+    java: ['src/**/*.java'],
+    kotlin: ['src/**/*.{kt,kts}'],
+    rust: ['src/**/*.rs'],
+    csharp: ['src/**/*.cs'],
+    ruby: ['src/**/*.rb', 'spec/**/*.rb'],
+    php: ['src/**/*.php'],
+    swift: ['Sources/**/*.swift'],
+    elixir: ['lib/**/*.ex', 'test/**/*.exs'],
+    cpp: ['src/**/*.cpp'],
+    c: ['src/**/*.c'],
   };
-  const warning =
-    provider !== 'github'
-      ? `PR review configurado con ${provider}: el MCP de integración sólo soporta GitHub nativamente. Se requiere un adaptador personalizado.`
-      : null;
-  return { config, warning };
+  for (const tech of technologies) {
+    const lang = tech.replace(/^custom:/, '');
+    if (langPatterns[lang]) {
+      for (const p of langPatterns[lang]!) {
+        if (!patterns.includes(p)) patterns.push(p);
+      }
+    }
+  }
+  return patterns.length > 0 ? patterns : ['src/**/*', 'test/**/*'];
+}
+
+function buildAllowedCommandLines(blueprint: AgentBlueprint): string[] {
+  const commands = buildAllowedCommands(
+    blueprint.agent.capabilities,
+    blueprint.project.technologies,
+    blueprint.testing.tools,
+  );
+  return commands.map((entry) => `- ${entry.binary}: ${entry.allowed_args.join(', ')}`);
+}
+
+function buildCursorRules(blueprint: AgentBlueprint): GeneratedArtifact[] {
+  const slug = blueprint.identity.slug;
+  const globs = inferStackGlobs(blueprint.project.technologies);
+  const mdcContent = `---
+description: ${JSON.stringify(blueprint.identity.description.replace(/\n/g, ' '))}
+globs:
+${globs.map((g) => `  - "${g}"`).join('\n')}
+alwaysApply: false
+---
+
+# ${blueprint.identity.name}
+
+## Contexto
+
+${blueprint.purpose.objective}
+
+## Criterio de éxito
+
+${blueprint.purpose.successCriteria}
+
+## Instrucciones
+
+${buildSystemPrompt(blueprint)}
+
+## Comandos permitidos
+
+${buildAllowedCommandLines(blueprint).join('\n')}
+`;
+  const global = `# ${blueprint.identity.name}
+
+## Misión
+
+${blueprint.purpose.objective}
+
+## Reglas globales
+
+- Objetivo: ${blueprint.purpose.objective}
+- Criterio de éxito: ${blueprint.purpose.successCriteria}
+- Arquitectura: ${describeCatalogSelection(blueprint.project.architecture)}
+- Stack: ${blueprint.project.technologies.map(describeCatalogSelection).join(', ')}
+- Autonomía: ${blueprint.agent.autonomy}
+- No ejecutes acciones con efectos sin aprobación humana explícita.
+- No incluyas secretos ni credenciales en el código o en los prompts.
+- Explica evidencia, riesgos, supuestos y cambios propuestos antes de actuar.
+
+## Comandos permitidos
+
+${buildAllowedCommandLines(blueprint).join('\n') || '- No se allowlistearon comandos de shell para este agente.'}
+`;
+  return [
+    makeArtifact(
+      `.cursor/rules/${slug}.mdc`,
+      'cursor-rules',
+      'text/markdown',
+      'Regla Cursor con activación por globs para el agente.',
+      mdcContent,
+    ),
+    makeArtifact('.cursorrules', 'cursor-rules', 'text/markdown', 'Regla global consolidada para Cursor.', global),
+  ];
+}
+
+function buildDevinDesktopRules(blueprint: AgentBlueprint): GeneratedArtifact[] {
+  const slug = blueprint.identity.slug;
+  const rules = `# ${blueprint.identity.name}
+
+## Contexto
+
+${blueprint.purpose.objective}
+
+## Criterio de éxito
+
+${blueprint.purpose.successCriteria}
+
+## Steering
+
+${buildSystemPrompt(blueprint)}
+
+## Comandos permitidos
+
+${buildAllowedCommandLines(blueprint).join('\n') || '- No se allowlistearon comandos de shell.'}
+
+## Seguridad
+
+- No ejecutes acciones con efectos sin aprobación humana.
+- No reveles secretos ni inventes acceso a herramientas o datos.
+- Prioriza mínimo privilegio, observabilidad y rollback en producción.
+`;
+  const global = `# ${blueprint.identity.name} — windsurf rules
+
+## Misión
+
+${blueprint.purpose.objective}
+
+## Reglas de trabajo
+
+- Lee documentación y convenciones antes de proponer cambios.
+- Mantén los límites de ${describeCatalogSelection(blueprint.project.architecture)}.
+- Cambios pequeños, reversibles y con pruebas.
+- Explica evidencia, riesgos y trade-offs.
+- No secrets, no deploys automáticos, no merge sin aprobación.
+
+## Stack
+
+${blueprint.project.technologies.map(describeCatalogSelection).join(', ')}
+`;
+  return [
+    makeArtifact(
+      `.windsurf/rules/${slug}.md`,
+      'devin-rules',
+      'text/markdown',
+      'Regla de Windsurf/Devin Desktop para el agente.',
+      rules,
+    ),
+    makeArtifact(
+      '.windsurfrules',
+      'devin-rules',
+      'text/markdown',
+      'Reglas globales consolidadas para Devin Desktop/Windsurf.',
+      global,
+    ),
+  ];
+}
+
+function buildCodeRabbitConfig(blueprint: AgentBlueprint): GeneratedArtifact[] {
+  const pathInstructions = blueprint.prReview.enabled
+    ? blueprint.prReview.focus.map((area) => ({
+        path: inferStackGlobs(blueprint.project.technologies)[0] ?? '**/*',
+        instructions: `Presta especial atención a ${area} en cada revisión. Documenta evidencia y severidad.`,
+      }))
+    : [
+        {
+          path: inferStackGlobs(blueprint.project.technologies)[0] ?? '**/*',
+          instructions: 'Revisa correctitud, seguridad y mantenibilidad. Documenta hallazgos con evidencia.',
+        },
+      ];
+  const tools: Record<string, { enabled: boolean; severity?: string }> = {
+    shellcheck: { enabled: blueprint.project.technologies.includes('bash') },
+    markdownlint: { enabled: true },
+    'github-checks': { enabled: blueprint.project.repositoryProvider === 'github' },
+    'ast-grep': { enabled: false },
+  };
+  const yaml = `# CodeRabbit configuration for ${blueprint.identity.name}
+# Generated by Huascar; review before applying.
+language: es
+reviews:
+  profile: assertive
+  request_changes_workflow: true
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  path_filters:
+${inferStackGlobs(blueprint.project.technologies)
+  .map((g) => `    - "${g}"`)
+  .join('\n')}
+  path_instructions:
+${pathInstructions
+  .map(
+    (i) =>
+      `    - path: "${i.path}"\n      instructions: |\n${i.instructions
+        .split('\n')
+        .map((l) => `        ${l}`)
+        .join('\n')}`,
+  )
+  .join('\n')}
+  tools:
+${Object.entries(tools)
+  .map(([name, cfg]) => `    ${name}:\n      enabled: ${cfg.enabled}`)
+  .join('\n')}
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches: []
+  auto_reply:
+    enabled: true
+chat:
+  auto_reply: true
+`;
+  return [
+    makeArtifact(
+      '.coderabbit.yaml',
+      'coderabbit-config',
+      'text/yaml',
+      'Configuración de CodeRabbit para revisión async de PRs.',
+      yaml,
+    ),
+  ];
+}
+
+function buildKiloCodeRules(blueprint: AgentBlueprint): GeneratedArtifact[] {
+  const slug = blueprint.identity.slug;
+  const base = `# ${blueprint.identity.name}
+
+## Contexto
+
+${blueprint.purpose.objective}
+
+## Criterio de éxito
+
+${blueprint.purpose.successCriteria}
+
+## Instrucciones generales
+
+${buildSystemPrompt(blueprint)}
+`;
+  const modes = [
+    {
+      id: 'code',
+      name: 'Code',
+      description: `Desarrollo con ${blueprint.project.technologies.map(describeCatalogSelection).join(', ')}`,
+      filePattern: 'src/**/*',
+    },
+    { id: 'test', name: 'Test', description: 'Diseño y validación de pruebas', filePattern: 'test/**/*' },
+    { id: 'review', name: 'Review', description: 'Revisión de código y pull requests', filePattern: 'src/**/*' },
+    { id: 'debug', name: 'Debug', description: 'Diagnóstico y corrección de errores', filePattern: 'src/**/*' },
+  ];
+  const kiloModes = {
+    version: '1.0.0',
+    modes: modes.map((m) => ({
+      name: m.name,
+      description: m.description,
+      filePattern: m.filePattern,
+      instructions: buildSystemPrompt(blueprint),
+      allowedCommands: buildAllowedCommands(
+        blueprint.agent.capabilities,
+        blueprint.project.technologies,
+        blueprint.testing.tools,
+      ).map((c) => c.binary),
+    })),
+  };
+  return [
+    makeArtifact(
+      `.kilocode/rules/${slug}.md`,
+      'kilocode-rules',
+      'text/markdown',
+      'Regla base de Kilo Code para el agente.',
+      base,
+    ),
+    jsonArtifact('.kilocodemodes', 'kilocode-rules', 'Definición de modos Kilo Code.', kiloModes),
+  ];
+}
+
+/**
+ * Generate one `skills/<skill-id>/SKILL.md` per skill explicitly selected via
+ * `skills_selection` (custom focus). The curated profile focuses only steer
+ * the UI picker and do not persist a per-skill list, so they produce no
+ * artifacts here. Catalog skills are portable and target-agnostic.
+ */
+function buildCatalogSkillFiles(blueprint: AgentBlueprint): GeneratedArtifact[] {
+  return blueprint.skills.items
+    .filter((skill) => skill.id !== blueprint.identity.slug)
+    .map((skill) =>
+      markdownArtifact(
+        `skills/${skill.id}/SKILL.md`,
+        'instruction',
+        `Skill "${skill.name}" seleccionada desde el catálogo.`,
+        `---
+name: ${skill.id}
+description: ${JSON.stringify(skill.name + ' — ' + 'skill del catálogo Huascar.')}
+focus: ${skill.focus}
+source: ${skill.sourceUrl}
+---
+
+# ${skill.name}
+
+## Cuándo usar esta skill
+
+${skill.name}: úsala cuando el objetivo del agente se alinee con su enfoque (${skill.focus}).
+
+## Procedimiento
+
+1. Confirma que el problema encaja con el enfoque de esta skill.
+2. Reúne contexto solo desde fuentes aprobadas por el steering del agente.
+3. Aplica el procedimiento propio de la skill respetando el criterio de éxito.
+4. Documenta evidencia, supuestos y pasos para reproducir el resultado.
+5. Solicita aprobación antes de cualquier acción con efectos.
+
+## Origen
+
+Catálogo curado de Huascar (versión estática). Fuente: ${skill.sourceUrl}
+`,
+      ),
+    );
+}
+
+/**
+ * Portable MCP integration manifest listing the servers selected via
+ * `mcps_selection`. Replaces the legacy `huascar/mcps.json` target artifact
+ * (removed in #488) with a target-agnostic file consumable by any platform
+ * that reads MCP config.
+ */
+function buildMcpConfig(blueprint: AgentBlueprint): GeneratedArtifact | null {
+  if (blueprint.integrations.mcps.length === 0) return null;
+  return jsonArtifact(
+    'mcp.json',
+    'configuration',
+    'Manifiesto portable de integraciones MCP seleccionadas para el agente.',
+    {
+      version: '1.0.0',
+      agent: blueprint.identity.slug,
+      servers: blueprint.integrations.mcps.map((mcp) => ({
+        id: mcp.id,
+        name: mcp.name,
+        category: mcp.category,
+        sourceUrl: mcp.sourceUrl,
+      })),
+    },
+  );
+}
+
+function buildTargetArtifacts(target: string, blueprint: AgentBlueprint): GeneratedArtifact[] {
+  switch (target) {
+    case 'agents-md':
+      return [markdownArtifact('AGENTS.md', 'agents-md', 'AGENTS.md universal enriquecido.', buildAgentsMd(blueprint))];
+    case 'portable':
+      return [
+        markdownArtifact(
+          `skills/${blueprint.identity.slug}/SKILL.md`,
+          'instruction',
+          'Skill portable con el procedimiento principal.',
+          buildSkill(blueprint),
+        ),
+      ];
+    case 'kiro':
+      return [
+        markdownArtifact(
+          `.kiro/steering/${blueprint.identity.slug}.md`,
+          'instruction',
+          'Steering del proyecto para Kiro.',
+          `# ${blueprint.identity.name}\n\n${buildSystemPrompt(blueprint)}\n`,
+        ),
+        ...(blueprint.features.skills
+          ? [
+              markdownArtifact(
+                `.kiro/skills/${blueprint.identity.slug}/SKILL.md`,
+                'instruction',
+                'Skill de Kiro para el procedimiento generado.',
+                buildSkill(blueprint),
+              ),
+            ]
+          : []),
+        ...(blueprint.features.hooks
+          ? [
+              jsonArtifact(
+                `.kiro/hooks/${blueprint.identity.slug}-quality.json`,
+                'configuration',
+                'Hook Kiro revisable para quality gate.',
+                buildKiroHook(blueprint),
+              ),
+            ]
+          : []),
+      ];
+    case 'cursor':
+      return buildCursorRules(blueprint);
+    case 'devin-desktop':
+      return buildDevinDesktopRules(blueprint);
+    case 'coderabbit':
+      return buildCodeRabbitConfig(blueprint);
+    case 'kilo-code':
+      return buildKiloCodeRules(blueprint);
+    default:
+      return [];
+  }
 }
 
 function buildApplicationGuide(blueprint: AgentBlueprint): GeneratedAgentBundle['applicationGuide'] {
   const production = blueprint.environments.target === 'production' || blueprint.environments.target === 'both';
   const steps = [
-    'Descarga o copia los artefactos respetando las rutas del manifest.',
-    'Revisa huascar.blueprint.json y docs/WHY.md con el equipo responsable.',
+    `Descarga o copia los artefactos respetando las rutas del manifest (${blueprint.agent.targets.join(', ')}).`,
+    'Revisa blueprint.json y docs/WHY.md con el equipo responsable.',
     'Configura referencias de secretos e integraciones con mínimo privilegio.',
     'Valida el agente en modo asesor con un repositorio o entorno de prueba.',
     'Activa únicamente las capacidades verificadas y documenta cualquier override.',
@@ -799,7 +1154,7 @@ function buildApplicationGuide(blueprint: AgentBlueprint): GeneratedAgentBundle[
 
 export function generateAgentBundle(input: unknown): GeneratedAgentBundle {
   const evaluation = evaluateDecisionTree(input);
-  const blueprint = buildBlueprint(evaluation.answers);
+  const blueprint = buildBlueprint(evaluation.answers, evaluation);
   const artifacts: GeneratedArtifact[] = [];
   const paths = new Set<string>();
   const add = (artifact: GeneratedArtifact) => {
@@ -815,7 +1170,7 @@ export function generateAgentBundle(input: unknown): GeneratedAgentBundle {
 
   add(
     jsonArtifact(
-      'huascar.blueprint.json',
+      'blueprint.json',
       'configuration',
       'Blueprint canónico con todas las decisiones del agente.',
       blueprint,
@@ -838,133 +1193,29 @@ export function generateAgentBundle(input: unknown): GeneratedAgentBundle {
     ),
   );
 
-  if (blueprint.features.agentsMd)
-    add(
-      markdownArtifact(
-        'AGENTS.md',
-        'instruction',
-        'Instrucciones portables para agentes que trabajen en el repositorio.',
-        buildAgentsMd(blueprint),
-      ),
-    );
-  if (blueprint.features.skills)
-    add(
-      markdownArtifact(
-        `skills/${blueprint.identity.slug}/SKILL.md`,
-        'instruction',
-        'Skill portable con el procedimiento principal.',
-        buildSkill(blueprint),
-      ),
-    );
+  // Target-specific artifacts are generated by buildTargetArtifacts below.
 
-  let prReviewWarning: string | null = null;
-
-  if (blueprint.agent.targets.includes('huascar')) {
-    const roleKey = blueprint.identity.slug.replace(/-/g, '_').toUpperCase();
-    add(
-      jsonArtifact('huascar/steering.json', 'configuration', 'Rol y steering consumible por HuascarEngine.', {
-        roles: {
-          [roleKey]: {
-            name: blueprint.identity.name,
-            description: blueprint.purpose.objective,
-            recommended_tools: [
-              ...new Set(blueprint.agent.capabilities.flatMap((c) => CAPABILITY_ALLOWED_TOOLS[c] ?? [])),
-            ].sort(),
-            examples: [blueprint.purpose.successCriteria],
-            system_prompt: buildSystemPrompt(blueprint),
-            temperature: 0.2,
-          },
-        },
-      }),
-    );
-    add(
-      jsonArtifact(
-        'huascar/security-policy.json',
-        'configuration',
-        'Política compatible con el hook runtime actual.',
-        buildSecurityPolicy(blueprint),
-      ),
-    );
-    add(
-      jsonArtifact(
-        'huascar/governance.json',
-        'configuration',
-        'Capacidades y aprobaciones que debe aplicar un adaptador de runtime antes de ejecutar.',
-        {
-          enforcement: 'runtime-adapter-required',
-          autonomy: blueprint.agent.autonomy,
-          require_human_approval: blueprint.agent.requireHumanApproval,
-          allowed_capabilities: blueprint.agent.capabilities,
-          production: blueprint.environments.target !== 'development',
-          notes: 'Este archivo documenta intención. HuascarEngine aún no lo consume automáticamente.',
-        },
-      ),
-    );
-    add(
-      jsonArtifact(
-        'huascar/mcps.json',
-        'configuration',
-        'Servidores MCP sugeridos según entorno y capacidades.',
-        buildMcpConfig(blueprint),
-      ),
-    );
-    if (blueprint.knowledge.enabled)
-      add(
-        jsonArtifact(
-          'huascar/rag.json',
-          'configuration',
-          'Fuentes RAG declaradas; deben revisarse antes de cargarlas.',
-          { knowledge_bases: mapRagSources(blueprint.knowledge.sources, blueprint.project.technologies) },
-        ),
-      );
-    if (blueprint.prReview.enabled) {
-      const prReview = buildPrReview(blueprint);
-      add(
-        jsonArtifact(
-          'huascar/pr-review.json',
-          'configuration',
-          'Rúbrica y permisos para revisión de pull requests.',
-          prReview.config,
-        ),
-      );
-      if (prReview.warning) prReviewWarning = prReview.warning;
+  for (const target of blueprint.agent.targets) {
+    for (const artifact of buildTargetArtifacts(target, blueprint)) {
+      add(artifact);
     }
   }
 
-  if (blueprint.features.kiro) {
-    add(
-      markdownArtifact(
-        `.kiro/steering/${blueprint.identity.slug}.md`,
-        'instruction',
-        'Steering del proyecto para Kiro.',
-        `# ${blueprint.identity.name}\n\n${buildSystemPrompt(blueprint)}\n`,
-      ),
-    );
-    if (blueprint.features.skills)
-      add(
-        markdownArtifact(
-          `.kiro/skills/${blueprint.identity.slug}/SKILL.md`,
-          'instruction',
-          'Skill de Kiro para el procedimiento generado.',
-          buildSkill(blueprint),
-        ),
-      );
-    if (blueprint.features.hooks)
-      add(
-        jsonArtifact(
-          `.kiro/hooks/${blueprint.identity.slug}-quality.json`,
-          'configuration',
-          'Hook Kiro revisable para quality gate.',
-          buildKiroHook(blueprint),
-        ),
-      );
+  // Catalog skills (portable, target-agnostic) selected via `skills_selection`.
+  for (const artifact of buildCatalogSkillFiles(blueprint)) {
+    add(artifact);
   }
+
+  // Portable MCP manifest selected via `mcps_selection`.
+  const mcpConfig = buildMcpConfig(blueprint);
+  if (mcpConfig) add(mcpConfig);
+
+  // Target-specific generation is centralized in buildTargetArtifacts.
 
   const applicationGuide = buildApplicationGuide(blueprint);
   const warnings = [...evaluation.warnings];
-  if (prReviewWarning) warnings.push(prReviewWarning);
-  if (blueprint.agent.targets.includes('huascar'))
-    warnings.push('Fija versiones exactas de los paquetes MCP antes de usar el bundle fuera de una demo.');
+  if (blueprint.agent.targets.includes('coderabbit') && blueprint.project.repositoryProvider !== 'github')
+    warnings.push('CodeRabbit: el proveedor de repositorio no es GitHub; verifica compatibilidad de integración.');
   if (blueprint.environments.target !== 'development')
     warnings.push(
       'El preview no despliega el agente: producción requiere staging, identidad separada, observabilidad y rollback verificados.',

@@ -1,10 +1,10 @@
 # Debug Tooling
 
-Development-only tools for inspecting, testing, and debugging the Huascar engine.
+Development-only tools for inspecting requests against the Creator backend.
 
 ## Request Inspector
 
-Captures the last 100 requests with timing breakdown.
+Captures the last 50 requests with timing breakdown.
 
 ```bash
 # List recent requests
@@ -19,38 +19,13 @@ curl http://localhost:3001/api/debug/requests/<id>
 Include `X-Debug: true` header to get timing info in responses:
 
 ```bash
-curl -H "X-Debug: true" -X POST http://localhost:3001/api/agent/execute \
+curl -H "X-Debug: true" -X POST http://localhost:3001/api/v1/creator/evaluate \
   -H "Content-Type: application/json" \
-  -d '{"task": "Hello", "role": "DEVELOPER"}'
+  -d '{"answers": {}}'
 ```
 
-## Request Replay
-
-Re-execute a previous request from history:
-
-```bash
-curl -X POST http://localhost:3001/api/debug/replay/<executionId>
-```
-
-## REPL
-
-Interactive shell for testing without HTTP:
-
-```bash
-npm run repl
-```
-
-Commands:
-
-- `.role <ROLE_NAME>` — set active role
-- `.task <text>` — set task
-- `.execute` — run task
-- `.last` — show last result
-- `.history [n]` — show history
-- `.health` — check backend
-- `.tools` — list tools
-- `.help` — show help
-- `.exit` — quit
+There is no replay endpoint: Creator requests are pure functions of their body,
+so the client can simply re-send them.
 
 ## System Stats
 

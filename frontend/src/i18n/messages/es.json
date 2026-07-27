@@ -16,27 +16,18 @@
     "loadingCatalog": "Cargando catálogo y árbol de decisiones...",
     "evaluating": "Evaluando respuestas...",
     "generating": "Compilando bundle...",
-    "reviewTitle": "Tu agente está listo para compilarse",
+    "reviewTitle": "Tu configuración está lista para compilarse",
     "bundleGenerated": "Bundle generado",
-    "createAnother": "Crear otro agente",
+    "createAnother": "Crear otra configuración",
     "generate": "Generar configuración",
     "skip": "Saltar tutorial"
   },
-  "dashboard": {
-    "title": "Dashboard",
-    "execute": "Desplegar y Ejecutar",
-    "executing": "Ejecutando...",
-    "history": "Historial",
-    "noHistory": "No hay ejecuciones registradas",
-    "heading": "Huascar Builder",
-    "subheading": "Panel de despliegue de agentes"
-  },
   "landing": {
     "heroTitle": "Huascar",
-    "heroCta": "Generar agente",
-    "heroDescription": "Diseña agentes de desarrollo y operación con un árbol de decisiones determinista. Sin caja negra: entiendes exactamente por qué se generó cada configuración.",
-    "ctaTitle": "¿Listo para construir tu agente?",
-    "ctaDescription": "El creador te guía paso a paso. Sin sorpresas, sin caja negra.",
+    "heroCta": "Generar configuración",
+    "heroDescription": "Genera archivos de configuración para agentes de desarrollo y operación mediante un árbol de decisiones explicables. Sin ejecutar, sin desplegar, sin caja negra.",
+    "ctaTitle": "¿Listo para configurar tu agente?",
+    "ctaDescription": "El creador te guía paso a paso hasta un bundle de archivos listo para copiar a tu proyecto.",
     "ctaButton": "Iniciar creador →"
   }
 }

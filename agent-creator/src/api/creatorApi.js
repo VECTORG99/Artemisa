@@ -31,7 +31,15 @@ async function request(path, options = {}) {
   return data;
 }
 
-export function loadCreatorDefinition() {
+// #406: stale-while-revalidate cache for the Creator definition. The
+// catalog/workflow/tutorial are immutable per backend deploy, so repeat
+// opens of the agent-creator should not pay the ~300-800ms network cost.
+// A module-level cache with a 5-min TTL: fresh hits return instantly,
+// stale hits return cached + revalidate in background, misses fetch+cache.
+const DEFINITION_CACHE_TTL_MS = 5 * 60 * 1000;
+let definitionCache = null; // { data, expiresAt }
+
+function fetchCreatorDefinition() {
   return Promise.all([request('/catalog'), request('/workflow'), request('/tutorial')]).then(
     ([catalog, workflow, tutorial]) => {
       // Validate response shapes (#288)
@@ -44,6 +52,28 @@ export function loadCreatorDefinition() {
       return { catalog: validCatalog, workflow: validWorkflow, tutorial: validTutorial };
     },
   );
+}
+
+export function loadCreatorDefinition() {
+  const now = Date.now();
+  if (definitionCache) {
+    if (now < definitionCache.expiresAt) {
+      // Fresh hit — no network.
+      return Promise.resolve(definitionCache.data);
+    }
+    // Stale — return cached immediately, revalidate in background.
+    fetchCreatorDefinition()
+      .then((data) => {
+        definitionCache = { data, expiresAt: Date.now() + DEFINITION_CACHE_TTL_MS };
+      })
+      .catch(() => {});
+    return Promise.resolve(definitionCache.data);
+  }
+  // Miss — fetch, cache, return.
+  return fetchCreatorDefinition().then((data) => {
+    definitionCache = { data, expiresAt: Date.now() + DEFINITION_CACHE_TTL_MS };
+    return data;
+  });
 }
 
 export function evaluateCreator(answers, versions) {

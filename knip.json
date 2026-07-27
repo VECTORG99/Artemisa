@@ -1,7 +1,19 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": ["src/server.ts", "src/creator/router.ts"],
-  "project": ["src/**/*.ts"],
-  "ignore": ["src/engine/migrations/**"],
-  "ignoreDependencies": ["pino-pretty", "tsx"]
+  "workspaces": {
+    ".": {
+      "entry": ["src/server.ts", "src/creator/router.ts"],
+      "project": ["src/**/*.ts"],
+      "ignore": ["src/engine/migrations/**"],
+      "ignoreDependencies": ["pino-pretty"]
+    },
+    "frontend": {
+      "entry": ["src/app/layout.tsx", "src/app/page.tsx", "next.config.ts"],
+      "project": ["src/**/*.{ts,tsx}"]
+    },
+    "agent-creator": {
+      "entry": ["src/main.jsx", "vite.config.js"],
+      "project": ["src/**/*.{js,jsx,ts,tsx}"]
+    }
+  }
 }

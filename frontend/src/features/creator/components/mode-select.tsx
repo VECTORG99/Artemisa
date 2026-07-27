@@ -2,6 +2,10 @@
 
 import { LuCompass, LuGauge, LuLayoutGrid, LuSlidersHorizontal } from 'react-icons/lu';
 import { glassCardInteractive, glassPill } from '@/lib/glass';
+import { apiUrl } from '@/lib/api';
+import { QuickStartCopy } from '@/components/ui/quick-start-copy';
+
+const STARTUP_URL = `${apiUrl}/api/v1/creator/startup`;
 
 export type CreatorMode = 'auto-corto' | 'auto-largo' | 'presets' | 'avanzado';
 
@@ -19,65 +23,89 @@ const MODES: {
   {
     id: 'auto-corto',
     label: 'Auto-corto',
-    tagline: '~8 preguntas',
-    description: 'Un test corto para entender qué necesitas. El resto se completa con valores seguros por defecto.',
+    tagline: '8 preguntas',
+    description: 'Responde lo esencial y nosotros completamos el resto con valores seguros.',
     Icon: LuGauge,
   },
   {
     id: 'auto-largo',
     label: 'Auto-largo',
-    tagline: 'Flujo completo',
-    description: 'Recorre todo el árbol de decisiones para el control más afinado antes de revisar.',
+    tagline: '32 preguntas',
+    description: 'Decide tú cada detalle, pregunta por pregunta.',
     Icon: LuCompass,
   },
   {
     id: 'presets',
     label: 'Presets',
-    tagline: 'Listos para usar',
-    description: 'Configuraciones completas por caso de uso. Llega, revisa y ajusta lo que quieras antes de generar.',
+    tagline: '8 presets',
+    description: 'Elige una configuración lista y ajústala a tu gusto.',
     Icon: LuLayoutGrid,
   },
   {
     id: 'avanzado',
     label: 'Avanzado',
-    tagline: 'Control total',
-    description: 'Panel de control denso: modelo, proveedores, RAG, skills y MCPs configurados directamente.',
+    tagline: 'Máximo control',
+    description: 'Todo en un solo panel, sin recorrido guiado.',
     Icon: LuSlidersHorizontal,
   },
 ];
 
 /**
- * First screen of the Creator: four independent entry points sharing the
- * same underlying decision tree and bundle generator. Auto-corto and
- * Auto-largo both converge toward a preset-shaped result (with the user's
- * own variations) — Auto-corto via curated defaults, Auto-largo via the
- * full wizard.
+ * First screen of the Creator: four entry points over the same decision tree
+ * and the same bundle generator. They differ only in how many decisions the
+ * user makes explicitly — every one ends at the same Review screen, where any
+ * answer can still be changed.
  */
 export function ModeSelect({ onSelect }: ModeSelectProps) {
   return (
-    <div className="flex flex-col items-center gap-10 text-center">
+    <div className="flex flex-col items-center gap-8 text-center">
       <div>
         <h1 className="text-3xl font-semibold text-white sm:text-4xl">¿Cómo quieres configurar tu agente?</h1>
-        <p className="mx-auto mt-3 max-w-xl text-zinc-400">
-          Los cuatro modos generan el mismo tipo de bundle. Puedes cambiar de opinión en cualquier momento.
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-400">
+          Los cuatro modos generan el mismo tipo de bundle y terminan en la misma revisión. Puedes cambiar de modo en
+          cualquier momento sin perder lo que ya respondiste.
         </p>
       </div>
 
-      <div className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {MODES.map((mode) => (
-          <button
-            key={mode.id}
-            type="button"
-            onClick={() => onSelect(mode.id)}
-            className={glassCardInteractive('flex flex-col items-center gap-3 rounded-3xl p-6 text-center')}
-          >
-            <mode.Icon className="h-7 w-7 text-zinc-400 transition-colors group-hover:text-white" aria-hidden="true" />
-            <span className="text-base font-medium text-white">{mode.label}</span>
-            <p className="text-xs leading-relaxed text-zinc-400">{mode.description}</p>
-            <span className={glassPill('mt-1 text-[10px] text-zinc-400')}>{mode.tagline}</span>
-          </button>
-        ))}
+      <div className="w-full max-w-2xl space-y-8">
+        <QuickStartCopy url={STARTUP_URL} size="lg" />
+
+        <div className="flex items-center gap-4">
+          <div className="flex-1 h-px bg-white/10" />
+          <span className="text-sm text-zinc-500">o configura manualmente</span>
+          <div className="flex-1 h-px bg-white/10" />
+        </div>
+
+        <div className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {MODES.map((mode) => (
+            <button
+              key={mode.id}
+              type="button"
+              onClick={() => onSelect(mode.id)}
+              className={glassCardInteractive(
+                'flex flex-col items-center gap-3 rounded-3xl p-6 text-center hover:border-accent/40',
+              )}
+            >
+              <mode.Icon
+                className="h-7 w-7 text-zinc-400 transition-colors group-hover:text-accent"
+                aria-hidden="true"
+              />
+              <span className="text-base font-medium text-white">{mode.label}</span>
+              <p className="flex-1 text-xs leading-relaxed text-zinc-400">{mode.description}</p>
+              <span className={glassPill('mt-1 py-0.5 text-[10px] text-zinc-400')}>{mode.tagline}</span>
+            </button>
+          ))}
+        </div>
+
+        <p className={glassPill('mx-auto text-[10px] text-white/70 px-4 py-1.5')}>
+          Huascar genera configuraciones de agentes a partir de un árbol de decisiones. Cada elección justifica el
+          resultado final, sin caja negra.
+        </p>
       </div>
+
+      <p className="text-[11px] text-zinc-600">
+        Pulsa <kbd className="rounded border border-white/[0.08] px-1 font-mono">?</kbd> para ver los atajos de teclado.
+      </p>
     </div>
   );
 }

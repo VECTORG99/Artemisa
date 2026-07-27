@@ -1,8 +1,7 @@
 import { Router } from 'express';
-import type { Store } from '../engine/Store.js';
 import { deepHealthCheck } from '../health.js';
 
-export function createHealthRouter(store: Store | null): Router {
+export function createHealthRouter(): Router {
   const router = Router();
 
   /**
@@ -11,7 +10,7 @@ export function createHealthRouter(store: Store | null): Router {
    * Used by Docker HEALTHCHECK and orchestrators.
    */
   router.get('/health', (_req, res) => {
-    const result = deepHealthCheck(store);
+    const result = deepHealthCheck();
     const statusCode = result.status === 'unhealthy' ? 503 : 200;
     res.status(statusCode).json(result);
   });
@@ -27,11 +26,11 @@ export function createHealthRouter(store: Store | null): Router {
 
   /**
    * GET /api/health/ready — Readiness probe.
-   * Returns 200 only if all dependencies are available.
+   * Returns 200 only if the process can serve Creator requests.
    * Used by load balancers to decide if instance can accept traffic.
    */
   router.get('/health/ready', (_req, res) => {
-    const result = deepHealthCheck(store);
+    const result = deepHealthCheck();
     const ready = result.status !== 'unhealthy';
     res.status(ready ? 200 : 503).json({
       ready,
@@ -41,9 +40,3 @@ export function createHealthRouter(store: Store | null): Router {
 
   return router;
 }
-
-// Legacy export for backward compatibility during transition
-export const healthRouter = Router();
-healthRouter.get('/health', (_req, res) => {
-  res.json({ status: 'Huascar Backend Online' });
-});

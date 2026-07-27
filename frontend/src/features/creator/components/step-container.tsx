@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import { StarfieldBackground } from '@/components/backgrounds/starfield-background';
 import { glassPanel } from '@/lib/glass';
 
 interface StepContainerProps {
@@ -10,39 +8,66 @@ interface StepContainerProps {
   progress?: number;
   /** Small label above the progress bar, e.g. current section name. */
   progressLabel?: string;
+  /** Right-aligned counter, e.g. "Paso 4 de 21". */
+  stepLabel?: string;
+  /** Reserves room for the page's fixed continue bar so content never hides
+   * behind it while the panel scrolls. */
+  withActionBar?: boolean;
+  /** `wide` is used by Review and Completion, which show two columns. */
+  size?: 'default' | 'wide';
 }
 
 /**
- * Shared wizard shell: low-profile starfield background, liquid-glass main
- * panel, and an optional progress bar. Every Creator screen (mode select,
- * questions, review, completion) renders inside this.
+ * Shared wizard panel shell: liquid-glass panel with optional progress bar.
+ * The background (SpaceSimulation) and navigation controls (back button)
+ * live at the page level so they persist across mode changes without
+ * remounting — this component only handles the glass card and its content.
  */
-export function StepContainer({ children, progress, progressLabel }: StepContainerProps) {
+export function StepContainer({
+  children,
+  progress,
+  progressLabel,
+  stepLabel,
+  withActionBar = false,
+  size = 'default',
+}: StepContainerProps) {
+  const maxWidth = size === 'wide' ? 'max-w-6xl' : 'max-w-5xl';
+
   return (
-    <main className="allow-scroll relative min-h-screen px-4 py-10 text-zinc-50 sm:px-8">
-      <StarfieldBackground />
-      <div className="relative z-10 mx-auto flex max-w-4xl flex-col gap-6">
-        <header className="flex items-center justify-between">
-          <Link href="/" className="text-sm text-zinc-500 transition-colors hover:text-zinc-300">
-            ← Volver al inicio
-          </Link>
-          <span className="text-xs uppercase tracking-wide text-zinc-600">Huascar Creator</span>
-        </header>
-
-        {progress !== undefined && (
-          <div className="flex flex-col gap-2">
-            {progressLabel && <span className="text-xs text-zinc-500">{progressLabel}</span>}
-            <div className="h-1 overflow-hidden rounded-full bg-white/[0.06]">
-              <div
-                className="h-full rounded-full bg-white/40 transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+    <div className={`relative z-10 mx-auto flex w-full flex-col gap-4 ${maxWidth}`}>
+      {progress !== undefined && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-baseline justify-between gap-3">
+            {progressLabel ? (
+              <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">{progressLabel}</span>
+            ) : (
+              <span />
+            )}
+            {stepLabel && <span className="shrink-0 text-[11px] tabular-nums text-zinc-500">{stepLabel}</span>}
           </div>
-        )}
+          <div
+            className="h-1 overflow-hidden rounded-full bg-white/[0.05]"
+            role="progressbar"
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={progressLabel ? `Progreso: ${progressLabel}` : 'Progreso'}
+          >
+            <div
+              className="h-full rounded-full bg-accent shadow-[0_0_10px_rgba(245,11,11,0.45)] transition-[width] duration-500 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      )}
 
-        <section className={glassPanel('rounded-2xl p-6 sm:p-10')}>{children}</section>
-      </div>
-    </main>
+      <section
+        className={glassPanel(
+          `creator-scroll max-h-[78vh] overflow-y-auto rounded-2xl p-6 sm:p-8 ${withActionBar ? 'pb-20' : ''}`,
+        )}
+      >
+        {children}
+      </section>
+    </div>
   );
 }

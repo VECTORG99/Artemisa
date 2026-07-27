@@ -1,8 +1,10 @@
 import { CatalogCategory, CatalogItem } from './domain.js';
+import { skillsCatalog } from './skillsCatalog.js';
+import { mcpCatalog } from './mcpCatalog.js';
 
 export const CATALOG_VERSION = '1.0.0';
 
-export const catalogCategories: CatalogCategory[] = [
+const catalogCategories: CatalogCategory[] = [
   {
     id: 'language',
     label: 'Lenguajes y runtimes',
@@ -148,7 +150,7 @@ function makeItems(category: string, specs: ItemSpec[]): CatalogItem[] {
   }));
 }
 
-export const catalogItems: CatalogItem[] = [
+const catalogItems: CatalogItem[] = [
   ...makeItems('language', [
     [
       'typescript',
@@ -341,6 +343,12 @@ export const catalogItems: CatalogItem[] = [
     ['docker', 'Docker', 'Empaquetado reproducible en contenedores.', ['container']],
     ['docker-compose', 'Docker Compose', 'Orquestación local y de servidor simple.', ['container']],
     ['kubernetes', 'Kubernetes', 'Orquestación de workloads distribuidos.', ['orchestration']],
+    [
+      'k3s',
+      'K3s',
+      'Kubernetes ligero para edge, IoT y clusters de bajo recurso.',
+      ['kubernetes', 'lightweight', 'edge'],
+    ],
     ['helm', 'Helm', 'Empaquetado y despliegue declarativo en Kubernetes.', ['kubernetes']],
     ['nomad', 'HashiCorp Nomad', 'Orquestación ligera de workloads.', ['orchestration']],
     ['podman', 'Podman', 'Contenedores rootless compatible con Docker.', ['container']],
@@ -439,9 +447,23 @@ export const catalogItems: CatalogItem[] = [
     ['local-repository', 'Repositorio local', 'Proyecto sin integración remota obligatoria.', ['local']],
   ]),
   ...makeItems('agent-platform', [
-    ['huascar', 'Huascar', 'Configuración nativa para HuascarEngine.', ['agent']],
+    [
+      'agents-md',
+      'AGENTS.md universal',
+      'Estándar agnóstico interpretado por Copilot, Cursor, Zed, Aider, Warp y Gemini CLI.',
+      ['agent', 'universal'],
+    ],
+    ['cursor', 'Cursor', 'Reglas `.cursor/rules/*.mdc` y `.cursorrules` con activación por globs.', ['agent', 'ide']],
+    [
+      'devin-desktop',
+      'Devin Desktop',
+      'Reglas `.windsurf/rules/*.md` y `.windsurfrules` para Devin Local.',
+      ['agent', 'ide'],
+    ],
+    ['coderabbit', 'CodeRabbit', 'Configuración `.coderabbit.yaml` para auditoría async de PRs.', ['agent', 'review']],
+    ['kilo-code', 'Kilo Code', 'Reglas `.kilocode/rules/*.md` y `.kilocodemodes` por roles.', ['agent', 'ide']],
     ['kiro', 'Kiro', 'Steering, hooks y skills bajo `.kiro/`.', ['agent', 'ide']],
-    ['portable', 'Portable', 'AGENTS.md, skills y documentación independiente.', ['agent']],
+    ['portable', 'Portable', 'Skills reutilizables y documentación independiente.', ['agent']],
   ]),
   ...makeItems('knowledge', [
     [
@@ -509,106 +531,41 @@ export const catalogItems: CatalogItem[] = [
     ['step-functions', 'AWS Step Functions', 'Workflows serverless.', ['aws', 'serverless']],
     ['github-actions-wf', 'GitHub Actions (Workflows)', 'Automatización basada en eventos.', ['ci', 'github']],
   ]),
-  ...makeItems('skill', [
-    [
-      'code-reviewer',
-      'Code Reviewer',
-      'Analiza diffs y archivos para identificar bugs, vulnerabilidades, olores de código y problemas arquitectónicos.',
-      ['review', 'security', 'quality'],
-      ['pr-review'],
-    ],
-    [
-      'security-auditor',
-      'Security Auditor',
-      'Realiza auditorías de seguridad antes del despliegue, bloquea vulnerabilidades críticas.',
-      ['security', 'audit', 'deployment'],
-      ['security'],
-    ],
-    [
-      'test-master',
-      'Test Master',
-      'Genera pruebas, estrategias de mock, analiza cobertura y planes de pruebas.',
-      ['testing', 'qa', 'coverage'],
-      ['testing'],
-    ],
-    [
-      'devops-engineer',
-      'DevOps Engineer',
-      'Crea Dockerfiles, pipelines CI/CD, manifiestos Kubernetes.',
-      ['devops', 'kubernetes', 'docker'],
-      ['devops'],
-    ],
-    [
-      'api-designer',
-      'API Designer',
-      'Diseña APIs REST/GraphQL, especificaciones OpenAPI, modelos de recursos.',
-      ['api', 'design', 'openapi'],
-      ['coding'],
-    ],
-    [
-      'database-optimizer',
-      'Database Optimizer',
-      'Optimiza consultas SQL, índices, analiza planes de ejecución.',
-      ['database', 'sql', 'performance'],
-      ['data-ai'],
-    ],
-    [
-      'architecture-designer',
-      'Architecture Designer',
-      'Diseña arquitecturas, ADRs, evalúa trade-offs tecnológicos.',
-      ['architecture', 'design', 'adr'],
-      ['coding'],
-    ],
-    [
-      'legacy-modernizer',
-      'Legacy Modernizer',
-      'Diseña estrategias de migración, analiza dependencias, strangler fig.',
-      ['legacy', 'migration'],
-      ['coding'],
-    ],
-  ]),
-  ...makeItems('mcp', [
-    [
-      'github-mcp',
-      'GitHub MCP',
-      'Interactúa con GitHub: PRs, issues, repositorios, búsqueda de código.',
-      ['github', 'vcs', 'mcp'],
-    ],
-    [
-      'atlassian-mcp',
-      'Atlassian MCP',
-      'Integración con Jira y Confluence usando JQL y CQL.',
-      ['jira', 'confluence', 'mcp'],
-    ],
-    [
-      'context7-mcp',
-      'Context7 MCP',
-      'Obtiene documentación de librerías, frameworks y SDKs actualizados.',
-      ['docs', 'mcp'],
-    ],
-    [
-      'postgres-mcp',
-      'PostgreSQL MCP',
-      'Conexión a BD Postgres para inspeccionar esquemas y consultar datos.',
-      ['database', 'postgres', 'mcp'],
-    ],
-    [
-      'playwright-mcp',
-      'Playwright MCP',
-      'Controla navegadores Chromium/Firefox/WebKit para pruebas E2E.',
-      ['testing', 'browser', 'mcp'],
-    ],
-    [
-      'brave-search',
-      'Brave Search MCP',
-      'Búsquedas web y noticias a través de la API de Brave.',
-      ['search', 'web', 'mcp'],
-    ],
-  ]),
+  // `skill` and `mcp` are derived from the curated catalogs rather than
+  // duplicated here. The decision tree validates `skills_selection` and
+  // `mcps_selection` against these categories, so any id the /skills and /mcps
+  // endpoints expose must exist here too — otherwise the UI can only offer
+  // choices the tree rejects, which made both questions unanswerable.
+  ...skillsCatalog.map<CatalogItem>((skill) => ({
+    id: skill.id,
+    category: 'skill',
+    label: skill.name,
+    description: skill.description,
+    tags: [...skill.tags, skill.focus],
+    recommendedFor: [skill.focus],
+    environments: ['development', 'production', 'both'],
+  })),
+  ...mcpCatalog.map<CatalogItem>((mcp) => ({
+    id: mcp.id,
+    category: 'mcp',
+    label: mcp.name,
+    description: mcp.description,
+    tags: [...mcp.tags, mcp.category, ...(mcp.official ? ['official'] : [])],
+    recommendedFor: [mcp.category],
+    environments: ['development', 'production', 'both'],
+  })),
 ];
 
 const itemIndex = new Map(catalogItems.map((item) => [item.id, item]));
 const categoryIndex = new Map(catalogCategories.map((category) => [category.id, category]));
+
+// #407: pre-computed, frozen response for the no-filter hot path.
+const fullCatalogResponse = Object.freeze({
+  version: CATALOG_VERSION,
+  categories: catalogCategories,
+  items: catalogItems,
+  customFormat: 'custom:<slug>',
+});
 
 export function getCatalogItem(id: string): CatalogItem | undefined {
   return itemIndex.get(id);
@@ -621,6 +578,12 @@ export function isCatalogItemFor(id: string, categories: string[]): boolean {
 }
 
 export function getCreatorCatalog(filters?: { category?: string; environment?: string; q?: string }) {
+  // #407: the no-filter response is the hot path (full catalog load on
+  // Creator open) and the data is immutable per deploy, so we pre-compute
+  // and freeze it once. Filtered requests still pay the O(n) scan.
+  if (!filters?.category && !filters?.environment && !filters?.q) {
+    return fullCatalogResponse;
+  }
   let items = catalogItems;
   if (filters?.category) {
     if (categoryIndex.has(filters.category)) {
