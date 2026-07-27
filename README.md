@@ -5,7 +5,7 @@
 > Construido para el Hackathon Kiro x Código Facilito 2026.
 > Documentación en español. Lectores LLM: leer AGENTS.md y CONTEXT.md para el contexto completo del proyecto.
 
-**Plataforma open-source para diseñar agentes de desarrollo y operación mediante un árbol de decisiones, generar su configuración y explicar por qué fue construida de esa manera.**
+**Generador open-source de archivos de configuración para agentes de desarrollo y operación. Diseña mediante un árbol de decisiones, genera el bundle y explica por qué fue construido así.**
 
 Huascar **sólo genera archivos de configuración** (Markdown + JSON). No ejecuta, no despliega, no hostea agentes. El Runtime anterior (motor ReAct, LLM, RAG, MCP, SQLite) se eliminó en el issue #584 — ver [ADR-0008](docs/adr/0008-remove-runtime-generator-only.md).
 
@@ -37,10 +37,9 @@ El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no 
 - Renderiza preguntas y ramas del backend sin codificar el orden en React.
 - Fondo espacial y estética "liquid glass" compartidos con el Landing.
 - Revisión de recomendaciones y advertencias antes de generar, con cada respuesta editable.
-- Descarga el bundle JSON completo o artefactos individuales del preview.
+- Descarga el bundle como ZIP (preservando rutas relativas), como JSON completo, o artefactos individuales.
 - `agent-creator/` (Vite) queda como app legacy, sin desarrollo activo de Creator.
-- **Login, cuentas y multiusuario están documentados como roadmap; no están implementados.**
-- La descarga ZIP, escritura automática en repositorios y despliegue se dejan para una fase posterior.
+- **Login, cuentas y guardado de blueprints están en el roadmap; no están implementados.** El Creator es stateless por diseño.
 
 ---
 
