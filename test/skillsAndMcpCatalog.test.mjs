@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { getSkillsCatalog, skillsCatalog } from '../src/creator/skillsCatalog.ts';
-import { getMcpCatalog, mcpCatalog } from '../src/creator/mcpCatalog.ts';
+import { getSkillsCatalog, getSkillById, skillsCatalog } from '../src/creator/skillsCatalog.ts';
+import { getMcpCatalog, getMcpById, mcpCatalog } from '../src/creator/mcpCatalog.ts';
 
 describe('Skills catalog', () => {
   it('every item has a source link and non-empty description', () => {
@@ -26,6 +26,17 @@ describe('Skills catalog', () => {
     const result = getSkillsCatalog();
     assert.strictEqual(result.items.length, skillsCatalog.length);
   });
+
+  it('getSkillById returns the correct item for a valid id', () => {
+    const item = getSkillById('debug-diagnose');
+    assert.ok(item);
+    assert.strictEqual(item.name, 'Debug & Diagnose');
+  });
+
+  it('getSkillById returns undefined for a nonexistent id', () => {
+    const item = getSkillById('no-existe');
+    assert.strictEqual(item, undefined);
+  });
 });
 
 describe('MCP catalog', () => {
@@ -45,5 +56,16 @@ describe('MCP catalog', () => {
   it('filters by free-text query', () => {
     const result = getMcpCatalog({ q: 'github' });
     assert.ok(result.items.some((item) => item.id === 'github-mcp-server'));
+  });
+
+  it('getMcpById returns the correct item for a valid id', () => {
+    const item = getMcpById('github-mcp-server');
+    assert.ok(item);
+    assert.strictEqual(item.category, 'version-control');
+  });
+
+  it('getMcpById returns undefined for a nonexistent id', () => {
+    const item = getMcpById('no-existe');
+    assert.strictEqual(item, undefined);
   });
 });
