@@ -251,5 +251,10 @@ Con el bundle recibido:
 - Si el usuario no sabe qué elegir, consulta el campo \`hint\` de cada pregunta.
 - Los artefactos nunca contienen secretos reales, solo referencias como \${GITHUB_TOKEN}.
 - No ejecutes ni despliegues nada: solo genera y aplica archivos de configuración.
+
+## Documentación oficial
+Para consultar la documentación completa del proyecto (arquitectura, API, deployment, troubleshooting):
+haz un GET a: ${baseUrl}/docs
+Devuelve un JSON con la lista de documentos oficiales, sus títulos, descripciones y categorías.
 `;
 }

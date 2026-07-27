@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dynamicImport from 'next/dynamic';
-import { LuArrowLeft, LuArrowRight, LuKeyboard, LuMonitor, LuRotateCcw, LuSkipForward } from 'react-icons/lu';
+import {
+  LuArrowLeft,
+  LuArrowRight,
+  LuKeyboard,
+  LuMonitor,
+  LuRotateCcw,
+  LuSkipForward,
+  LuSparkles,
+  LuMoon,
+} from 'react-icons/lu';
 
 import {
   CompletionScreen,
@@ -31,9 +40,9 @@ import {
 } from '@/features/creator/lib/flow';
 import { clearDraft, loadDraft, saveDraft } from '@/features/creator/lib/session';
 import { GlassBackButton, GlassIconButton } from '@/components/ui/glass-icon-button';
-import { glassButton, glassNotice, glassPrimaryButton } from '@/lib/glass';
-import { ApiError, creator, registerAgent } from '@/lib/api';
-import type { AgentConfig } from '@/types/agent';
+import { glassButton, glassNotice, glassPrimaryButton, glassStyle } from '@/lib/glass';
+import { ApiError, creator } from '@/lib/api';
+import { useAnimationPreference } from '@/features/landing/hooks/use-animation-preference';
 import type {
   Catalog,
   CatalogItem,
@@ -52,39 +61,6 @@ const SpaceSimulation = dynamicImport(
 );
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-interface RegisteredAgent {
-  id: string;
-  name: string;
-  config?: unknown;
-}
-
-function parseJsonArtifact<T>(bundle: GeneratedAgentBundle, path: string): T | null {
-  const artifact = bundle.artifacts.find((item) => item.path === path);
-  if (!artifact) return null;
-  try {
-    return JSON.parse(artifact.content) as T;
-  } catch {
-    return null;
-  }
-}
-
-function buildRegistryConfig(bundle: GeneratedAgentBundle, answers: CreatorAnswers): AgentConfig {
-  const steering = parseJsonArtifact<AgentConfig['steering']>(bundle, 'huascar/steering.json');
-  const rag = parseJsonArtifact<{ knowledge_bases?: unknown[] }>(bundle, 'huascar/rag.json');
-  const mcps = parseJsonArtifact<Record<string, unknown>>(bundle, 'huascar/mcps.json');
-  const mcpNames = mcps
-    ? Object.keys(mcps.mcpServers && typeof mcps.mcpServers === 'object' ? mcps.mcpServers : mcps)
-    : [];
-  const prompt = typeof answers.objective === 'string' ? answers.objective : 'Agente generado desde el creador.';
-  return {
-    steering: steering ?? { roles: { GENERATED_AGENT: { system_prompt: prompt } } },
-    ...(rag?.knowledge_bases ? { knowledge: rag.knowledge_bases } : {}),
-    ...(mcpNames.length ? { tools: mcpNames } : {}),
-    ...(rag ? { rag: { sources: rag.knowledge_bases ?? [] } } : {}),
-    ...(mcps ? { mcps: mcpNames } : {}),
-  };
-}
 
 /**
  * Turns a failure into something the user can act on. `ApiError` carries the
@@ -173,6 +149,7 @@ function usePanelTransition() {
 type Status = 'loading' | 'fatal' | 'ready';
 
 export default function NewAgentPage() {
+  const { animationsEnabled, toggle: toggleAnimations } = useAnimationPreference();
   const [status, setStatus] = useState<Status>('loading');
   const [fatalError, setFatalError] = useState('');
   const [retrying, setRetrying] = useState(false);
@@ -191,7 +168,6 @@ export default function NewAgentPage() {
 
   const [reviewing, setReviewing] = useState(false);
   const [bundle, setBundle] = useState<GeneratedAgentBundle | null>(null);
-  const [registered, setRegistered] = useState<RegisteredAgent | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -528,7 +504,6 @@ export default function NewAgentPage() {
       setCurrentQuestionId(evaluation?.nextQuestion?.id ?? null);
       setReviewing(false);
       setBundle(null);
-      setRegistered(null);
       setReturnToReview(false);
       setError('');
     });
@@ -567,7 +542,6 @@ export default function NewAgentPage() {
     if (bundle) {
       run(() => {
         setBundle(null);
-        setRegistered(null);
         setReviewing(true);
       });
       return;
@@ -605,26 +579,9 @@ export default function NewAgentPage() {
         setReviewing(false);
       });
     } catch (err) {
-      setError(errorMessage(err, 'No se pudo generar el agente.'));
+      setError(errorMessage(err, 'No se pudo generar la configuración.'));
     } finally {
       setGenerating(false);
-    }
-  }
-
-  async function registerGeneratedAgent() {
-    if (!bundle) return;
-    setError('');
-    try {
-      const name = bundle.blueprint?.identity?.name || String(answers.agent_name || 'Generated Agent');
-      setRegistered(await registerAgent(name, buildRegistryConfig(bundle, answers)));
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 429) {
-        setError(
-          'Has alcanzado el límite de pruebas efímeras para tu IP. Vuelve a intentarlo en ~1 hora; el agente se conserva para descargar.',
-        );
-        return;
-      }
-      setError(errorMessage(err, 'No se pudo registrar el agente.'));
     }
   }
 
@@ -749,6 +706,34 @@ export default function NewAgentPage() {
     // dependency list is intentionally the state that changes a step.
   });
 
+  // ── Browser history: back button navigates within the Creator (#565) ──────
+  const stepKey = `${mode ?? 'select'}:${reviewing ? 'review' : bundle ? 'bundle' : (currentQuestionId ?? 'idle')}`;
+  const stepKeyRef = useRef(stepKey);
+
+  useEffect(() => {
+    // Push a history entry when the step changes (so browser back works)
+    if (stepKeyRef.current !== stepKey) {
+      stepKeyRef.current = stepKey;
+      history.pushState({ creator: stepKey }, '');
+    }
+  }, [stepKey]);
+
+  useEffect(() => {
+    // Push initial entry so the first back press stays in the Creator
+    history.pushState({ creator: 'initial' }, '');
+
+    function onPopState() {
+      // Instead of leaving the page, navigate back within the Creator
+      handleBackButton();
+      // Re-push so subsequent back presses keep working
+      history.pushState({ creator: 'back' }, '');
+    }
+
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   // A question panel wins over the mode's own panel: editing one answer from
@@ -764,7 +749,7 @@ export default function NewAgentPage() {
           catalog grids and the generated bundle, so it is not rendered below md. */}
       <div className="flex min-h-screen flex-col items-center justify-center bg-black px-6 text-center md:hidden">
         <LuMonitor className="mb-6 h-10 w-10 text-zinc-500" aria-hidden="true" />
-        <h1 className="text-xl font-semibold text-zinc-100">Usa un computador para diseñar agentes</h1>
+        <h1 className="text-xl font-semibold text-zinc-100">Usa un computador para configurar tu agente</h1>
         <p className="mt-3 max-w-xs text-sm leading-relaxed text-zinc-400">
           El creador muestra el catálogo completo de tecnologías y el bundle generado archivo por archivo. Necesita una
           pantalla más amplia.
@@ -776,7 +761,7 @@ export default function NewAgentPage() {
       <div className="hidden md:block">
         {/* Persistent background — renders once, never re-mounts */}
         <div className="fixed inset-0 z-0">
-          <SpaceSimulation showBlackHole={false} maxMeteors={8} meteorSpawnRate={0.4} />
+          {animationsEnabled && <SpaceSimulation showBlackHole={false} maxMeteors={8} meteorSpawnRate={0.4} />}
         </div>
 
         <main className="relative flex h-screen flex-col items-center justify-center overflow-hidden px-4 py-6 text-zinc-50 sm:px-8">
@@ -787,13 +772,40 @@ export default function NewAgentPage() {
             </div>
           )}
 
-          {/* Utilities — shortcuts help, and reset while a draft exists */}
-          {status === 'ready' && (
+          {/* Reset — top right while a draft exists (#564 confirmation) */}
+          {status === 'ready' && mode && (
             <div className="absolute right-4 top-6 z-20 flex items-center gap-2 sm:right-8">
-              {mode && (
-                <GlassIconButton onClick={() => setConfirmReset(true)} label="Reiniciar borrador" icon={LuRotateCcw} />
-              )}
-              <GlassIconButton onClick={() => setShortcutsOpen(true)} label="Atajos de teclado" icon={LuKeyboard} />
+              <GlassIconButton onClick={() => setConfirmReset(true)} label="Reiniciar borrador" icon={LuRotateCcw} />
+            </div>
+          )}
+
+          {/* Utilities — animation toggle + shortcuts, bottom-left like the landing */}
+          {status === 'ready' && (
+            <div className="absolute bottom-5 left-5 z-20 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={toggleAnimations}
+                aria-label={animationsEnabled ? 'Desactivar animaciones' : 'Activar animaciones'}
+                className="flex items-center gap-2 rounded-full px-3 py-2 text-xs text-white/80 transition-colors hover:text-white"
+                style={glassStyle}
+              >
+                {animationsEnabled ? (
+                  <LuSparkles className="h-4 w-4" aria-hidden="true" />
+                ) : (
+                  <LuMoon className="h-4 w-4" aria-hidden="true" />
+                )}
+                <span>{animationsEnabled ? 'Desactivar animaciones' : 'Activar animaciones'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShortcutsOpen(true)}
+                aria-label="Atajos de teclado"
+                className="flex items-center gap-2 rounded-full px-3 py-2 text-xs text-white/80 transition-colors hover:text-white"
+                style={glassStyle}
+              >
+                <LuKeyboard className="h-4 w-4" aria-hidden="true" />
+                <span>Atajos de teclado</span>
+              </button>
             </div>
           )}
 
@@ -874,12 +886,7 @@ export default function NewAgentPage() {
 
               {bundle && (
                 <StepContainer progress={100} progressLabel="Bundle generado" size="wide">
-                  <CompletionScreen
-                    bundle={bundle}
-                    onRegister={registerGeneratedAgent}
-                    registered={registered}
-                    error={error}
-                  />
+                  <CompletionScreen bundle={bundle} error={error} />
                 </StepContainer>
               )}
             </AnimatedPanel>

@@ -37,30 +37,37 @@ export function QuickStartCopy({ url, size = 'md' }: QuickStartCopyProps) {
 
   return (
     <div className="w-full max-w-2xl">
-      <h3 className={`${titleSize} mb-2 text-center font-semibold text-white`}>Inicio rapido: Pega en tu chat de IA</h3>
-      <div className="flex items-center gap-2">
-        <input
+      <h3 className={`${titleSize} mb-2 text-center font-semibold text-white`}>Inicio Rápido: Pega en tu chat de IA</h3>
+      <div className="flex items-start gap-2">
+        <textarea
           value={copyText}
           readOnly
+          rows={2}
           role="textbox"
           aria-readonly="true"
-          className={glassInput(`flex-1 font-mono text-white/80 ${inputClasses}`)}
+          aria-label="Prompt de inicio rápido para tu chat de IA"
+          className={`${glassInput(`flex-1 font-mono text-white/80 ${inputClasses}`)} resize-none`}
         />
         <button
           type="button"
           onClick={handleCopy}
           aria-label="Copiar prompt de inicio rápido"
-          className={glassButton('shrink-0')}
+          className={`${glassButton('shrink-0')} mt-0.5`}
         >
-          {copied ? <LuCheck className="h-4 w-4" /> : <LuCopy className="h-4 w-4" />}
-          <span>{copied ? '¡Copiado!' : 'Copiar'}</span>
+          {copied ? (
+            <LuCheck className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <LuCopy className="h-4 w-4" aria-hidden="true" />
+          )}
+          <span>Copiar</span>
         </button>
       </div>
-      {copied && (
-        <p className="mt-2 text-sm text-emerald-400" aria-live="polite">
-          ¡Copiado!
-        </p>
-      )}
+      {/* Single announcement channel for screen readers (#572):
+          the button label change is visual (icon swap); the aria-live
+          region is the only spoken announcement. */}
+      <p className="mt-2 min-h-5 text-sm text-emerald-400" aria-live="polite">
+        {copied ? '¡Copiado!' : ''}
+      </p>
     </div>
   );
 }

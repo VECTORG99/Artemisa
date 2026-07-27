@@ -5,7 +5,6 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
 import { config } from './config.js';
-import { createStore, Store } from './engine/Store.js';
 import { creatorProtectedRouter, creatorPublicRouter } from './creator/router.js';
 import { requireAuth } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -13,37 +12,12 @@ import { notFound } from './middleware/notFound.js';
 import { enforceJsonContentType, validatePathParams } from './middleware/validation.js';
 import { sanitizeRequestBody } from './middleware/sanitize.js';
 import { createHealthRouter } from './routes/health.js';
-import { hooksRouter } from './routes/hooks.js';
 import { createMetricsState, metricsMiddleware, metricsRouter } from './routes/metrics.js';
 import { openApiRouter } from './routes/openapi.js';
 import { createDebugState, debugMiddleware, debugRouter } from './routes/debug.js';
 import { logger } from './logger.js';
-import { commitApprovals } from './services/approvals.js';
-
-/**
- * #410: Lazy-mount a router whose module is heavy (engine, MCP pool, RAG).
- * The module is imported on first request to its path and the constructed
- * router is memoized, so the Creator-only cold start never pays for the
- * runtime engine. The first runtime request pays the import cost once.
- */
-function lazyRoute(loader: () => Promise<express.Router>): express.RequestHandler {
-  let cached: express.Router | null = null;
-  return (req, res, next) => {
-    if (cached) {
-      cached(req, res, next);
-      return;
-    }
-    loader()
-      .then((router) => {
-        cached = router;
-        router(req, res, next);
-      })
-      .catch(next);
-  };
-}
 
 export const app = express();
-export const store: Store = createStore();
 const metricsState = createMetricsState();
 const debugState = createDebugState();
 
@@ -116,15 +90,6 @@ const globalLimiter = rateLimit({
   keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
 });
 
-const executeLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_EXECUTE || '5', 10),
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Execution rate limit exceeded. Max 5 requests per minute.' },
-  keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
-});
-
 // The Creator re-evaluates the whole decision tree on every step. Auto-largo
 // walks 32 questions, so a single completed agent costs ~35 requests; at 30/min
 // a normal user was rate limited mid-flow. These calls are pure CPU (no I/O, no
@@ -156,16 +121,8 @@ app.use('/api/v1/creator', creatorLimiter, creatorPublicRouter);
 app.use(metricsMiddleware(metricsState));
 if (debugState.enabled) app.use(debugMiddleware(debugState));
 app.use('/api', metricsRouter(metricsState));
-app.use('/api', createHealthRouter(store));
-app.use(
-  '/api',
-  lazyRoute(() => import('./routes/mcpStatus.js').then((m) => m.mcpStatusRouter)),
-);
+app.use('/api', createHealthRouter());
 app.use('/api', openApiRouter);
-app.use(
-  '/api',
-  lazyRoute(() => import('./routes/tools.js').then((m) => m.toolsRouter())),
-);
 
 app.use('/api', (req, res, next) => {
   // Health and metrics are already handled above
@@ -173,50 +130,7 @@ app.use('/api', (req, res, next) => {
   requireAuth(req, res, next);
 });
 
-app.use(
-  '/api',
-  lazyRoute(() => import('./routes/history.js').then((m) => m.historyRouter(store))),
-);
 app.use('/api/v1/creator', creatorProtectedRouter);
-app.use(
-  '/api',
-  lazyRoute(() => import('./routes/rag.js').then((m) => m.ragRouter(store))),
-);
-app.use(
-  '/api',
-  lazyRoute(() => import('./routes/roles.js').then((m) => m.rolesRouter())),
-);
-app.use(
-  '/api',
-  lazyRoute(() => import('./routes/agents.js').then((m) => m.agentsRouter(store))),
-);
-// Apply stricter rate limit to agent execution endpoint BEFORE the router
-app.use('/api/agent/execute', executeLimiter);
-app.use(
-  '/api',
-  lazyRoute(() => import('./routes/agent.js').then((m) => m.agentRouter(store))),
-);
-app.use(
-  '/api',
-  lazyRoute(async () => {
-    const { createConfigsRouter } = await import('./routes/configs.js');
-    const { ConfigStore } = await import('./engine/ConfigStore.js');
-    return createConfigsRouter(new ConfigStore(store.getDatabase()));
-  }),
-);
-app.use('/api', hooksRouter(commitApprovals));
-app.use(
-  '/api',
-  lazyRoute(async () => {
-    const { memoryRouter } = await import('./routes/memory.js');
-    const { ExecutionContext } = await import('./engine/ExecutionContext.js');
-    return memoryRouter(new ExecutionContext(store));
-  }),
-);
-app.use(
-  '/api',
-  lazyRoute(() => import('./routes/pipeline.js').then((m) => m.pipelineRouter(store))),
-);
 if (debugState.enabled) app.use('/api', debugRouter(debugState));
 
 app.use(notFound);

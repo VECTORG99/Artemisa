@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <filter id="glow-red" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <linearGradient id="glass-grad-red" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff2a4b" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#4a000b" stop-opacity="0.05"/>
+    </linearGradient>
+  </defs>
+
+  
+  <!-- Tarjeta de vidrio -->
+  <rect x="56" y="56" width="400" height="400" rx="40" fill="url(#glass-grad-red)" stroke="#ff2a4b" stroke-width="2" stroke-opacity="0.6"/>
+  <rect x="58" y="58" width="396" height="396" rx="38" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.2"/>
+
+  <!-- UI Panel Explicable -->
+  <g filter="url(#glow-red)">
+    <!-- Ventana base -->
+    <rect x="120" y="140" width="272" height="232" rx="12" fill="none" stroke="#ff2a4b" stroke-width="3"/>
+    <line x1="120" y1="180" x2="392" y2="180" stroke="#ff2a4b" stroke-width="2"/>
+    <circle cx="145" cy="160" r="4" fill="#ff2a4b"/>
+    <circle cx="160" cy="160" r="4" fill="#ff2a4b"/>
+
+    <!-- Signo de interrogación / Lógica -->
+    <text x="210" y="300" font-family="Arial, sans-serif" font-size="110" font-weight="bold" fill="#ff2a4b">?</text>
+
+    <!-- Diagrama lateral (Lógica -> Evidencia) -->
+    <rect x="300" y="210" width="70" height="28" rx="6" fill="none" stroke="#ff2a4b" stroke-width="2"/>
+    <path d="M 335 238 L 335 262" stroke="#ff2a4b" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="300" y="264" width="70" height="28" rx="6" fill="none" stroke="#ff2a4b" stroke-width="2"/>
+  </g>
+</svg>
