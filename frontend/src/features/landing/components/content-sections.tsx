@@ -50,7 +50,7 @@ export function HeroSection() {
         <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">{t.heroDescription}</p>
 
         <div className="mt-8 max-w-lg mx-auto">
-          <div className={glassCard('p-5')}>
+          <div className={glassCard('rounded-3xl p-5')}>
             <QuickStartCopy url={STARTUP_URL} size="md" />
           </div>
         </div>
