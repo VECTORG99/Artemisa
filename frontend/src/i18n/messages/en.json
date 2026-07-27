@@ -85,12 +85,29 @@
       "p3Link": "github.com/VECTORG99/Artemisa",
       "p3After": "."
     },
+    "compatibility": {
+      "eyebrow": "Real catalog coverage",
+      "title": "Fits your stack",
+      "subtitle": "Artemisa is not a generic generator: it understands 400+ technologies, 90 MCPs, 59 skills and 7 different agents.",
+      "stats": [
+        { "label": "Guided questions", "value": "32" },
+        { "label": "Catalog items", "value": "419" },
+        { "label": "MCP servers", "value": "90" },
+        { "label": "Curated skills", "value": "59" },
+        { "label": "Platforms/agents", "value": "7" },
+        { "label": "Git providers", "value": "5" },
+        { "label": "Cloud options", "value": "8" },
+        { "label": "Autonomy levels", "value": "4" }
+      ],
+      "trust": "Deterministic SHA-256 bundles · No persistence · MPL-2.0"
+    },
     "nav": {
       "ariaLabel": "Main navigation",
       "creator": "Creator",
       "docs": "Docs",
       "team": "Team",
-      "technology": "Technology"
+      "technology": "Technology",
+      "compatibility": "Compatibility"
     },
     "footer": {
       "ariaLabel": "Footer",
