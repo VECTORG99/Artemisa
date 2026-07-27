@@ -84,6 +84,7 @@ export function glassButton(className?: string) {
     'transition-colors duration-200',
     'hover:text-white hover:bg-white/[0.035]',
     'active:scale-[0.98]',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
     className,
   );
 }
