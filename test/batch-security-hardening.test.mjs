@@ -4,7 +4,6 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 
 describe('Batch security hardening (#257,#260,#264,#266,#269,#270,#279,#283)', () => {
-
   it('#257: errorHandler uses case-insensitive production check', () => {
     const src = fs.readFileSync('src/middleware/errorHandler.ts', 'utf8');
     assert.match(src, /toLowerCase\(\).*===.*'production'/);
@@ -36,7 +35,7 @@ describe('Batch security hardening (#257,#260,#264,#266,#269,#270,#279,#283)', (
   });
 
   it('#269: production docker-compose does not use env_file', () => {
-    const prod = fs.readFileSync('docker-compose.production.yml', 'utf8');
+    const prod = fs.readFileSync('docker/docker-compose.production.yml', 'utf8');
     assert.match(prod, /env_file:\s*\[\]/);
     assert.match(prod, /AUTH_REQUIRED=true/);
   });

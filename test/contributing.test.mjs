@@ -2,11 +2,17 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { describe, it } from 'node:test';
 
-const contributing = fs.readFileSync('CONTRIBUTING.md', 'utf8');
+const contributing = fs.readFileSync('docs/CONTRIBUTING.md', 'utf8');
 
 describe('CONTRIBUTING.md', () => {
   it('has required AI contributor sections and checkboxes', () => {
-    for (const heading of ['Quick Reference', 'PR Quality Gate', 'Architecture Rules / Constraints', 'How To Test Changes', 'Recipes']) {
+    for (const heading of [
+      'Quick Reference',
+      'PR Quality Gate',
+      'Architecture Rules / Constraints',
+      'How To Test Changes',
+      'Recipes',
+    ]) {
       assert.match(contributing, new RegExp(`^## ${heading.replace(/[/-]/g, '\\$&')}$`, 'm'));
     }
 

@@ -1,4 +1,4 @@
-cliff.toml
+.github/cliff.toml
 node_modules
 dist
 .next

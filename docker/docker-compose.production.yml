@@ -2,7 +2,7 @@
 # Uses explicit environment variables instead of env_file to avoid leaking
 # all secrets to all containers. Only pass what each service needs.
 #
-# Usage: docker compose -f docker-compose.yml -f docker-compose.production.yml up -d
+# Usage: docker compose -f docker/docker-compose.yml -f docker/docker-compose.production.yml up -d
 
 services:
   backend:
