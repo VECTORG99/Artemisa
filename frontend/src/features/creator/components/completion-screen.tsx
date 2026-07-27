@@ -116,7 +116,7 @@ async function downloadBundleZip(bundle: GeneratedAgentBundle) {
 export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
   const [tab, setTab] = useState<Tab>('apply');
   const [activePath, setActivePath] = useState(bundle.artifacts[0]?.path ?? '');
-  const [showSuccessBurst, setShowSuccessBurst] = useState(true);
+  const [showSuccessRing, setShowSuccessRing] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
   const [copyError, setCopyError] = useState('');
   const [zipping, setZipping] = useState(false);
@@ -149,7 +149,7 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
   }, [bundle.artifacts]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setShowSuccessBurst(false), 900);
+    const timer = window.setTimeout(() => setShowSuccessRing(false), 900);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -263,16 +263,16 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      {showSuccessBurst && (
-        <div className="flex items-center justify-center py-2" role="status" aria-live="polite">
-          <span className="relative flex h-14 w-14 items-center justify-center">
+      <div className="flex items-center justify-center py-2" role="status" aria-live="polite">
+        <span className="relative flex h-14 w-14 items-center justify-center">
+          {showSuccessRing && (
             <span className="animate-success-ring absolute inset-0 rounded-full border-2 border-white/50" />
-            <span className="animate-success-pop relative flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-white/[0.08] text-white">
-              <LuCheck className="h-7 w-7" aria-hidden="true" />
-            </span>
+          )}
+          <span className="animate-success-pop relative flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-white/[0.08] text-white">
+            <LuCheck className="h-7 w-7" aria-hidden="true" />
           </span>
-        </div>
-      )}
+        </span>
+      </div>
 
       <div className="text-center">
         <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">Bundle generado</span>
