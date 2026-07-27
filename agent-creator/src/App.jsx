@@ -35,7 +35,7 @@ function ErrorScreen() {
         aria-live="assertive"
         className="max-w-md rounded-2xl border border-red-900/60 bg-red-950/20 p-8 text-center"
       >
-        <h1 className="text-2xl font-bold text-red-300">No pudimos conectar con Huascar</h1>
+        <h1 className="text-2xl font-bold text-red-300">No pudimos conectar con Artemisa</h1>
         <p className="mt-3 text-sm text-zinc-400">{error}</p>
         <p className="mt-2 text-xs text-zinc-600">
           Verifica `VITE_API_URL` y que el backend exponga `/api/v1/creator`.

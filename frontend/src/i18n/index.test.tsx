@@ -16,7 +16,7 @@ describe('useTranslations', () => {
   it('returns the landing namespace with hero and cta copy', () => {
     const landing = useTranslations('landing');
     expect(landing).toBe(messages.landing);
-    expect(landing.heroTitle).toBe('Huascar');
+    expect(landing.heroTitle).toBe('Artemisa');
     expect(landing.ctaButton).toBe('Iniciar creador →');
   });
 
@@ -52,7 +52,7 @@ describe('useTranslations with LocaleProvider', () => {
 
   it('returns Spanish translations by default', () => {
     const { result } = renderHook(() => useTranslations('landing'), { wrapper });
-    expect(result.current.heroTitle).toBe('Huascar');
+    expect(result.current.heroTitle).toBe('Artemisa');
     expect(result.current.ctaButton).toBe('Iniciar creador →');
   });
 
@@ -63,7 +63,7 @@ describe('useTranslations with LocaleProvider', () => {
       result.current.locale.setLocale('en');
     });
 
-    expect(result.current.t.heroTitle).toBe('Huascar');
+    expect(result.current.t.heroTitle).toBe('Artemisa');
     expect(result.current.t.ctaButton).toBe('Start creator →');
     expect(result.current.t.heroCta).toBe('Generate configuration');
   });
