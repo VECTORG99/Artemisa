@@ -68,7 +68,7 @@ export function ModeSelect({ onSelect }: ModeSelectProps) {
       </div>
 
       <div className="w-full max-w-2xl space-y-8">
-        <QuickStartCopy url={STARTUP_URL} size="lg" showCompatible={true} />
+        <QuickStartCopy url={STARTUP_URL} size="lg" />
 
         <div className="flex items-center gap-4">
           <div className="flex-1 h-px bg-white/10" />
@@ -96,6 +96,11 @@ export function ModeSelect({ onSelect }: ModeSelectProps) {
             </button>
           ))}
         </div>
+
+        <p className={glassPill('mx-auto text-[10px] text-white/70 px-4 py-1.5')}>
+          Huascar genera configuraciones de agentes a partir de un árbol de decisiones. Cada elección justifica el
+          resultado final, sin caja negra.
+        </p>
       </div>
 
       <p className="text-[11px] text-zinc-600">

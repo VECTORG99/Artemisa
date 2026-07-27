@@ -42,24 +42,22 @@ export function HeroSection() {
     <section className="flex h-screen snap-start snap-always flex-col items-center justify-center px-6">
       <div className="relative z-10 max-w-3xl text-center">
         <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl xl:text-8xl">
-          <span className="bg-gradient-to-r from-white via-zinc-300 to-zinc-500 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-white via-white/80 to-white/60 bg-clip-text text-transparent">
             {t.heroTitle}
           </span>
         </h1>
 
-        <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-zinc-400 sm:text-lg">{t.heroDescription}</p>
+        <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">{t.heroDescription}</p>
 
         <div className="mt-8 max-w-lg mx-auto">
-          <QuickStartCopy url={STARTUP_URL} size="md" showCompatible={true} />
+          <QuickStartCopy url={STARTUP_URL} size="md" />
         </div>
 
-        <p className="mt-4 text-sm text-zinc-500">── o configura manualmente ──</p>
+        <p className="mt-4 text-sm text-white/60">── o configura manualmente ──</p>
 
         <Link
           href="/agents/new"
-          className={glassButton(
-            'mt-4 inline-flex items-center gap-2 text-sm font-medium text-white/85 hover:text-white',
-          )}
+          className={glassButton('mt-4 inline-flex items-center gap-2 text-sm font-medium text-white hover:text-white')}
         >
           <span>{t.heroCta}</span>
         </Link>
@@ -133,7 +131,7 @@ function ValuePropsSection() {
             <h2 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
               {prop.title}
             </h2>
-            <p className="relative mt-2 text-sm leading-relaxed text-zinc-200">{prop.description}</p>
+            <p className="relative mt-2 text-sm leading-relaxed text-white/90">{prop.description}</p>
           </div>
         ))}
       </div>
@@ -200,15 +198,15 @@ function TechStackSection() {
   return (
     <section id="tecnologia" className="flex h-screen snap-start snap-always items-center justify-center px-6">
       <div className="relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10" style={glassStyle}>
-        <span className="text-xs font-semibold uppercase tracking-wider text-red-400/80">Stack real del proyecto</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-white/80">Stack real del proyecto</span>
         <h2 className="mt-2 text-3xl font-bold text-white">Tecnología que usamos</h2>
-        <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400">
+        <p className="mx-auto mt-2 max-w-xl text-sm text-white/80">
           Huascar es open source. Este es el stack exacto con el que está construido.
         </p>
         <div className="mt-8 grid gap-6 text-center sm:grid-cols-2">
           {techGroups.map((group) => (
             <div key={group.title}>
-              <h3 className="text-center text-sm font-semibold text-zinc-300">{group.title}</h3>
+              <h3 className="text-center text-sm font-semibold text-white/80">{group.title}</h3>
               <ul className="mt-2 flex flex-wrap justify-center gap-2">
                 {group.items.map((item) => (
                   <li key={item.label}>
@@ -216,7 +214,7 @@ function TechStackSection() {
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs text-zinc-300 transition-colors hover:text-white"
+                      className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs text-white/80 transition-colors hover:text-white"
                       style={{
                         backdropFilter: 'blur(6px)',
                         background: 'rgba(255,255,255,0.03)',
@@ -246,10 +244,10 @@ function FinalCtaSection() {
     <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
       <div className="relative z-10 w-full max-w-2xl rounded-3xl p-10 text-center" style={glassStyle}>
         <h2 className="text-3xl font-bold text-white">{t.ctaTitle}</h2>
-        <p className="mt-3 max-w-md mx-auto text-zinc-400">{t.ctaDescription}</p>
+        <p className="mt-3 max-w-md mx-auto text-white/80">{t.ctaDescription}</p>
         <Link
           href="/agents/new"
-          className="mt-8 inline-flex items-center gap-2 rounded-full px-7 py-3 font-medium text-white/85 transition-colors hover:text-white"
+          className="mt-8 inline-flex items-center gap-2 rounded-full px-7 py-3 font-medium text-white transition-colors hover:text-white"
           style={glassStyle}
         >
           {t.ctaButton}
@@ -301,18 +299,18 @@ const useCases: UseCase[] = [
 function UseCasesModalContent() {
   return (
     <>
-      <span className="text-xs font-semibold uppercase tracking-wider text-red-400/80">
+      <span className="text-xs font-semibold uppercase tracking-wider text-white/80">
         Productividad del desarrollador
       </span>
       <h2 className="mt-2 text-3xl font-bold text-white">Casos de uso</h2>
-      <p className="mt-2 max-w-xl text-sm text-zinc-400">
+      <p className="mt-2 max-w-xl text-sm text-white/80">
         Automatización de tareas repetitivas, definida por el propio agente que generas.
       </p>
       <div className="mt-8 flex flex-col gap-4">
         {useCases.map((useCase) => (
           <div key={useCase.title} className="rounded-xl p-5" style={glassStyle}>
-            <h3 className="text-base font-semibold text-zinc-100">{useCase.title}</h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">{useCase.description}</p>
+            <h3 className="text-base font-semibold text-white">{useCase.title}</h3>
+            <p className="mt-1.5 text-sm leading-relaxed text-white/80">{useCase.description}</p>
           </div>
         ))}
       </div>
@@ -323,16 +321,16 @@ function UseCasesModalContent() {
 function LegalModalContent() {
   return (
     <>
-      <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Información legal</span>
+      <span className="text-xs font-semibold uppercase tracking-wider text-white/60">Información legal</span>
       <h2 className="mt-2 text-3xl font-bold text-white">Licencia y uso</h2>
-      <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-zinc-400">
+      <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-white/80">
         <p>
           Huascar se distribuye bajo la{' '}
           <a
             href="https://github.com/VECTORG99/Huascar/blob/development/LICENSE"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-zinc-200 underline underline-offset-2 hover:text-white"
+            className="text-white/90 underline underline-offset-2 hover:text-white"
           >
             Mozilla Public License 2.0 (MPL-2.0)
           </a>
@@ -343,16 +341,16 @@ function LegalModalContent() {
         <p>
           El creador no ejecuta código, no realiza llamadas de red ni usa credenciales durante la generación de
           configuración: es una compilación pura, determinista y auditable. La ejecución de agentes vía{' '}
-          <code className="rounded bg-white/[0.06] px-1.5 py-0.5 text-xs text-zinc-300">/api/agent/execute</code> es un
+          <code className="rounded bg-white/[0.06] px-1.5 py-0.5 text-xs text-white/80">/api/agent/execute</code> es un
           componente separado, sujeto a los controles de autenticación y autorización del backend.
         </p>
-        <p className="text-zinc-500">
+        <p className="text-white/60">
           Código fuente completo, historial de cambios, autores y reporte de issues disponibles en{' '}
           <a
             href="https://github.com/VECTORG99/Huascar"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-zinc-300 underline underline-offset-2 hover:text-white"
+            className="text-white/80 underline underline-offset-2 hover:text-white"
           >
             github.com/VECTORG99/Huascar
           </a>

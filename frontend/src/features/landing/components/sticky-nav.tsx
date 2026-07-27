@@ -47,7 +47,7 @@ export function StickyHeader() {
       }`}
     >
       <nav
-        className="pointer-events-auto flex w-full max-w-3xl flex-wrap items-center justify-center gap-5 rounded-full px-6 py-3 text-center text-xs font-medium text-zinc-400 shadow-[0_8px_32px_rgba(0,0,0,0.35)] sm:py-2.5"
+        className="pointer-events-auto flex w-full max-w-3xl flex-wrap items-center justify-center gap-5 rounded-full px-6 py-3 text-center text-xs font-medium text-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.35)] sm:py-2.5"
         style={glassStyle}
         aria-label="Navegación principal"
         onMouseEnter={() => setEmphasized(true)}
@@ -87,7 +87,7 @@ export function StickyHeader() {
           href="https://github.com/VECTORG99/Huascar"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 rounded-full px-3 py-1 text-zinc-300 transition-colors hover:text-white"
+          className="flex items-center gap-1.5 rounded-full px-3 py-1 text-white/80 transition-colors hover:text-white"
           style={glassStyle}
         >
           <LuGithub className="h-3.5 w-3.5" aria-hidden="true" />
@@ -161,7 +161,7 @@ export function StickyFooter() {
         onMouseEnter={() => setEmphasized(true)}
         onMouseLeave={() => setEmphasized(false)}
       >
-        <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-zinc-400">
+        <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-white/70">
           {footerLinks.map((link) => {
             const Icon = link.icon;
             return (
@@ -203,7 +203,7 @@ export function StickyFooter() {
             );
           })}
         </ul>
-        <p className="mt-3 border-t border-white/[0.06] pt-3 text-[11px] text-zinc-600">
+        <p className="mt-3 border-t border-white/[0.06] pt-3 text-[11px] text-white/50">
           © {new Date().getFullYear()} Huascar y sus contribuidores · MPL-2.0
         </p>
       </div>
