@@ -146,7 +146,7 @@ If you used `custom:<slug>` for any technology (e.g., `custom:my-framework`), th
 | Target      | Where                 | Use when                                                                                           |
 | ----------- | --------------------- | -------------------------------------------------------------------------------------------------- |
 | `AGENTS.md` | Project root          | Universal — works with any AI agent that reads AGENTS.md (Cursor, Claude Code, Windsurf, etc.)     |
-| `artemisa/` | `artemisa/` directory | When using the Artemisa runtime configuration format (steering, security policy, governance, MCPs) |
+| `artemisa/` | `artemisa/` directory | When applying the generated Artemisa steering format (steering, security policy, governance, MCPs) |
 | `.kiro/`    | `.kiro/` directory    | When using Kiro (AWS's agentic IDE) — steering, hooks and skills in Kiro's format                  |
 
 You can have multiple targets in the same bundle (e.g., both `AGENTS.md` and `.kiro/`). They're complementary, not mutually exclusive.
@@ -155,10 +155,10 @@ You can have multiple targets in the same bundle (e.g., both `AGENTS.md` and `.k
 
 ## Common mistakes
 
-| Mistake                                       | Fix                                                                |
-| --------------------------------------------- | ------------------------------------------------------------------ |
-| Copying files to the wrong directory          | Always copy to the project root, preserving relative paths         |
-| Overwriting an existing `AGENTS.md`           | Merge manually — keep your existing project-specific rules         |
-| Not verifying hashes                          | Run `sha256sum -c` against `manifest.json` after copying           |
-| Ignoring warnings                             | Review all warnings in the Creator before applying                 |
-| Copying `security-policy.json` without review | This file defines what your agent can execute — review every entry |
+| Mistake                                       | Fix                                                                     |
+| --------------------------------------------- | ----------------------------------------------------------------------- |
+| Copying files to the wrong directory          | Always copy to the project root, preserving relative paths              |
+| Overwriting an existing `AGENTS.md`           | Merge manually — keep your existing project-specific rules              |
+| Not verifying hashes                          | Run `sha256sum -c` against `manifest.json` after copying                |
+| Ignoring warnings                             | Review all warnings in the Creator before applying                      |
+| Copying `security-policy.json` without review | This file defines what your agent is allowed to do — review every entry |

@@ -114,7 +114,6 @@ Frontend checks are separate dependency domains; run only when that app changed:
 
 ```bash
 npm --prefix frontend run build
-npm --prefix agent-creator run build
 ```
 
 ## Recipes
