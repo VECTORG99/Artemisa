@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
+    "prebuild": "node ./scripts/write-sw-version.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
