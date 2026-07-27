@@ -16,7 +16,7 @@ interface AllowedCommandEntry {
   allowed_args: string[];
 }
 
-function stableValue(value: unknown): unknown {
+export function stableValue(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stableValue);
   if (value && typeof value === 'object') {
     return Object.fromEntries(
@@ -36,7 +36,7 @@ function sha256(content: string): string {
   return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
 }
 
-function slugify(value: string): string {
+export function slugify(value: string): string {
   const slug = value
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -207,7 +207,7 @@ function buildBlueprint(answers: CreatorAnswers, evaluation: ReturnType<typeof e
   };
 }
 
-function inferCloudProvider(target: string): string | null {
+export function inferCloudProvider(target: string): string | null {
   if (target.startsWith('aws-')) return 'aws';
   if (target.startsWith('azure-')) return 'azure';
   if (target.startsWith('gcp-')) return 'gcp';

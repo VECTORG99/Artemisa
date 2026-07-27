@@ -1,6 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { generateAgentBundle } from '../src/creator/generator.js';
+import {
+  generateAgentBundle,
+  inferCloudProvider,
+  slugify,
+  stableValue,
+} from '../src/creator/generator.js';
 import { CreatorInputError } from '../src/creator/domain.js';
 import { developmentAnswers, productionAnswers } from './creatorFixture.mjs';
 
@@ -91,5 +96,57 @@ describe('Creator generator', () => {
       () => generateAgentBundle(answers),
       error => error instanceof CreatorInputError && error.statusCode === 422 && error.message.includes('secreto'),
     );
+  });
+});
+
+describe('slugify', () => {
+  it('normalizes emojis and symbol-only or empty names', () => {
+    assert.equal(slugify('🚀 Agente de revisión 🤖'), 'agente-de-revision');
+    assert.equal(slugify('🚀 !@#$ 🤖'), 'generated-agent');
+    assert.equal(slugify(''), 'generated-agent');
+  });
+
+  it('limits slugs to 64 characters', () => {
+    assert.equal(slugify('A'.repeat(80)), 'a'.repeat(64));
+  });
+});
+
+describe('stableValue', () => {
+  it('sorts object keys recursively while preserving array order', () => {
+    assert.deepEqual(
+      stableValue({
+        z: [{ beta: 2, alpha: 1 }, null],
+        a: { delta: 4, charlie: 3 },
+      }),
+      {
+        a: { charlie: 3, delta: 4 },
+        z: [{ alpha: 1, beta: 2 }, null],
+      },
+    );
+  });
+
+  it('preserves null and undefined values', () => {
+    assert.equal(stableValue(null), null);
+    assert.equal(stableValue(undefined), undefined);
+    assert.deepEqual(stableValue([undefined, null]), [undefined, null]);
+  });
+});
+
+describe('inferCloudProvider', () => {
+  it('maps deployment targets to cloud providers', () => {
+    const cases = [
+      ['aws-ecs', 'aws'],
+      ['azure-container-apps', 'azure'],
+      ['gcp-cloud-run', 'gcp'],
+      ['vercel', 'vercel'],
+      ['render', 'render'],
+      ['flyio', 'flyio'],
+      ['vps', 'self-managed'],
+      ['custom-platform', null],
+    ];
+
+    for (const [target, expected] of cases) {
+      assert.equal(inferCloudProvider(target), expected, target);
+    }
   });
 });
