@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { LuCheck, LuCopy } from 'react-icons/lu';
+import { LuCheck, LuCopy, LuZap } from 'react-icons/lu';
 import { glassButton, glassCard, glassInput } from '@/lib/glass';
 
 interface QuickStartCopyProps {
@@ -43,9 +43,7 @@ export function QuickStartCopy({ url, size = 'md' }: QuickStartCopyProps) {
   return (
     <div className={glassCard(`w-full max-w-2xl text-left ${containerPadding}`)}>
       <div className="flex items-center gap-2">
-        <span className="text-accent" aria-hidden="true">
-          ⚡
-        </span>
+        <LuZap className="h-4 w-4 text-accent" aria-hidden="true" />
         <h3 className={`${titleSize} font-semibold text-white`}>Inicio Rapido</h3>
       </div>
       <div className="mt-4 flex items-center gap-2">
@@ -54,7 +52,7 @@ export function QuickStartCopy({ url, size = 'md' }: QuickStartCopyProps) {
           readOnly
           role="textbox"
           aria-readonly="true"
-          className={glassInput(`flex-1 font-mono text-zinc-300 ${inputClasses}`)}
+          className={glassInput(`flex-1 font-mono text-white/80 ${inputClasses}`)}
         />
         <button
           type="button"
