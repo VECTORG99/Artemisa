@@ -4,7 +4,29 @@ All notable changes to this project are documented here.
 
 ### Bug Fixes
 
+- Pin Render starter plan, add CORS and health check, align Vercel auth _(deploy)_
+
+### Documentation
+
+- Restore hackathon hero, badges and Important callouts lost in rename (#665) _(readme)_
+
+### Features
+
+- Add PROMPT.md artifact and surface it in the completion screen (#668) _(generator)_
+
+### Other
+
+- Reorganize final review into explanation top, decisions below (#666) _(creator)_
+
+## [v1.1.1] - 2026-07-27
+
+### Bug Fixes
+
 - Strip v prefix from git-cliff to prevent double-v tags (#661) _(ci)_
+
+### Chores
+
+- V1.1.1 _(release)_
 
 ## [v1.1.0] - 2026-07-27
 
