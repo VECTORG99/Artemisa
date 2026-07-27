@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { useFocusTrap } from '@/hooks/use-focus-trap';
 
 // ─── Liquid glass ───────────────────────────────────────────────────────────
 // Shared transparent, frosted-glass style for every card/panel/button on the
@@ -62,6 +63,8 @@ export function Modal({
   title: string;
   children: React.ReactNode;
 }) {
+  const trapRef = useFocusTrap(open);
+
   useEffect(() => {
     if (!open) return;
     function handleKeyDown(event: KeyboardEvent) {
@@ -78,12 +81,19 @@ export function Modal({
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
-      aria-label={title}
+      aria-labelledby="modal-title"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/[0.08] bg-black/90 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:p-10">
+      <div
+        ref={trapRef}
+        tabIndex={-1}
+        className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/[0.08] bg-black/90 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:p-10"
+      >
+        <h2 id="modal-title" className="pr-12 text-2xl font-bold text-white">
+          {title}
+        </h2>
         <button
           type="button"
           onClick={onClose}
