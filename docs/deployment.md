@@ -185,20 +185,19 @@ services:
 ## 7. Local Development
 
 ```bash
-# Install all dependencies (root + frontend + agent-creator)
+# Install all dependencies (root + frontend + agent-creator via workspaces)
 make install
 
-# Or manually:
+# Or manually from the repo root ONLY (npm workspaces hoists shared deps):
 npm ci
-cd frontend && npm ci
-cd ../agent-creator && npm ci
-cd ..
 
 # Start development servers (each in its own terminal):
 npm run dev              # Backend (tsx watch, port 3001)
 cd frontend && npm run dev  # Frontend (Next.js, port 3000)
 cd agent-creator && npm run dev  # Agent Creator (Vite, port 5173)
 ```
+
+> **Do not** run `npm ci` inside `frontend/` or `agent-creator/` — the repo uses npm workspaces (ADR-0007) and the authoritative lockfile lives at the root. Per-app lockfiles are not maintained.
 
 ---
 

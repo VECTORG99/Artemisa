@@ -87,7 +87,7 @@ export function Modal({
         <button
           type="button"
           onClick={onClose}
-          aria-label={`Cerrar ${title}`}
+          aria-label="Cerrar"
           className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] text-white/70 transition-colors hover:border-white/20 hover:bg-white/[0.08] hover:text-white sm:right-5 sm:top-5"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
