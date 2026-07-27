@@ -23,4 +23,11 @@ describe('NotFound (branded 404)', () => {
     expect(screen.getByRole('link', { name: 'Volver al inicio' })).toHaveAttribute('href', '/');
     expect(screen.getByRole('link', { name: 'Abrir el Creador' })).toHaveAttribute('href', '/agents/new');
   });
+
+  it('describes removed routes without legacy hosting terminology', () => {
+    render(<NotFound />);
+
+    expect(screen.getByText(/genera archivos de configuración, no aloja agentes/i)).toBeInTheDocument();
+    expect(screen.queryByText(/legacy|hosting/i)).not.toBeInTheDocument();
+  });
 });

@@ -578,7 +578,7 @@ export default function NewAgentPage() {
         setReviewing(false);
       });
     } catch (err) {
-      setError(errorMessage(err, 'No se pudo generar el agente.'));
+      setError(errorMessage(err, 'No se pudo generar la configuración.'));
     } finally {
       setGenerating(false);
     }
@@ -748,7 +748,7 @@ export default function NewAgentPage() {
           catalog grids and the generated bundle, so it is not rendered below md. */}
       <div className="flex min-h-screen flex-col items-center justify-center bg-black px-6 text-center md:hidden">
         <LuMonitor className="mb-6 h-10 w-10 text-zinc-500" aria-hidden="true" />
-        <h1 className="text-xl font-semibold text-zinc-100">Usa un computador para diseñar agentes</h1>
+        <h1 className="text-xl font-semibold text-zinc-100">Usa un computador para configurar tu agente</h1>
         <p className="mt-3 max-w-xs text-sm leading-relaxed text-zinc-400">
           El creador muestra el catálogo completo de tecnologías y el bundle generado archivo por archivo. Necesita una
           pantalla más amplia.
