@@ -9,12 +9,12 @@ const inter = Inter({
   variable: '--font-inter',
 });
 
-const siteUrl = 'https://huascar.vercel.app';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://huascar.vercel.app';
 
 export const metadata: Metadata = {
-  title: 'Huascar — Creador de Agentes',
+  title: 'Huascar — Generador de Configuración de Agentes',
   description:
-    'Diseña agentes de desarrollo y operación mediante un árbol de decisiones, genera su configuración y entiende por qué fue construida así.',
+    'Genera archivos de configuración para agentes de desarrollo y operación mediante un árbol de decisiones explicables. Sin ejecutar, sin desplegar, sin caja negra.',
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
@@ -22,20 +22,30 @@ export const metadata: Metadata = {
     ],
     apple: '/apple-touch-icon.png',
   },
+  alternates: {
+    canonical: siteUrl,
+  },
   openGraph: {
-    title: 'Huascar — Creador de Agentes',
+    title: 'Huascar — Generador de Configuración de Agentes',
     description:
-      'Diseña agentes de desarrollo y operación mediante un árbol de decisiones, genera su configuración y entiende por qué fue construida así.',
+      'Genera archivos de configuración para agentes de desarrollo y operación mediante un árbol de decisiones explicables. Sin ejecutar, sin desplegar, sin caja negra.',
     type: 'website',
     url: siteUrl,
     siteName: 'Huascar',
-    images: [{ url: `${siteUrl}/og-image.png`, width: 1200, height: 630, alt: 'Huascar — Creador de Agentes' }],
+    images: [
+      {
+        url: `${siteUrl}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: 'Huascar — Generador de Configuración de Agentes',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Huascar — Creador de Agentes',
+    title: 'Huascar — Generador de Configuración de Agentes',
     description:
-      'Diseña agentes de desarrollo y operación mediante un árbol de decisiones, genera su configuración y entiende por qué fue construida así.',
+      'Genera archivos de configuración para agentes de desarrollo y operación mediante un árbol de decisiones explicables. Sin ejecutar, sin desplegar, sin caja negra.',
     images: [`${siteUrl}/og-image.png`],
   },
   metadataBase: new URL(siteUrl),

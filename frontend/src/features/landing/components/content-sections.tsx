@@ -319,7 +319,7 @@ function UseCasesModalContent() {
 function LegalModalContent() {
   return (
     <>
-      <span className="text-xs font-semibold uppercase tracking-wider text-white/60">Información legal</span>
+      <span className="text-xs font-semibold uppercase tracking-wider text-white/70">Información legal</span>
       <h2 className="mt-2 text-3xl font-bold text-white">Licencia y uso</h2>
       <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-white/80">
         <p>
@@ -341,7 +341,7 @@ function LegalModalContent() {
           configuración: es una compilación pura, determinista y auditable. Huascar sólo genera archivos de
           configuración; aplicarlos y ejecutar el agente queda siempre del lado del usuario.
         </p>
-        <p className="text-white/60">
+        <p className="text-white/70">
           Código fuente completo, historial de cambios, autores y reporte de issues disponibles en{' '}
           <a
             href="https://github.com/VECTORG99/Huascar"
