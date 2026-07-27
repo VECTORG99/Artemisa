@@ -748,6 +748,34 @@ export default function NewAgentPage() {
     // dependency list is intentionally the state that changes a step.
   });
 
+  // ── Browser history: back button navigates within the Creator (#565) ──────
+  const stepKey = `${mode ?? 'select'}:${reviewing ? 'review' : bundle ? 'bundle' : (currentQuestionId ?? 'idle')}`;
+  const stepKeyRef = useRef(stepKey);
+
+  useEffect(() => {
+    // Push a history entry when the step changes (so browser back works)
+    if (stepKeyRef.current !== stepKey) {
+      stepKeyRef.current = stepKey;
+      history.pushState({ creator: stepKey }, '');
+    }
+  }, [stepKey]);
+
+  useEffect(() => {
+    // Push initial entry so the first back press stays in the Creator
+    history.pushState({ creator: 'initial' }, '');
+
+    function onPopState() {
+      // Instead of leaving the page, navigate back within the Creator
+      handleBackButton();
+      // Re-push so subsequent back presses keep working
+      history.pushState({ creator: 'back' }, '');
+    }
+
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   // A question panel wins over the mode's own panel: editing one answer from
