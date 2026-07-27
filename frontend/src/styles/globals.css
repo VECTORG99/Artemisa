@@ -13,19 +13,7 @@
 
   Success is deliberately *not* a colour: a neutral white check reads as
   confirmation without introducing the emerald/teal palette #384 removes.
-
-  The accent is animated: `AccentColorCycler` (mounted in the root layout)
-  randomly reassigns `--color-accent` through the RGB rainbow every couple
-  of seconds. The `@property` registration below lets the browser
-  transition the custom property smoothly, and the derived shades are
-  computed from the base via `color-mix` so they follow along.
 */
-@property --color-accent {
-  syntax: '<color>';
-  initial-value: #f50b0b;
-  inherits: true;
-}
-
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
@@ -42,19 +30,6 @@
 @layer base {
   :root {
     color-scheme: dark;
-
-    /* Derive accent shades from the (animated) base so they follow the
-       cycler without JS having to set five variables per tick. */
-    --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
-    --color-accent-active: color-mix(in srgb, var(--color-accent) 72%, black);
-    --color-accent-muted: color-mix(in srgb, var(--color-accent) 58%, black);
-    --color-accent-deep: color-mix(in srgb, var(--color-accent) 40%, black);
-
-    /* Instant colour change — no transition (avoids hue cycling). */
-    transition: none;
-
-    /* Glow used by the progress bar — follows the animated accent. */
-    --accent-glow: color-mix(in srgb, var(--color-accent) 45%, transparent);
   }
 
   html,
@@ -88,10 +63,10 @@
      keeps the affordance but at 6px in white/8%, so a long option list still
      signals "there is more" without a hard grey bar across the panel. */
 
-  /* Global — minimalist liquid glass scrollbar with accent */
+  /* Global — minimalist liquid glass scrollbar with red accent */
   * {
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--color-accent) 20%, transparent) transparent;
+    scrollbar-color: rgba(245, 11, 11, 0.2) transparent;
   }
 
   *::-webkit-scrollbar {
@@ -104,15 +79,15 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+    background: rgba(245, 11, 11, 0.2);
     border-radius: 9999px;
-    border: 1px solid color-mix(in srgb, var(--color-accent) 10%, transparent);
+    border: 1px solid rgba(245, 11, 11, 0.1);
     backdrop-filter: blur(8px);
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--color-accent) 35%, transparent);
-    border-color: color-mix(in srgb, var(--color-accent) 20%, transparent);
+    background: rgba(245, 11, 11, 0.35);
+    border-color: rgba(245, 11, 11, 0.2);
   }
 
   /* Narrower variant for internal panels (Creator options, etc.) */

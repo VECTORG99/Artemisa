@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import { ServiceWorkerRegister } from '@/components/service-worker-register';
-import { AccentColorCycler } from '@/components/accent-color-cycler';
 import { AnimationPreferenceProvider } from '@/features/landing/hooks/use-animation-preference';
 
 const inter = Inter({
@@ -57,10 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className={`dark ${inter.variable}`}>
       <body className="font-sans bg-zinc-950 text-zinc-100 antialiased">
-        <AnimationPreferenceProvider>
-          <AccentColorCycler />
-          {children}
-        </AnimationPreferenceProvider>
+        <AnimationPreferenceProvider>{children}</AnimationPreferenceProvider>
         <ServiceWorkerRegister />
       </body>
     </html>

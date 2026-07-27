@@ -36,7 +36,7 @@ export default function HomePage() {
       {/* Skip link for keyboard/screen reader users (#563) */}
       <a
         href="#contenido-principal"
-        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-[100] focus-visible:rounded-full focus-visible:border focus-visible:border-white/10 focus-visible:bg-zinc-900/90 focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:font-medium focus-visible:text-white focus-visible:shadow-lg focus-visible:backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-[100] focus-visible:rounded-full focus-visible:border focus-visible:border-white/10 focus-visible:bg-zinc-900/90 focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:font-medium focus-visible:text-white focus-visible:shadow-lg focus-visible:backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
       >
         Saltar al contenido
       </a>
