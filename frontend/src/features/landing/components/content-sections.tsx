@@ -41,10 +41,8 @@ export function HeroSection() {
   return (
     <section className="flex h-screen snap-start snap-always flex-col items-center justify-center px-6">
       <div className="relative z-10 max-w-3xl text-center">
-        <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl xl:text-8xl">
-          <span className="bg-gradient-to-r from-white via-white/80 to-white/60 bg-clip-text text-transparent">
-            {t.heroTitle}
-          </span>
+        <h1 className="text-5xl font-bold tracking-tight text-white text-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-6xl lg:text-7xl xl:text-8xl">
+          {t.heroTitle}
         </h1>
 
         <p className="mx-auto mt-6 max-w-xl whitespace-nowrap text-base leading-relaxed text-white text-shadow-[0_2px_4px_rgba(0,0,0,0.85)] sm:text-lg">
@@ -57,7 +55,7 @@ export function HeroSection() {
           </div>
         </div>
 
-        <p className="mx-auto mt-4 block w-fit rounded-full border border-black/70 bg-black/50 px-3 py-1 text-sm text-white shadow-sm backdrop-blur-sm">
+        <p className="mx-auto mt-4 block w-fit text-sm text-white text-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
           ── o configura manualmente ──
         </p>
 
