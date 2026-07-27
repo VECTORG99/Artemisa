@@ -84,7 +84,7 @@ describe('.env.example sync (#575)', () => {
     const requiredCreatorEnv = [
       'AUTH_REQUIRED',
       'CORS_ALLOWED_ORIGINS',
-      'HUASCAR_API_KEYS',
+      'ARTEMISA_API_KEYS',
       'NEXT_PUBLIC_API_KEY',
       'NEXT_PUBLIC_API_URL',
       'RATE_LIMIT_CREATOR',
