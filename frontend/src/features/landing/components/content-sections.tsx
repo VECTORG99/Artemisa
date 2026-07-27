@@ -4,12 +4,14 @@ import Link from 'next/link';
 import type { IconType } from 'react-icons';
 import {
   SiDocker,
+  SiDotenv,
   SiEslint,
   SiExpress,
   SiGithubactions,
   SiNextdotjs,
   SiNodedotjs,
   SiNpm,
+  SiPino,
   SiPrettier,
   SiReact,
   SiRender,
@@ -170,7 +172,9 @@ const techGroups: { title: string; items: TechItem[] }[] = [
     items: [
       { label: 'Node.js', url: 'https://nodejs.org', Icon: SiNodedotjs, color: 'rgb(83,175,43)' },
       { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript, color: 'rgb(49,120,198)' },
-      { label: 'Express', url: 'https://expressjs.com', Icon: SiExpress, color: 'rgb(120,120,120)' },
+      { label: 'Express', url: 'https://expressjs.com', Icon: SiExpress, color: 'rgb(200,200,200)' },
+      { label: 'Pino', url: 'https://getpino.io', Icon: SiPino, color: 'rgb(72,187,120)' },
+      { label: 'dotenv', url: 'https://github.com/motdotla/dotenv', Icon: SiDotenv, color: 'rgb(233,186,69)' },
     ],
   },
   {
@@ -178,7 +182,7 @@ const techGroups: { title: string; items: TechItem[] }[] = [
     items: [
       { label: 'Next.js 16', url: 'https://nextjs.org', Icon: SiNextdotjs, color: 'rgb(255,255,255)' },
       { label: 'React 19', url: 'https://react.dev', Icon: SiReact, color: 'rgb(97,219,251)' },
-      { label: 'Vite', url: 'https://vitejs.dev', Icon: SiVite, color: 'rgb(167,139,250)' },
+      { label: 'Vite 8', url: 'https://vitejs.dev', Icon: SiVite, color: 'rgb(167,139,250)' },
       { label: 'Tailwind CSS 4', url: 'https://tailwindcss.com', Icon: SiTailwindcss, color: 'rgb(56,189,248)' },
       { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript, color: 'rgb(49,120,198)' },
     ],
@@ -193,7 +197,6 @@ const techGroups: { title: string; items: TechItem[] }[] = [
         color: 'rgb(83,175,43)',
       },
       { label: 'Vitest', url: 'https://vitest.dev', Icon: SiVitest, color: 'rgb(223,224,226)' },
-      { label: 'Playwright', url: 'https://playwright.dev', color: 'rgb(45,164,78)' },
       { label: 'ESLint', url: 'https://eslint.org', Icon: SiEslint, color: 'rgb(75,174,223)' },
       { label: 'Prettier', url: 'https://prettier.io', Icon: SiPrettier, color: 'rgb(247,175,168)' },
       {
