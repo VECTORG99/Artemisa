@@ -6,6 +6,7 @@ import { creatorTutorial, evaluateDecisionTree, getWorkflowDefinition, WORKFLOW_
 import { generateAgentBundle } from './generator.js';
 import { getSkillsCatalog } from './skillsCatalog.js';
 import { getMcpCatalog } from './mcpCatalog.js';
+import { getModelsCatalog } from './modelsCatalog.js';
 import { sendWithEtag } from './etag.js';
 import {
   generateAgentBundle as generateAgentBundleProtocol,
@@ -145,6 +146,15 @@ creatorPublicRouter.get('/mcps', (req, res) => {
   const category = typeof req.query.category === 'string' ? req.query.category.slice(0, 50) : undefined;
   const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
   const payload = getMcpCatalog({ category, q });
+  if (sendWithEtag(req, res, payload)) return;
+  res.json(payload);
+});
+
+creatorPublicRouter.get('/models', (req, res) => {
+  const provider = typeof req.query.provider === 'string' ? req.query.provider.slice(0, 50) : undefined;
+  const tier = typeof req.query.tier === 'string' ? req.query.tier.slice(0, 20) : undefined;
+  const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
+  const payload = getModelsCatalog({ provider, tier, q });
   if (sendWithEtag(req, res, payload)) return;
   res.json(payload);
 });
