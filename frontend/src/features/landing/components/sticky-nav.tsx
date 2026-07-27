@@ -53,16 +53,25 @@ export function StickyHeader() {
         onMouseEnter={() => setEmphasized(true)}
         onMouseLeave={() => setEmphasized(false)}
       >
-        <Link href="/agents/new" className="flex items-center gap-1.5 transition-colors hover:text-white">
+        <Link
+          href="/agents/new"
+          aria-label="Ir al Creador de agentes"
+          className="flex items-center gap-1.5 transition-colors hover:text-white"
+        >
           <LuRocket className="h-3.5 w-3.5" aria-hidden="true" />
           Creador
         </Link>
-        <a href="#tecnologia" className="hidden items-center gap-1.5 transition-colors hover:text-white sm:inline-flex">
+        <a
+          href="#tecnologia"
+          aria-label="Ir a sección Tecnología"
+          className="hidden items-center gap-1.5 transition-colors hover:text-white sm:inline-flex"
+        >
           <LuFlaskConical className="h-3.5 w-3.5" aria-hidden="true" />
           Tecnología
         </a>
         <a
           href="#casos-de-uso"
+          aria-label="Ver casos de uso"
           onClick={(event) => {
             event.preventDefault();
             open('casos-de-uso');
@@ -74,6 +83,7 @@ export function StickyHeader() {
         </a>
         <a
           href="#legal"
+          aria-label="Ver información legal"
           onClick={(event) => {
             event.preventDefault();
             open('legal');
@@ -87,6 +97,7 @@ export function StickyHeader() {
           href="https://github.com/VECTORG99/Huascar"
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="GitHub (se abre en nueva pestaña)"
           className="flex items-center gap-1.5 rounded-full px-3 py-1 text-white/80 transition-colors hover:text-white"
           style={glassStyle}
         >
@@ -104,14 +115,21 @@ interface FooterLink {
   external?: boolean;
   modal?: LandingModalId;
   icon: IconType;
+  ariaLabel?: string;
 }
 
 const footerLinks: FooterLink[] = [
-  { label: 'Creador', href: '/agents/new', icon: LuRocket },
-  { label: 'Tecnología', href: '#tecnologia', icon: LuFlaskConical },
-  { label: 'Casos de uso', modal: 'casos-de-uso', icon: LuLayers },
-  { label: 'Legal', modal: 'legal', icon: LuScale },
-  { label: 'GitHub', href: 'https://github.com/VECTORG99/Huascar', external: true, icon: LuGithub },
+  { label: 'Creador', href: '/agents/new', icon: LuRocket, ariaLabel: 'Ir al Creador de agentes' },
+  { label: 'Tecnología', href: '#tecnologia', icon: LuFlaskConical, ariaLabel: 'Ir a sección Tecnología' },
+  { label: 'Casos de uso', modal: 'casos-de-uso', icon: LuLayers, ariaLabel: 'Ver casos de uso' },
+  { label: 'Legal', modal: 'legal', icon: LuScale, ariaLabel: 'Ver información legal' },
+  {
+    label: 'GitHub',
+    href: 'https://github.com/VECTORG99/Huascar',
+    external: true,
+    icon: LuGithub,
+    ariaLabel: 'GitHub (se abre en nueva pestaña)',
+  },
 ];
 
 /**
@@ -170,6 +188,7 @@ export function StickyFooter() {
                   <button
                     type="button"
                     onClick={() => open(link.modal!)}
+                    aria-label={link.ariaLabel}
                     className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
                   >
                     <Icon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -180,19 +199,25 @@ export function StickyFooter() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label={link.ariaLabel}
                     className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
                   >
                     <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                     {link.label}
                   </a>
                 ) : link.href!.startsWith('#') ? (
-                  <a href={link.href} className="inline-flex items-center gap-1.5 transition-colors hover:text-white">
+                  <a
+                    href={link.href}
+                    aria-label={link.ariaLabel}
+                    className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
+                  >
                     <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                     {link.label}
                   </a>
                 ) : (
                   <Link
                     href={link.href!}
+                    aria-label={link.ariaLabel}
                     className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
                   >
                     <Icon className="h-3.5 w-3.5" aria-hidden="true" />
