@@ -31,7 +31,7 @@ Accepted
 - Deployment needs no API keys, no persistent disk and no native build step; the Docker image and `render.yaml` shrink accordingly.
 - Runtime routes now return 404 and are absent from `/api/openapi.json`.
 - Ephemeral agent registration disappears from the Creator UI (`/api/agents` no longer exists), so the bundle download is the only output.
-- ADR-0001, ADR-0002, ADR-0003, ADR-0004 and ADR-0006 are superseded; their rationale remains useful when someone builds an execution layer elsewhere.
+- ADR-0001 through ADR-0006 were superseded by this decision and have been deleted; their rationale is preserved in git history if someone builds an execution layer elsewhere.
 - Anyone applying a generated bundle needs documentation instead of a running engine, which is what `docs/reference/` now provides.
 
 ## Revisit Conditions
