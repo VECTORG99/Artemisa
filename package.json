@@ -1,7 +1,7 @@
 {
   "name": "huascar",
   "version": "1.0.0",
-  "description": "Plataforma open-source para diseñar agentes de desarrollo y operación mediante un arbol de decisiones",
+  "description": "Plataforma open-source para dise\u00f1ar agentes de desarrollo y operaci\u00f3n mediante un arbol de decisiones",
   "license": "MPL-2.0",
   "private": true,
   "engines": {
@@ -72,5 +72,9 @@
     "*.{ts,js,mjs,json,md}": [
       "prettier --check"
     ]
+  },
+  "overrides": {
+    "postcss": "^8.5.23",
+    "sharp": "^0.35.3"
   }
 }

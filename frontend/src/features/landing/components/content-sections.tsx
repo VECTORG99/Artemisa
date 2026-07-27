@@ -37,7 +37,10 @@ export function HeroSection() {
   const t = useTranslations('landing');
 
   return (
-    <section className="flex h-screen snap-start snap-always flex-col items-center justify-center px-6">
+    <section
+      id="contenido-principal"
+      className="flex h-screen snap-start snap-always flex-col items-center justify-center px-6"
+    >
       <div className="relative z-10 max-w-3xl text-center">
         <h1 className="text-5xl font-bold tracking-tight text-white text-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-6xl lg:text-7xl xl:text-8xl">
           {t.heroTitle}
@@ -128,6 +131,7 @@ function ValuePropsSection() {
   const ref = useSectionFadeIn<HTMLDivElement>();
   return (
     <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
+      <h2 className="sr-only">Características principales</h2>
       <div ref={ref} className="section-content relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
         {valueProps.map((prop) => (
           <div
@@ -136,9 +140,9 @@ function ValuePropsSection() {
             style={glassStyle}
           >
             <GlassIcon src={prop.icon} alt={prop.title} hue={prop.hue} />
-            <h2 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
+            <h3 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
               {prop.title}
-            </h2>
+            </h3>
             <p className="relative mt-2 text-sm leading-relaxed text-white/90">{prop.description}</p>
           </div>
         ))}
