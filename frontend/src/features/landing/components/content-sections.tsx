@@ -4,14 +4,12 @@ import Link from 'next/link';
 import type { IconType } from 'react-icons';
 import {
   SiDocker,
-  SiDotenv,
   SiEslint,
   SiExpress,
   SiGithubactions,
   SiNextdotjs,
   SiNodedotjs,
   SiNpm,
-  SiPino,
   SiPrettier,
   SiReact,
   SiRender,
@@ -173,8 +171,6 @@ const techGroups: { title: string; items: TechItem[] }[] = [
       { label: 'Node.js', url: 'https://nodejs.org', Icon: SiNodedotjs, color: 'rgb(83,175,43)' },
       { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript, color: 'rgb(49,120,198)' },
       { label: 'Express', url: 'https://expressjs.com', Icon: SiExpress, color: 'rgb(200,200,200)' },
-      { label: 'Pino', url: 'https://getpino.io', Icon: SiPino, color: 'rgb(72,187,120)' },
-      { label: 'dotenv', url: 'https://github.com/motdotla/dotenv', Icon: SiDotenv, color: 'rgb(233,186,69)' },
     ],
   },
   {
