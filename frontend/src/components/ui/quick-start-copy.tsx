@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { LuCheck, LuCopy, LuZap } from 'react-icons/lu';
-import { glassButton, glassCard, glassInput } from '@/lib/glass';
+import { LuCheck, LuCopy } from 'react-icons/lu';
+import { glassButton, glassInput } from '@/lib/glass';
 
 interface QuickStartCopyProps {
   url: string;
@@ -28,12 +28,6 @@ export function QuickStartCopy({ url, size = 'md' }: QuickStartCopyProps) {
     lg: 'text-base py-3',
   }[size];
 
-  const containerPadding = {
-    sm: 'p-4',
-    md: 'p-5',
-    lg: 'p-6',
-  }[size];
-
   const titleSize = {
     sm: 'text-sm',
     md: 'text-base',
@@ -41,12 +35,9 @@ export function QuickStartCopy({ url, size = 'md' }: QuickStartCopyProps) {
   }[size];
 
   return (
-    <div className={glassCard(`w-full max-w-2xl text-left ${containerPadding}`)}>
+    <div className="w-full max-w-2xl">
+      <h3 className={`${titleSize} mb-2 text-center font-semibold text-white`}>Inicio Rapido</h3>
       <div className="flex items-center gap-2">
-        <LuZap className="h-4 w-4 text-accent" aria-hidden="true" />
-        <h3 className={`${titleSize} font-semibold text-white`}>Inicio Rapido</h3>
-      </div>
-      <div className="mt-4 flex items-center gap-2">
         <input
           value={url}
           readOnly

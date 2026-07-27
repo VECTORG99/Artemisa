@@ -23,7 +23,7 @@ import {
 } from 'react-icons/si';
 import { glassStyle, Modal, useLandingModal } from './landing-modal';
 import { useTranslations } from '@/i18n';
-import { glassButton } from '@/lib/glass';
+import { glassButton, glassCard } from '@/lib/glass';
 import { apiUrl } from '@/lib/api';
 import { QuickStartCopy } from '@/components/ui/quick-start-copy';
 
@@ -50,7 +50,9 @@ export function HeroSection() {
         <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">{t.heroDescription}</p>
 
         <div className="mt-8 max-w-lg mx-auto">
-          <QuickStartCopy url={STARTUP_URL} size="md" />
+          <div className={glassCard('p-5')}>
+            <QuickStartCopy url={STARTUP_URL} size="md" />
+          </div>
         </div>
 
         <p className="mt-4 text-sm text-white/60">── o configura manualmente ──</p>
