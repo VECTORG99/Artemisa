@@ -73,7 +73,13 @@ export default function DocsPage() {
       setContent('');
       setSidebarOpen(false);
       try {
-        const res = await fetch(`${GITHUB_RAW_BASE}/${localizedPath}`);
+        let res = await fetch(`${GITHUB_RAW_BASE}/${localizedPath}`);
+        // If the English translation is missing, fall back to the original Spanish doc.
+        if (!res.ok && locale === 'en' && localizedPath.endsWith('.en.md')) {
+          const fallbackPath = path;
+          setActivePath(fallbackPath);
+          res = await fetch(`${GITHUB_RAW_BASE}/${fallbackPath}`);
+        }
         if (!res.ok) throw new Error(t.fetchError.replace('{status}', String(res.status)));
         const text = await res.text();
         setContent(text);

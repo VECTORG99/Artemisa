@@ -512,7 +512,6 @@
         "docs": [
           { "path": "docs/troubleshooting.md", "label": "Troubleshooting" },
           { "path": "docs/apply-bundle.md", "label": "Aplicar un Bundle" },
-          { "path": "docs/use_cases.md", "label": "Casos de Uso" },
           { "path": "docs/CONVENTIONS.md", "label": "Convenciones" }
         ]
       },
