@@ -18,6 +18,8 @@ Artemisa genera un bundle reproducible de archivos de configuración (Markdown +
 
 El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no modifica el proyecto del usuario. Sus preguntas, recomendaciones y artefactos son deterministas y auditables.
 
+> El Runtime de Artemisa (motor ReAct, LLM, RAG, MCP, SQLite y ejecución de agentes) fue eliminado en #584 (ADR-0008). El backend solo genera configuración: no hay ejecución, persistencia ni llamadas de red.
+
 ![Flujo del Creator — de problema a bundle de configuración reproducible](docs/images/creator-flow.svg)
 
 ---
@@ -65,7 +67,7 @@ El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no 
 [Recomendaciones explicables]
       ↓
 [Preview del bundle]
-      ├─ configuraciónes
+      ├─ configuraciones
       ├─ manifest + hashes
       ├─ INSTALL.md
       └─ WHY.md
@@ -409,7 +411,7 @@ El Creator:
 - calcula SHA-256 para cada artefacto;
 - no usa filesystem, red, SQLite, LLM, MCP ni shell.
 
-Las configuraciónes MCP generadas son sugerencias. Antes de producción deben fijarse versiones exactas, aplicarse allowlists y ejecutarse en sandbox. La guía [`docs/reference/security-policy-guide.md`](docs/reference/security-policy-guide.md) documenta cómo implementar la allowlist; [`docs/reference/steering-roles-guide.md`](docs/reference/steering-roles-guide.md) documenta cómo adaptar los roles.
+Las configuraciones MCP generadas son sugerencias. Antes de producción deben fijarse versiones exactas, aplicarse allowlists y ejecutarse en sandbox. La guía [`docs/reference/security-policy-guide.md`](docs/reference/security-policy-guide.md) documenta cómo implementar la allowlist; [`docs/reference/steering-roles-guide.md`](docs/reference/steering-roles-guide.md) documenta cómo adaptar los roles.
 
 ---
 
