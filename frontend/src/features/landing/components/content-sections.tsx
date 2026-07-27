@@ -47,7 +47,7 @@ export function HeroSection() {
           </span>
         </h1>
 
-        <p className="mx-auto mt-6 inline-block max-w-xl rounded-full border border-black/70 bg-black/50 px-4 py-2 text-base leading-relaxed text-white backdrop-blur-sm sm:text-lg">
+        <p className="mx-auto mt-6 max-w-xl whitespace-nowrap text-base leading-relaxed text-white text-shadow-[0_2px_4px_rgba(0,0,0,0.85)] sm:text-lg">
           {t.heroDescription}
         </p>
 
