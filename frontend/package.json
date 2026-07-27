@@ -1,5 +1,5 @@
 {
-  "name": "@huascar/frontend",
+  "name": "@artemisa/frontend",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,7 +16,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@huascar/types": "*",
+    "@artemisa/types": "*",
     "@tailwindcss/typography": "0.5.20",
     "jszip": "3.10.1",
     "next": "16.2.11",

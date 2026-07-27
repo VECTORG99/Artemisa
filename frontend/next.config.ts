@@ -8,7 +8,7 @@ const monorepoRoot = path.resolve(path.dirname(__filename), '..');
 // Build-time validation: production builds must have NEXT_PUBLIC_API_URL configured
 if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_API_URL) {
   console.warn(
-    '\x1b[33m[Huascar] WARNING: NEXT_PUBLIC_API_URL is not set for production build. ' +
+    '\x1b[33m[Artemisa] WARNING: NEXT_PUBLIC_API_URL is not set for production build. ' +
       'The frontend will default to http://localhost:3001 which is likely incorrect.\x1b[0m',
   );
 }
@@ -23,7 +23,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  transpilePackages: ['@huascar/types'],
+  transpilePackages: ['@artemisa/types'],
   turbopack: {
     root: monorepoRoot,
   },

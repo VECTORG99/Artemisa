@@ -1,4 +1,4 @@
-import type { CreatorAnswers } from '@huascar/types';
+import type { CreatorAnswers } from '@artemisa/types';
 
 export interface CreatorPreset {
   id: string;

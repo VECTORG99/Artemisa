@@ -2,7 +2,7 @@
 
 ## Reportar vulnerabilidades
 
-Si encuentras una vulnerabilidad de seguridad en Huascar, por favor reportala abriendo un issue con el label `security` o contacta directamente a los mantenedores.
+Si encuentras una vulnerabilidad de seguridad en Artemisa, por favor reportala abriendo un issue con el label `security` o contacta directamente a los mantenedores.
 
 No abuses de los sistemas de reporte: no exploits, no pruebas destructivas, no acceso a datos de otros usuarios sin autorizacion.
 

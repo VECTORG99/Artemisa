@@ -1,6 +1,6 @@
 # Guia para Contribuidores
 
-Bienvenido a Huascar. Este proyecto acepta contribuciones de humanos y agentes de IA.
+Bienvenido a Artemisa. Este proyecto acepta contribuciones de humanos y agentes de IA.
 
 - **Contribuidores humanos**: leer esta seccion. Para cambios de codigo, la guia detallada para IA mas abajo tambien aplica.
 - **Agentes de IA**: la seccion "AI Contributor Guide" es tu entrada principal.
@@ -33,8 +33,8 @@ El **Wiki de GitHub está deshabilitado** intencionalmente: tener dos lugares pa
 ## Primeros pasos
 
 ```bash
-git clone https://github.com/VECTORG99/Huascar
-cd Huascar
+git clone https://github.com/VECTORG99/Artemisa
+cd Artemisa
 npm ci
 cp .env.example .env
 npm run dev

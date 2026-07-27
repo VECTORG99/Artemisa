@@ -210,7 +210,7 @@ export interface AgentProtocolStep {
 }
 
 export interface AgentProtocolResponse {
-  protocol: 'huascar-agent-onboarding';
+  protocol: 'artemisa-agent-onboarding';
   version: string;
   description: string;
   baseUrl: string;

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import type { Catalog, CreatorAnswers, Workflow } from '@huascar/types';
+import type { Catalog, CreatorAnswers, Workflow } from '@artemisa/types';
 import { FineTuningDashboard } from './fine-tuning-dashboard';
 
 // SkillsBrowser / McpBrowser fetch their own catalogs; stub the API module so
@@ -38,9 +38,9 @@ const catalog: Catalog = {
       recommendedFor: [],
     },
     {
-      id: 'huascar',
+      id: 'artemisa',
       category: 'agent-platform',
-      label: 'Huascar',
+      label: 'Artemisa',
       description: 'Formato nativo',
       tags: [],
       environments: ['development', 'production'],
@@ -174,9 +174,9 @@ describe('FineTuningDashboard', () => {
   });
 
   it('enforces maxSelections so the payload can never exceed the backend limit', () => {
-    const { onChange } = renderDashboard({ agent_targets: ['huascar'] });
+    const { onChange } = renderDashboard({ agent_targets: ['artemisa'] });
     fireEvent.click(screen.getByRole('button', { name: /Salida/i }));
-    // maxSelections is 1 and Huascar is already chosen, so Kiro is blocked.
+    // maxSelections is 1 and Artemisa is already chosen, so Kiro is blocked.
     const kiro = screen.getByRole('checkbox', { name: /Kiro/i });
     expect(kiro).toBeDisabled();
     fireEvent.click(kiro);
@@ -184,9 +184,9 @@ describe('FineTuningDashboard', () => {
   });
 
   it('allows deselecting a choice even when the maximum is reached', () => {
-    const { onChange } = renderDashboard({ agent_targets: ['huascar'] });
+    const { onChange } = renderDashboard({ agent_targets: ['artemisa'] });
     fireEvent.click(screen.getByRole('button', { name: /Salida/i }));
-    fireEvent.click(screen.getByRole('checkbox', { name: /^Huascar/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /^Artemisa/i }));
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ agent_targets: [] }));
   });
 
@@ -201,7 +201,7 @@ describe('FineTuningDashboard', () => {
       agent_name: 'Reviewer',
       purpose: 'pr-review',
       environment: 'development', // hides deployment_target
-      agent_targets: ['huascar'],
+      agent_targets: ['artemisa'],
     });
     const button = screen.getByRole('button', { name: /Revisar y generar/i });
     expect(button).toBeEnabled();
@@ -214,7 +214,7 @@ describe('FineTuningDashboard', () => {
       agent_name: 'Reviewer',
       purpose: 'pr-review',
       environment: 'production', // reveals deployment_target
-      agent_targets: ['huascar'],
+      agent_targets: ['artemisa'],
     });
     expect(screen.getByRole('button', { name: /Revisar y generar/i })).toBeDisabled();
     expect(screen.getByText(/Faltan 1 respuesta obligatoria/i)).toBeInTheDocument();

@@ -9,7 +9,7 @@ describe('HeroSection', () => {
   it('renders the translated hero title, cta and description', () => {
     render(<HeroSection />);
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Huascar' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Artemisa' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Generar configuración/ })).toBeInTheDocument();
     expect(
       screen.getByText(/Configura agentes de desarrollo compatibles con 6\+ plataformas en minutos/),

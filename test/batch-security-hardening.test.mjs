@@ -44,7 +44,7 @@ describe('Batch security hardening (#257,#260,#264,#266,#269,#270,#279,#283)', (
   it('#584: no database to back up (stateless Creator)', () => {
     assert.ok(!fs.existsSync('scripts/backup-db.sh'), 'backup script belongs to the removed runtime');
     const env = fs.readFileSync('.env.example', 'utf8');
-    assert.doesNotMatch(env, /HUASCAR_DB_PATH/);
+    assert.doesNotMatch(env, /ARTEMISA_DB_PATH/);
   });
 
   it('#283: Next.js has security headers configured', () => {

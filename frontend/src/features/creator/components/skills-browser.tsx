@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { LuCheck, LuCircleAlert, LuLoaderCircle, LuSearch } from 'react-icons/lu';
 import { creator } from '@/lib/api';
 import { glassFilterChip, glassInput, glassNotice, glassOptionCard, glassPill } from '@/lib/glass';
-import type { SkillCatalogItem } from '@huascar/types';
+import type { SkillCatalogItem } from '@artemisa/types';
 
 const FOCUS_LABELS: Record<string, string> = {
   development: 'Desarrollo',

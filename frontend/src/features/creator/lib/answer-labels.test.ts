@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Catalog, CreatorAnswers, DecisionQuestion, Workflow } from '@huascar/types';
+import type { Catalog, CreatorAnswers, DecisionQuestion, Workflow } from '@artemisa/types';
 
 import {
   FALLBACK_SECTION,
@@ -97,9 +97,9 @@ const catalog: Catalog = {
       recommendedFor: [],
     },
     {
-      id: 'huascar',
+      id: 'artemisa',
       category: 'agent-platform',
-      label: 'Huascar',
+      label: 'Artemisa',
       description: '',
       tags: [],
       environments: ['both'],
@@ -150,7 +150,7 @@ describe('formatAnswerValue', () => {
 
   it('resolves catalog values through the catalog labels', () => {
     expect(formatAnswerValue(technologies, ['typescript'], lookup)).toEqual(['TypeScript']);
-    expect(formatAnswerValue(agentTargets, ['huascar', 'kiro'], lookup)).toEqual(['Huascar', 'Kiro']);
+    expect(formatAnswerValue(agentTargets, ['artemisa', 'kiro'], lookup)).toEqual(['Artemisa', 'Kiro']);
   });
 
   it('resolves skill and mcp ids through their catalog names', () => {
@@ -200,8 +200,8 @@ describe('formatAnswer', () => {
   });
 
   it('keeps the raw value for edit affordances', () => {
-    const formatted = formatAnswer('agent_targets', ['huascar', 'kiro'], agentTargets, lookup);
-    expect(formatted.raw).toEqual(['huascar', 'kiro']);
+    const formatted = formatAnswer('agent_targets', ['artemisa', 'kiro'], agentTargets, lookup);
+    expect(formatted.raw).toEqual(['artemisa', 'kiro']);
     expect(formatted.label).toBe('¿Para qué plataformas se generará la configuración?');
     expect(formatted.section).toBe('Salida');
   });
@@ -211,7 +211,7 @@ describe('groupAnswersBySection', () => {
   const answers: CreatorAnswers = {
     // Deliberately out of workflow order to prove ordering is not insertion based.
     pr_review_enabled: true,
-    agent_targets: ['huascar', 'kiro'],
+    agent_targets: ['artemisa', 'kiro'],
     purpose: 'pr-review',
     agent_name: 'reviewer-plataforma',
     technologies: ['typescript', 'custom:my-tool'],
@@ -235,7 +235,7 @@ describe('groupAnswersBySection', () => {
     const flat = sections.flatMap((section) => section.answers);
 
     expect(flat.find((answer) => answer.questionId === 'pr_review_enabled')?.values).toEqual(['Sí']);
-    expect(flat.find((answer) => answer.questionId === 'agent_targets')?.values).toEqual(['Huascar', 'Kiro']);
+    expect(flat.find((answer) => answer.questionId === 'agent_targets')?.values).toEqual(['Artemisa', 'Kiro']);
     expect(flat.find((answer) => answer.questionId === 'technologies')?.values).toEqual([
       'TypeScript',
       'Personalizado: My tool',

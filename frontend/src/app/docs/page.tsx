@@ -27,7 +27,7 @@ interface DocSection {
   docs: DocLink[];
 }
 
-const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/VECTORG99/Huascar/development';
+const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/VECTORG99/Artemisa/development';
 
 const sections: DocSection[] = [
   {
@@ -209,7 +209,7 @@ export default function DocsPage() {
 
           {activePath && (
             <a
-              href={`https://github.com/VECTORG99/Huascar/blob/development/${activePath}`}
+              href={`https://github.com/VECTORG99/Artemisa/blob/development/${activePath}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-zinc-500 transition-colors hover:text-zinc-300"

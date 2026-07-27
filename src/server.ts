@@ -6,12 +6,12 @@ import { app } from './app.js';
 if (process.env.NODE_ENV === 'production' && !process.env.BYPASS_SECRET) {
   logger.warn('[SECURITY] BYPASS_SECRET not configured in production — admin bypass disabled');
 }
-if (process.env.NODE_ENV === 'production' && !process.env.HUASCAR_API_KEYS) {
-  logger.warn('[SECURITY] HUASCAR_API_KEYS not configured — API authentication disabled');
+if (process.env.NODE_ENV === 'production' && !process.env.ARTEMISA_API_KEYS) {
+  logger.warn('[SECURITY] ARTEMISA_API_KEYS not configured — API authentication disabled');
 }
 
 const server = app.listen(config.server.port, config.server.host, () => {
-  logger.info({ host: config.server.host, port: config.server.port }, 'Huascar Backend running');
+  logger.info({ host: config.server.host, port: config.server.port }, 'Artemisa Backend running');
 });
 
 let shuttingDown = false;

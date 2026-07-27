@@ -5,7 +5,6 @@ import JSZip from 'jszip';
 import {
   LuBraces,
   LuCheck,
-  LuChevronDown,
   LuCircleAlert,
   LuClipboard,
   LuDownload,
@@ -79,12 +78,12 @@ function downloadArtifact(artifact: GeneratedArtifact) {
 }
 
 function downloadBundleJson(bundle: GeneratedAgentBundle) {
-  downloadFile('huascar-bundle.json', JSON.stringify(bundle, null, 2), 'application/json');
+  downloadFile('artemisa-bundle.json', JSON.stringify(bundle, null, 2), 'application/json');
 }
 
 /**
  * Downloads every artifact as a single .zip preserving the relative paths
- * declared by the generator (e.g. `huascar/steering.json`, `docs/INSTALL.md`).
+ * declared by the generator (e.g. `artemisa/steering.json`, `docs/INSTALL.md`).
  * The manifest and blueprint are included at the root so the user can verify
  * integrity after extraction.
  */
@@ -94,62 +93,25 @@ async function downloadBundleZip(bundle: GeneratedAgentBundle) {
     zip.file(artifact.path, artifact.content);
   }
   zip.file('manifest.json', JSON.stringify(bundle.manifest, null, 2));
-  zip.file('huascar.blueprint.json', JSON.stringify(bundle.blueprint, null, 2));
+  zip.file('artemisa.blueprint.json', JSON.stringify(bundle.blueprint, null, 2));
   const blob = await zip.generateAsync({ type: 'blob' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${bundle.blueprint?.identity?.name?.toLowerCase().replace(/\s+/g, '-') ?? 'huascar-agent'}.zip`;
+  link.download = `${bundle.blueprint?.identity?.name?.toLowerCase().replace(/\s+/g, '-') ?? 'artemisa-agent'}.zip`;
   link.click();
   URL.revokeObjectURL(url);
 }
 
 /**
- * Generates a plain-text prompt containing the agent name, all file paths
- * with their full content, and an instruction for the LLM to write them
- * in the user's project. This replaces the ZIP-first workflow with a
- * copy-paste-into-your-LLM workflow (#615).
- */
-function generateLLMPrompt(bundle: GeneratedAgentBundle): string {
-  const agentName = bundle.blueprint?.identity?.name ?? 'Agente generado';
-  const lines: string[] = [
-    `# Instrucciones para crear el agente "${agentName}"`,
-    '',
-    'A continuación se listan todos los archivos que componen este agente.',
-    'Crea cada archivo en la ruta indicada, relativa a la raíz de tu proyecto.',
-    'Respeta el contenido exacto de cada archivo sin modificarlo.',
-    '',
-    '---',
-    '',
-  ];
-
-  for (const artifact of bundle.artifacts) {
-    lines.push(`## Archivo: \`${artifact.path}\``);
-    lines.push('');
-    lines.push('```');
-    lines.push(artifact.content);
-    lines.push('```');
-    lines.push('');
-  }
-
-  lines.push('---');
-  lines.push('');
-  lines.push(
-    'Escribe todos los archivos listados arriba en las rutas indicadas dentro del proyecto del usuario. ' +
-      'No modifiques el contenido. Si algún directorio intermedio no existe, créalo.',
-  );
-
-  return lines.join('\n');
-}
-
-/**
- * Post-generation screen. The primary CTA is now "Copiar instrucciones para
- * LLM" which generates a complete prompt with all artifact paths and contents
- * for pasting into any LLM or AI-powered IDE (#615).
+ * Post-generation screen. Beyond browsing the artifacts it surfaces the two
+ * parts of the response that were previously discarded: the per-file SHA-256
+ * from the manifest (the bundle's reproducibility claim is unverifiable
+ * without it) and `applicationGuide`, which is the only place that explains
+ * how to apply the bundle — Artemisa never writes these files itself.
  *
- * The tabs (apply, files, platforms, manifest) remain available for detailed
- * inspection. ZIP and JSON downloads are in a collapsible "Opciones avanzadas"
- * section.
+ * The default tab is "Cómo aplicarlo" (#567): the bundle is the only product
+ * output, so the first thing the user should see is what to do with it.
  */
 export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
   const [tab, setTab] = useState<Tab>('apply');
@@ -159,7 +121,6 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
   const [copyError, setCopyError] = useState('');
   const [zipping, setZipping] = useState(false);
   const [zipError, setZipError] = useState('');
-  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const activeArtifact = bundle.artifacts.find((artifact) => artifact.path === activePath);
 
@@ -207,11 +168,6 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
       // Clipboard access is denied over plain HTTP and in some browsers.
       setCopyError('El navegador bloqueó el portapapeles. Usa «Descargar» para obtener el archivo.');
     }
-  }
-
-  async function handleCopyLLMPrompt() {
-    const prompt = generateLLMPrompt(bundle);
-    await copy('llm-prompt', prompt);
   }
 
   async function handleDownloadZip() {
@@ -324,8 +280,8 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
           {bundle.blueprint?.identity?.name ?? 'Agente generado'}
         </h2>
         <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-zinc-400">
-          {bundle.artifacts.length} artefactos listos. Copia las instrucciones y pégalas en tu LLM o IDE con IA para
-          crear todos los archivos automáticamente.
+          {bundle.artifacts.length} artefactos listos. Artemisa no escribe nada en tu proyecto: revisa, descarga y copia
+          los archivos tú mismo.
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           <span className={glassPill('py-0.5 text-[11px] text-zinc-400')}>Generador {bundle.generatorVersion}</span>
@@ -335,27 +291,9 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
         </div>
       </div>
 
-      {/* Primary CTA: Copy LLM prompt (#615) */}
-      <div className="flex flex-col items-center gap-2">
-        <button type="button" onClick={handleCopyLLMPrompt} className={glassPrimaryButton('text-sm')}>
-          {copied === 'llm-prompt' ? (
-            <>
-              <LuCheck className="h-4 w-4" aria-hidden="true" />
-              ¡Copiado al portapapeles!
-            </>
-          ) : (
-            <>
-              <LuClipboard className="h-4 w-4" aria-hidden="true" />
-              Copiar instrucciones para LLM
-            </>
-          )}
-        </button>
-        <span className="text-xs text-zinc-500">
-          Genera un prompt con todos los archivos para pegar en tu LLM favorito
-        </span>
-      </div>
-
-      {/* ¿Qué sigue? — LLM-focused workflow (#615) */}
+      {/* ¿Qué sigue? — bloque fijo bajo el encabezado (#567).
+          El bundle es el único output del producto, por lo que el siguiente
+          paso debe estar siempre visible, no escondido detrás de una pestaña. */}
       <div className={glassCard('flex flex-col gap-3 rounded-2xl p-5')}>
         <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">¿Qué sigue?</span>
         <ol className="flex flex-col gap-2.5">
@@ -364,8 +302,8 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
               1
             </span>
             <span>
-              <strong className="font-medium text-zinc-100">Copia el prompt</strong> — usa el botón de arriba para
-              copiar las instrucciones completas con todos los archivos y sus rutas.
+              <strong className="font-medium text-zinc-100">Revisa los archivos</strong> en la pestaña «Archivos». Lee
+              el blueprint, el steering y la política de seguridad antes de copiar nada.
             </span>
           </li>
           <li className="flex gap-3 text-sm leading-relaxed text-zinc-300">
@@ -373,8 +311,8 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
               2
             </span>
             <span>
-              <strong className="font-medium text-zinc-100">Pega en tu LLM o IDE</strong> — abre Cursor, Kiro, Windsurf
-              o cualquier chat con IA y pega las instrucciones. El LLM creará todos los archivos por ti.
+              <strong className="font-medium text-zinc-100">Descarga el ZIP</strong> y cópialo en la raíz de tu
+              proyecto, respetando las rutas relativas de cada archivo.
             </span>
           </li>
           <li className="flex gap-3 text-sm leading-relaxed text-zinc-300">
@@ -382,8 +320,11 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
               3
             </span>
             <span>
-              <strong className="font-medium text-zinc-100">Verifica contra el manifest</strong> — revisa la pestaña
-              «Manifest y hashes» para confirmar que los archivos creados coinciden con los SHA-256 originales.
+              <strong className="font-medium text-zinc-100">
+                Valida con{' '}
+                <code className="rounded bg-white/[0.06] px-1.5 py-0.5 text-xs text-white/80">docs/INSTALL.md</code>
+              </strong>{' '}
+              y confirma los hashes SHA-256 en «Manifest y hashes» para verificar que nada cambió.
             </span>
           </li>
         </ol>
@@ -403,38 +344,23 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
         </div>
       )}
 
-      {/* Opciones avanzadas — collapsible ZIP/JSON downloads (#615) */}
-      <div className={glassCard('rounded-2xl')}>
+      {/* Botón de descarga ZIP destacado antes de las pestañas (#567):
+          es la acción principal de la pantalla final. */}
+      <div className="flex flex-wrap items-center justify-center gap-3">
         <button
           type="button"
-          onClick={() => setAdvancedOpen(!advancedOpen)}
-          className="flex w-full items-center justify-between px-5 py-3 text-left"
-          aria-expanded={advancedOpen}
+          onClick={handleDownloadZip}
+          disabled={zipping}
+          aria-busy={zipping}
+          className={glassPrimaryButton('text-sm')}
         >
-          <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Opciones avanzadas</span>
-          <LuChevronDown
-            className={`h-4 w-4 text-zinc-500 transition-transform duration-200 ${advancedOpen ? 'rotate-180' : ''}`}
-            aria-hidden="true"
-          />
+          <LuPackage className="h-4 w-4" aria-hidden="true" />
+          {zipping ? 'Generando ZIP…' : 'Descargar todo (.zip)'}
         </button>
-        {advancedOpen && (
-          <div className="flex flex-wrap items-center gap-3 border-t border-white/[0.07] px-5 py-4">
-            <button
-              type="button"
-              onClick={handleDownloadZip}
-              disabled={zipping}
-              aria-busy={zipping}
-              className={glassButton('text-sm')}
-            >
-              <LuPackage className="h-4 w-4" aria-hidden="true" />
-              {zipping ? 'Generando ZIP…' : 'Descargar todo (.zip)'}
-            </button>
-            <button type="button" onClick={() => downloadBundleJson(bundle)} className={glassButton('text-sm')}>
-              <LuDownload className="h-4 w-4" aria-hidden="true" />
-              Descargar bundle (JSON)
-            </button>
-          </div>
-        )}
+        <button type="button" onClick={() => downloadBundleJson(bundle)} className={glassButton('text-sm')}>
+          <LuDownload className="h-4 w-4" aria-hidden="true" />
+          Descargar bundle (JSON)
+        </button>
       </div>
 
       {zipError && (

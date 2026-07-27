@@ -5,7 +5,7 @@ test.describe('Agent Creator Flow', () => {
     await page.goto('/');
 
     // Step 1: Verify the page loads
-    await expect(page).toHaveTitle(/agent|creator|huascar/i);
+    await expect(page).toHaveTitle(/agent|creator|artemisa/i);
 
     // Step 2: Check that main content is visible
     const main = page.locator('main, [role="main"], #root, #app');

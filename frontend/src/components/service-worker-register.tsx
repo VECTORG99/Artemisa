@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 /**
- * Registers the Huascar Service Worker (#408) in production only. In
+ * Registers the Artemisa Service Worker (#408) in production only. In
  * development the SW would cache stale assets and fight HMR, so it is
  * skipped entirely. The SW lives at /public/sw.js and is served as a
  * static asset at the site root.

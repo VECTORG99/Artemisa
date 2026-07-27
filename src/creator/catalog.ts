@@ -83,7 +83,7 @@ const catalogCategories: CatalogCategory[] = [
   {
     id: 'agent-platform',
     label: 'Plataformas de agente',
-    description: 'Formatos de configuración que generará Huascar.',
+    description: 'Formatos de configuración que generará Artemisa.',
     multiple: true,
   },
   {

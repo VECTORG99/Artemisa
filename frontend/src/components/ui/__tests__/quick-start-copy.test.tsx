@@ -19,7 +19,7 @@ describe('QuickStartCopy', () => {
     render(<QuickStartCopy url="https://example.com/startup" />);
     const textbox = screen.getByRole('textbox') as HTMLInputElement;
     expect(textbox.value).toMatch(/https:\/\/example\.com\/startup/);
-    expect(textbox.value).toMatch(/Huascar/);
+    expect(textbox.value).toMatch(/Artemisa/);
   });
 
   it('muestra el título "Inicio Rápido: Pega en tu chat de IA" con tilde (#554)', () => {
@@ -42,7 +42,7 @@ describe('QuickStartCopy', () => {
     const button = screen.getByRole('button', { name: /copiar/i });
     fireEvent.click(button);
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('https://example.com/startup')));
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('Huascar')));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('Artemisa')));
   });
 
   it('muestra feedback "¡Copiado!" una sola vez vía aria-live (#572)', async () => {

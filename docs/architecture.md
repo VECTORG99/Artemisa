@@ -1,6 +1,6 @@
-# Arquitectura de Huascar
+# Arquitectura de Artemisa
 
-Huascar convierte un árbol de decisiones en un bundle de configuración reproducible (Markdown + JSON) y explica por qué fue construido así. **No ejecuta agentes**: el Runtime (motor ReAct, LLM, RAG, MCP, SQLite) se eliminó en el issue #584 — ver [ADR-0008](adr/0008-remove-runtime-generator-only.md).
+Artemisa convierte un árbol de decisiones en un bundle de configuración reproducible (Markdown + JSON) y explica por qué fue construido así. **No ejecuta agentes**: el Runtime (motor ReAct, LLM, RAG, MCP, SQLite) se eliminó en el issue #584 — ver [ADR-0008](adr/0008-remove-runtime-generator-only.md).
 
 ---
 
@@ -74,7 +74,7 @@ Configuración del servidor únicamente: `port`, `host`, `requestTimeoutMs`. El 
 | `domain.ts`        | Contratos de catálogo, preguntas, evaluación, blueprint, artefactos y errores.     |
 | `catalog.ts`       | Taxonomía y catálogo tecnológico versionado, búsqueda y validación de categorías.  |
 | `decisionTree.ts`  | Condiciones, preguntas visibles, progreso, validación y recomendaciones.           |
-| `generator.ts`     | Blueprint, documentación, adaptadores Huascar/Kiro/portable y manifest.            |
+| `generator.ts`     | Blueprint, documentación, adaptadores Artemisa/Kiro/portable y manifest.           |
 | `skillsCatalog.ts` | Catálogo de skills que alimenta la categoría `skill`.                              |
 | `mcpCatalog.ts`    | Catálogo de servidores MCP sugeridos que alimenta la categoría `mcp`.              |
 | `modelsCatalog.ts` | Catálogo de modelos disponibles como dato del bundle.                              |
@@ -122,13 +122,13 @@ config.server.requestTimeoutMs; // → 120000
 
 El backend no ejecuta comandos ni herramientas, así que la superficie de seguridad es la de una API pura:
 
-- **Auth**: `src/middleware/auth.ts`. `AUTH_REQUIRED=true` exige `HUASCAR_API_KEYS` (`Authorization: Bearer` o `X-API-Key`), compara con HMAC de longitud fija y falla cerrado si no hay claves (500, y en producción el proceso no arranca).
+- **Auth**: `src/middleware/auth.ts`. `AUTH_REQUIRED=true` exige `ARTEMISA_API_KEYS` (`Authorization: Bearer` o `X-API-Key`), compara con HMAC de longitud fija y falla cerrado si no hay claves (500, y en producción el proceso no arranca).
 - **Frontera de rutas**: catálogo, workflow, tutorial y protocolo de agentes son públicos; `evaluate`, `preview` y `generate` quedan detrás de auth.
 - **Límites de entrada**: 128 KB por body, timeout global (`REQUEST_TIMEOUT_MS`), rate limiting global y específico del Creator, `enforceJsonContentType`, `sanitizeRequestBody` (elimina `__proto__`, `constructor`, `prototype`) y `validatePathParams`.
 - **Seguridad del bundle generado**: rutas relativas sin `..`, sin backslashes ni duplicados; máximo 40 archivos y 256 KB; rechazo de secretos literales con patrones conocidos; referencias `${GITHUB_TOKEN}` en vez de valores.
 - **Cabeceras**: helmet, CORS con allowlist explícita (`CORS_ALLOWED_ORIGINS`) y bloqueo del origen `null`.
 
-La política de seguridad que Huascar **genera** (`huascar/security-policy.json`) la aplica quien ejecuta el agente. Cómo hacerlo está documentado en [`reference/security-policy-guide.md`](reference/security-policy-guide.md), con la implementación de referencia en [`reference/hooks-implementation.ts`](reference/hooks-implementation.ts).
+La política de seguridad que Artemisa **genera** (`artemisa/security-policy.json`) la aplica quien ejecuta el agente. Cómo hacerlo está documentado en [`reference/security-policy-guide.md`](reference/security-policy-guide.md), con la implementación de referencia en [`reference/hooks-implementation.ts`](reference/hooks-implementation.ts).
 
 ---
 
@@ -188,13 +188,13 @@ Las rutas del Runtime (`/api/agent/execute`, `/api/agents`, `/api/history`, `/ap
 
 ## Artefactos Generados
 
-Siempre: `huascar.blueprint.json`, `manifest.json`, `docs/INSTALL.md`, `docs/WHY.md`.
+Siempre: `artemisa.blueprint.json`, `manifest.json`, `docs/INSTALL.md`, `docs/WHY.md`.
 
-Condicionales según respuestas: `AGENTS.md`, `skills/<agente>/SKILL.md`, `huascar/steering.json`, `huascar/security-policy.json`, `huascar/governance.json`, `huascar/mcps.json`, `huascar/rag.json`, `huascar/pr-review.json`, `.kiro/steering/<agente>.md`, `.kiro/hooks/<agente>-quality.json`, `.kiro/skills/<agente>/SKILL.md`, y las variantes para Cursor, Devin, CodeRabbit y Kilo Code.
+Condicionales según respuestas: `AGENTS.md`, `skills/<agente>/SKILL.md`, `artemisa/steering.json`, `artemisa/security-policy.json`, `artemisa/governance.json`, `artemisa/mcps.json`, `artemisa/rag.json`, `artemisa/pr-review.json`, `.kiro/steering/<agente>.md`, `.kiro/hooks/<agente>-quality.json`, `.kiro/skills/<agente>/SKILL.md`, y las variantes para Cursor, Devin, CodeRabbit y Kilo Code.
 
 Los esquemas de los artefactos JSON viven en `src/kiro/schemas/*.json` y se validan en `test/kiro-schema.test.mjs` y `test/generated-artifacts-schema.test.mjs`.
 
-`huascar/governance.json` es un contrato declarativo de capacidades, autonomía y aprobación: describe lo que la plataforma destino debe aplicar, no algo que Huascar active.
+`artemisa/governance.json` es un contrato declarativo de capacidades, autonomía y aprobación: describe lo que la plataforma destino debe aplicar, no algo que Artemisa active.
 
 ---
 
@@ -225,7 +225,7 @@ Los esquemas de los artefactos JSON viven en `src/kiro/schemas/*.json` y se vali
 | `LOG_LEVEL`            | `info`                                        | Verbosidad de pino                                   |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:3000,http://localhost:5173` | Orígenes permitidos                                  |
 | `AUTH_REQUIRED`        | `true`                                        | Exige API key en rutas protegidas (`false` en local) |
-| `HUASCAR_API_KEYS`     | —                                             | Lista de API keys separadas por coma                 |
+| `ARTEMISA_API_KEYS`    | —                                             | Lista de API keys separadas por coma                 |
 | `BYPASS_SECRET`        | —                                             | Override de emergencia; se redacta en logs           |
 | `METRICS_SECRET`       | —                                             | Protege `/api/metrics` (obligatorio en producción)   |
 | `RATE_LIMIT_GLOBAL`    | `100`                                         | Requests por minuto por IP                           |
@@ -264,7 +264,7 @@ Los errores del Creator usan `application/problem+json` con `issues[]` y rutas d
 ## Estructura del Proyecto
 
 ```text
-huascar/
+artemisa/
 ├── src/
 │   ├── app.ts                       # Cableado HTTP
 │   ├── server.ts                    # Entry point + lifecycle
@@ -278,7 +278,7 @@ huascar/
 │   └── kiro/schemas/                # Esquemas de artefactos generados
 ├── frontend/                        # Next app: landing + Creator (/agents/new)
 ├── agent-creator/                   # App Vite legacy (sin desarrollo activo)
-├── packages/types/                  # Tipos compartidos (@huascar/types)
+├── packages/types/                  # Tipos compartidos (@artemisa/types)
 ├── docs/
 │   ├── architecture.md              # Este documento
 │   ├── deployment.md               # Despliegue local, Docker y Render

@@ -499,7 +499,7 @@ const TECH_ICONS: Record<string, IconType> = {
   // Brand marks come from Simple Icons when one exists; Kilo Code has no
   // Simple Icon entry so it falls back to a semantic Lucide shape. Each card
   // also renders the platform label, so the icon is decorative (aria-hidden).
-  huascar: LuBot,
+  artemisa: LuBot,
   'agents-md': SiMarkdown,
   cursor: SiCursor,
   'devin-desktop': SiWindsurf,

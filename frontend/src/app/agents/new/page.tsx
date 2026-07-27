@@ -55,7 +55,7 @@ import type {
   GeneratedAgentBundle,
   QuestionOption,
   Workflow,
-} from '@huascar/types';
+} from '@artemisa/types';
 
 const SpaceSimulation = dynamicImport(
   () => import('@/features/landing/components/space-simulation').then((m) => m.SpaceSimulation),
@@ -776,7 +776,7 @@ export default function NewAgentPage() {
           <div className="mt-6 w-full max-w-xs">
             <p className="mb-2 text-xs text-zinc-500">Copia el enlace para abrirlo en tu PC:</p>
             <QuickStartCopy
-              url={typeof window !== 'undefined' ? window.location.href : 'https://huascar.vercel.app/agents/new'}
+              url={typeof window !== 'undefined' ? window.location.href : 'https://artemisa.vercel.app/agents/new'}
               size="sm"
             />
           </div>

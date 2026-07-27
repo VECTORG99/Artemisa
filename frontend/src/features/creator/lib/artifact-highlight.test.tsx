@@ -29,8 +29,8 @@ describe('detectArtifactLanguage', () => {
 
 describe('highlightArtifact', () => {
   it('highlights JSON keys, string values, numbers and booleans', () => {
-    const html = renderTokens('{"name": "Huascar", "count": 3, "active": true}', 'json');
-    expect(html).toContain('Huascar');
+    const html = renderTokens('{"name": "Artemisa", "count": 3, "active": true}', 'json');
+    expect(html).toContain('Artemisa');
     expect(html).toContain('<span');
     expect(html).toMatch(/class="[^"]*text-sky-300[^"]*"/); // key
     expect(html).toMatch(/class="[^"]*text-emerald-300[^"]*"/); // string value
@@ -46,9 +46,9 @@ describe('highlightArtifact', () => {
   });
 
   it('highlights YAML keys', () => {
-    const html = renderTokens('name: huascar\nversion: 1.0', 'yaml');
+    const html = renderTokens('name: artemisa\nversion: 1.0', 'yaml');
     expect(html).toMatch(/class="[^"]*text-sky-300[^"]*"/);
-    expect(html).toContain('huascar');
+    expect(html).toContain('artemisa');
   });
 
   it('returns plain text unchanged for unknown languages', () => {

@@ -40,7 +40,7 @@ const KNOWN_DOCS: Record<string, { title: string; description: string }> = {
   },
   'docs/adr/0008-remove-runtime-generator-only.md': {
     title: 'ADR-0008: Remove Runtime',
-    description: 'Decisión de eliminar el Runtime; Huascar es solo generador.',
+    description: 'Decisión de eliminar el Runtime; Artemisa es solo generador.',
   },
   'docs/reference/README.md': {
     title: 'Artefactos de Referencia',

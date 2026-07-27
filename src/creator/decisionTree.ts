@@ -432,7 +432,7 @@ export const creatorTutorial = {
     {
       id: 'delivery',
       title: 'La salida',
-      narrative: 'Compara artefactos Huascar, Kiro y portables.',
+      narrative: 'Compara artefactos Artemisa, Kiro y portables.',
       learning: 'Cada decisión queda explicada y es reversible.',
     },
   ],

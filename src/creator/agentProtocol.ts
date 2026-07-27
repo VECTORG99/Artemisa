@@ -101,13 +101,13 @@ function formatQuestion(
 export function getAgentProtocol(baseUrl: string): AgentProtocolResponse {
   const targets = getCreatorCatalog({ category: 'agent-platform' }).items.map((item) => item.id);
   return {
-    protocol: 'huascar-agent-onboarding',
+    protocol: 'artemisa-agent-onboarding',
     version: PROTOCOL_VERSION,
-    description: 'Protocolo para que un agente de IA configure un agente de desarrollo/operación mediante Huascar.',
+    description: 'Protocolo para que un agente de IA configure un agente de desarrollo/operación mediante Artemisa.',
     baseUrl,
     instructions: {
       summary:
-        'Huascar genera configuración determinista para agentes IA. Sigue estos pasos para crear un bundle personalizado.',
+        'Artemisa genera configuración determinista para agentes IA. Sigue estos pasos para crear un bundle personalizado.',
       steps: [
         {
           step: 1,
@@ -216,13 +216,13 @@ export function generateAgentBundle(body: unknown): AgentGenerateResponse {
 }
 
 export function getStartupDocument(baseUrl: string): string {
-  return `# Huascar Startup — Protocolo de Onboarding para Agentes IA
+  return `# Artemisa Startup — Protocolo de Onboarding para Agentes IA
 
 Eres un agente de IA que va a ayudar al usuario a configurar un agente de desarrollo/operación personalizado.
 Sigue estos pasos exactamente:
 
 ## Paso 1: Presentación
-Dile al usuario: "Voy a ayudarte a configurar un agente personalizado con Huascar. Te haré una serie de preguntas sobre tu proyecto y generaré la configuración óptima para tu herramienta."
+Dile al usuario: "Voy a ayudarte a configurar un agente personalizado con Artemisa. Te haré una serie de preguntas sobre tu proyecto y generaré la configuración óptima para tu herramienta."
 
 ## Paso 2: Obtén las preguntas
 Haz un GET a: ${baseUrl}/agent/start

@@ -90,7 +90,7 @@ const footerLinks: FooterLink[] = [
   },
   {
     label: 'GitHub',
-    href: 'https://github.com/VECTORG99/Huascar',
+    href: 'https://github.com/VECTORG99/Artemisa',
     external: true,
     icon: LuGithub,
     ariaLabel: 'GitHub (se abre en nueva pestaña)',
@@ -153,7 +153,7 @@ export function StickyFooter() {
           })}
         </ul>
         <p className="mt-3 border-t border-white/[0.06] pt-3 text-[11px] text-white/80">
-          © {new Date().getFullYear()} Huascar y sus contribuidores · MPL-2.0
+          © {new Date().getFullYear()} Artemisa y sus contribuidores · MPL-2.0
         </p>
       </div>
     </footer>

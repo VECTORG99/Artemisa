@@ -9,8 +9,8 @@ const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8')) as {
 describe('service worker cache strategy (#569)', () => {
   it('uses a generated build version for cache names', () => {
     expect(serviceWorker).toContain("importScripts('/sw-version.js')");
-    expect(serviceWorker).toContain('self.HUASCAR_SW_VERSION');
-    expect(serviceWorker).not.toContain("const CACHE = 'huascar-v1'");
+    expect(serviceWorker).toContain('self.ARTEMISA_SW_VERSION');
+    expect(serviceWorker).not.toContain("const CACHE = 'artemisa-v1'");
     expect(packageJson.scripts?.prebuild).toBe('node ./scripts/write-sw-version.mjs');
   });
 

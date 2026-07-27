@@ -14,7 +14,7 @@ import {
   LuShieldCheck,
   LuWrench,
 } from 'react-icons/lu';
-import type { Catalog, CreatorAnswerValue, Workflow } from '@huascar/types';
+import type { Catalog, CreatorAnswerValue, Workflow } from '@artemisa/types';
 import { buildLabelLookup, groupAnswersBySection } from '@/features/creator/lib/answer-labels';
 import { glassCard, glassPill, glassPrimaryButton } from '@/lib/glass';
 import { CREATOR_PRESETS, type CreatorPreset } from '../presets/presets';

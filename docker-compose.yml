@@ -34,7 +34,7 @@ services:
         max-size: '10m'
         max-file: '3'
     networks:
-      - huascar-network
+      - artemisa-network
 
   frontend:
     build:
@@ -61,7 +61,7 @@ services:
         max-size: '5m'
         max-file: '3'
     networks:
-      - huascar-network
+      - artemisa-network
 
   agent-creator:
     build:
@@ -87,8 +87,8 @@ services:
         max-size: '5m'
         max-file: '3'
     networks:
-      - huascar-network
+      - artemisa-network
 
 networks:
-  huascar-network:
+  artemisa-network:
     driver: bridge

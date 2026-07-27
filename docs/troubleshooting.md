@@ -1,6 +1,6 @@
 # Troubleshooting
 
-> Huascar only generates configuration files. The Runtime (ReAct, LLM, RAG, MCP, SQLite) was removed in #584. Problems related to agent execution, MCP connections, RAG indexing or session expiry are **not part of the product** and are not covered here.
+> Artemisa only generates configuration files. The Runtime (ReAct, LLM, RAG, MCP, SQLite) was removed in #584. Problems related to agent execution, MCP connections, RAG indexing or session expiry are **not part of the product** and are not covered here.
 
 ---
 
@@ -35,7 +35,7 @@
 
 **Solución:**
 
-1. Verifica que `HUASCAR_API_KEYS` esté configurada en el backend.
+1. Verifica que `ARTEMISA_API_KEYS` esté configurada en el backend.
 2. Envía la key en el header:
    ```
    Authorization: Bearer <tu-key>

@@ -10,7 +10,7 @@ import type {
   SkillsCatalogResponse,
   Tutorial,
   Workflow,
-} from '@huascar/types';
+} from '@artemisa/types';
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 export const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -27,7 +27,7 @@ if (
   !apiUrl.includes('127.0.0.1')
 ) {
   console.warn(
-    `[Huascar] NEXT_PUBLIC_API_URL points to a non-local address (${apiUrl}). ` +
+    `[Artemisa] NEXT_PUBLIC_API_URL points to a non-local address (${apiUrl}). ` +
       'This may send development traffic to production. Set NEXT_PUBLIC_API_URL=http://localhost:3001 in your .env.local',
   );
 }

@@ -18,7 +18,7 @@ import {
   type FormattedAnswer,
 } from '@/features/creator/lib/answer-labels';
 import { TechIcon } from '@/features/creator/lib/tech-icons';
-import type { AnswerIssue, Catalog, CreatorAnswers, CreatorRecommendation, Workflow } from '@huascar/types';
+import type { AnswerIssue, Catalog, CreatorAnswers, CreatorRecommendation, Workflow } from '@artemisa/types';
 
 interface ReviewScreenProps {
   answers: CreatorAnswers;

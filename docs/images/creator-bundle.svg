@@ -21,7 +21,7 @@
   <!-- Always generated -->
   <rect x="46" y="116" width="308" height="22" rx="4" fill="#1c1c1e"/>
   <text x="62" y="131" fill="#4ade80" font-size="10">📄</text>
-  <text x="78" y="131" fill="#e4e4e7" font-size="11">huascar.blueprint.json</text>
+  <text x="78" y="131" fill="#e4e4e7" font-size="11">artemisa.blueprint.json</text>
   <text x="348" y="131" text-anchor="end" fill="#52525b" font-size="9">configuration</text>
 
   <rect x="46" y="142" width="308" height="22" rx="4" fill="#1c1c1e"/>
@@ -41,16 +41,16 @@
 
   <!-- Separator -->
   <line x1="46" y1="224" x2="354" y2="224" stroke="#27272a" stroke-width="1" stroke-dasharray="3,3"/>
-  <text x="46" y="237" fill="#3f3f46" font-size="9">Huascar</text>
+  <text x="46" y="237" fill="#3f3f46" font-size="9">Artemisa</text>
 
   <rect x="46" y="242" width="308" height="22" rx="4" fill="#1c1c1e"/>
   <text x="62" y="257" fill="#f59e0b" font-size="10">⚙</text>
-  <text x="78" y="257" fill="#e4e4e7" font-size="11">huascar/steering.json</text>
+  <text x="78" y="257" fill="#e4e4e7" font-size="11">artemisa/steering.json</text>
   <text x="348" y="257" text-anchor="end" fill="#52525b" font-size="9">configuration</text>
 
   <rect x="46" y="268" width="308" height="22" rx="4" fill="#1c1c1e"/>
   <text x="62" y="283" fill="#f59e0b" font-size="10">⚙</text>
-  <text x="78" y="283" fill="#e4e4e7" font-size="11">huascar/security-policy.json</text>
+  <text x="78" y="283" fill="#e4e4e7" font-size="11">artemisa/security-policy.json</text>
   <text x="348" y="283" text-anchor="end" fill="#52525b" font-size="9">configuration</text>
 
   <!-- Separator -->
@@ -76,7 +76,7 @@
   <text x="401" y="108" fill="#a1a1aa" font-size="10" font-weight="600" letter-spacing="1">INTEGRIDAD</text>
 
   <!-- Hash examples -->
-  <text x="401" y="128" fill="#52525b" font-size="10">huascar.blueprint.json</text>
+  <text x="401" y="128" fill="#52525b" font-size="10">artemisa.blueprint.json</text>
   <text x="401" y="143" fill="#3d9970" font-size="10" font-family="'Courier New', monospace">a3f8e2c1d904b7...  SHA-256</text>
 
   <text x="401" y="163" fill="#52525b" font-size="10">manifest.json</text>
@@ -109,9 +109,9 @@
   <text x="689" y="353" text-anchor="middle" fill="#e4e4e7" font-size="12">📋  Copiar blueprint</text>
 
   <rect x="401" y="378" width="381" height="36" rx="8" fill="#dc2626"/>
-  <text x="591" y="401" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="600">Registrar agente en Huascar →</text>
+  <text x="591" y="401" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="600">Registrar agente en Artemisa →</text>
 
   <!-- Application guide note -->
   <rect x="30" y="440" width="760" height="28" rx="8" fill="#0c1a0c" stroke="#166534" stroke-width="1"/>
-  <text x="46" y="458" fill="#4ade80" font-size="11">ℹ  Huascar no escribe los archivos automáticamente. Revisa el bundle y cópialos al proyecto destino.</text>
+  <text x="46" y="458" fill="#4ade80" font-size="11">ℹ  Artemisa no escribe los archivos automáticamente. Revisa el bundle y cópialos al proyecto destino.</text>
 </svg>
