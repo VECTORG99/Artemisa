@@ -21,7 +21,7 @@ describe('AGENTS.md', () => {
   });
 
   it('points agents at fuller docs instead of duplicating them', () => {
-    for (const path of ['CONTEXT.md', 'docs/CONVENTIONS.md', 'CONTRIBUTING.md', 'docs/adr/*.md']) {
+    for (const path of ['CONTEXT.md', 'docs/CONVENTIONS.md', 'docs/CONTRIBUTING.md', 'docs/adr/*.md']) {
       assert.match(agents, new RegExp(path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
     }
   });

@@ -13,7 +13,7 @@ Toda la documentación del proyecto vive en el repositorio bajo `docs/`:
 | ---------------------- | -------------------------------------------------------------------- |
 | `README.md`            | Introducción, arquitectura, quick start y roadmap.                   |
 | `CONTEXT.md`           | Estado del proyecto, módulos, rutas críticas y zonas de alto riesgo. |
-| `CONTRIBUTING.md`      | Este archivo — guía para contribuidores humanos y agentes.           |
+| `docs/CONTRIBUTING.md` | Este archivo — guía para contribuidores humanos y agentes.           |
 | `docs/architecture.md` | Motor, capas y decisiones de diseño.                                 |
 | `docs/deployment.md`   | Despliegue local, Docker y Render.                                   |
 | `docs/CONVENTIONS.md`  | Convenciones de código, tests, API y Git.                            |
