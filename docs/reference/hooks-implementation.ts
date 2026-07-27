@@ -1,6 +1,19 @@
+/**
+ * Implementación de referencia del hook `before_action` (issue #583).
+ *
+ * Este archivo NO se compila ni se ejecuta: documenta cómo consumir una
+ * `security-policy.json` generada por el Creator. Ver `security-policy-guide.md`.
+ * El logger original era `src/logger.ts` (pino); aquí se reemplaza por un stub
+ * para que el archivo se lea de forma autocontenida.
+ */
 import fs from 'fs';
 import path from 'path';
-import { logger } from '../logger.js';
+
+const logger = {
+  info: (..._args: unknown[]): void => {},
+  warn: (..._args: unknown[]): void => {},
+  error: (..._args: unknown[]): void => {},
+};
 
 // --- Types ---
 
@@ -21,7 +34,7 @@ interface SecurityPolicy {
 // --- Policy Loading (fail-closed) ---
 
 function loadPolicy(): SecurityPolicy {
-  const policyPath = process.env.SECURITY_POLICY_PATH || path.resolve('./src/kiro/security-policy.json');
+  const policyPath = process.env.SECURITY_POLICY_PATH || path.resolve('./huascar/security-policy.json');
   try {
     const raw = JSON.parse(fs.readFileSync(policyPath, 'utf8'));
     if (!raw.version || !raw.allowed_commands?.entries) {

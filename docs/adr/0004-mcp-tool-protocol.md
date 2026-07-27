@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by ADR-0008 (MCP is generated as configuration, not connected at runtime).
 
 ## Context
 

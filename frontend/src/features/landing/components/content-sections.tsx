@@ -7,17 +7,14 @@ import {
   SiEslint,
   SiExpress,
   SiGithubactions,
-  SiModelcontextprotocol,
   SiNextdotjs,
   SiNodedotjs,
   SiNpm,
   SiPrettier,
   SiReact,
   SiRender,
-  SiSqlite,
   SiTailwindcss,
   SiTypescript,
-  SiVercel,
   SiVite,
   SiVitest,
 } from 'react-icons/si';
@@ -161,9 +158,6 @@ const techGroups: { title: string; items: TechItem[] }[] = [
       { label: 'Node.js', url: 'https://nodejs.org', Icon: SiNodedotjs },
       { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript },
       { label: 'Express', url: 'https://expressjs.com', Icon: SiExpress },
-      { label: 'SQLite (better-sqlite3)', url: 'https://www.sqlite.org', Icon: SiSqlite },
-      { label: 'Vercel AI SDK', url: 'https://sdk.vercel.ai', Icon: SiVercel },
-      { label: 'Model Context Protocol', url: 'https://modelcontextprotocol.io', Icon: SiModelcontextprotocol },
     ],
   },
   {
@@ -344,9 +338,8 @@ function LegalModalContent() {
         </p>
         <p>
           El creador no ejecuta código, no realiza llamadas de red ni usa credenciales durante la generación de
-          configuración: es una compilación pura, determinista y auditable. La ejecución de agentes vía{' '}
-          <code className="rounded bg-white/[0.06] px-1.5 py-0.5 text-xs text-white/80">/api/agent/execute</code> es un
-          componente separado, sujeto a los controles de autenticación y autorización del backend.
+          configuración: es una compilación pura, determinista y auditable. Huascar sólo genera archivos de
+          configuración; aplicarlos y ejecutar el agente queda siempre del lado del usuario.
         </p>
         <p className="text-white/60">
           Código fuente completo, historial de cambios, autores y reporte de issues disponibles en{' '}
