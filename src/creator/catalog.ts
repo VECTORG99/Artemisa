@@ -83,7 +83,7 @@ const catalogCategories: CatalogCategory[] = [
   {
     id: 'agent-platform',
     label: 'Plataformas de agente',
-    description: 'Formatos de configuración que generará Huascar.',
+    description: 'Formatos de configuración que generará Artemisa.',
     multiple: true,
   },
   {
@@ -314,6 +314,7 @@ const catalogItems: CatalogItem[] = [
     ['data-pipeline', 'Pipeline de datos', 'Ingesta, transformación, calidad y publicación de datos.', ['data']],
   ]),
   ...makeItems('testing', [
+    ['none', 'Ninguno', 'El proyecto no utiliza herramientas de prueba actualmente.', ['meta']],
     ['unit-tests', 'Pruebas unitarias', 'Validación rápida de unidades aisladas.', ['quality']],
     ['integration-tests', 'Pruebas de integración', 'Validación de límites y dependencias reales.', ['quality']],
     ['e2e-tests', 'Pruebas end-to-end', 'Validación de recorridos completos.', ['quality']],
@@ -322,6 +323,7 @@ const catalogItems: CatalogItem[] = [
     ['dependency-scan', 'Escaneo de dependencias', 'Detección de vulnerabilidades de supply chain.', ['security']],
   ]),
   ...makeItems('cicd', [
+    ['none', 'Ninguno', 'El proyecto no utiliza CI/CD actualmente.', ['meta']],
     ['github-actions', 'GitHub Actions', 'Pipelines integrados con repositorios GitHub.', ['github']],
     ['gitlab-ci', 'GitLab CI/CD', 'Pipelines integrados con GitLab.', ['gitlab']],
     ['jenkins', 'Jenkins', 'Automatización extensible y autogestionada.', ['self-hosted']],
@@ -330,6 +332,7 @@ const catalogItems: CatalogItem[] = [
     ['argocd', 'Argo CD', 'Entrega GitOps para Kubernetes.', ['gitops', 'kubernetes']],
   ]),
   ...makeItems('infrastructure', [
+    ['none', 'Ninguno', 'La infraestructura se gestiona manualmente o no aplica.', ['meta']],
     ['terraform', 'Terraform/OpenTofu', 'Infraestructura declarativa multi-cloud.', ['iac']],
     ['pulumi', 'Pulumi', 'Infraestructura como código con lenguajes generales.', ['iac']],
     ['cloudformation', 'AWS CloudFormation/CDK', 'Infraestructura nativa de AWS.', ['aws', 'iac']],
@@ -340,6 +343,7 @@ const catalogItems: CatalogItem[] = [
     ['nixos', 'NixOS/Nix', 'Configuración reproducible de sistemas.', ['configuration', 'reproducible']],
   ]),
   ...makeItems('container', [
+    ['none', 'Ninguno', 'El proyecto no utiliza contenedores ni orquestación.', ['meta']],
     ['docker', 'Docker', 'Empaquetado reproducible en contenedores.', ['container']],
     ['docker-compose', 'Docker Compose', 'Orquestación local y de servidor simple.', ['container']],
     ['kubernetes', 'Kubernetes', 'Orquestación de workloads distribuidos.', ['orchestration']],
@@ -356,6 +360,7 @@ const catalogItems: CatalogItem[] = [
     ['argocd-deploy', 'Argo CD', 'Despliegue GitOps continuo.', ['gitops', 'kubernetes']],
   ]),
   ...makeItems('cloud', [
+    ['local', 'Local (sin despliegue remoto)', 'Ejecución local sin proveedor cloud.', ['meta']],
     ['aws-ec2', 'AWS EC2', 'Máquinas virtuales administradas por el equipo.', ['aws', 'vm'], ['production']],
     ['aws-ecs', 'AWS ECS/Fargate', 'Contenedores administrados en AWS.', ['aws', 'container']],
     ['aws-eks', 'AWS EKS', 'Kubernetes administrado en AWS.', ['aws', 'kubernetes']],
@@ -421,6 +426,7 @@ const catalogItems: CatalogItem[] = [
     ['vps', 'VPS/servidor propio', 'Servidor Linux administrado por el equipo.', ['vm', 'self-hosted']],
   ]),
   ...makeItems('observability', [
+    ['none', 'Ninguno', 'El proyecto no utiliza herramientas de observabilidad actualmente.', ['meta']],
     ['opentelemetry', 'OpenTelemetry', 'Instrumentación estándar de métricas, logs y trazas.', ['telemetry']],
     ['prometheus-grafana', 'Prometheus + Grafana', 'Métricas y visualización open-source.', ['metrics']],
     ['cloudwatch', 'AWS CloudWatch', 'Observabilidad nativa de AWS.', ['aws']],
@@ -572,6 +578,7 @@ export function getCatalogItem(id: string): CatalogItem | undefined {
 }
 
 export function isCatalogItemFor(id: string, categories: string[]): boolean {
+  if (id === 'none') return true;
   if (id.startsWith('custom:')) return /^custom:[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id);
   const item = itemIndex.get(id);
   return !!item && categories.includes(item.category);

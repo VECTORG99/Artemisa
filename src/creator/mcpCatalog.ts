@@ -35,7 +35,7 @@ export interface McpCatalogItem {
   sourceUrl: string;
 }
 
-const MCP_CATALOG_VERSION = '1.2.0';
+const MCP_CATALOG_VERSION = '1.3.0';
 
 export const mcpCatalog: McpCatalogItem[] = [
   {
@@ -831,6 +831,44 @@ export const mcpCatalog: McpCatalogItem[] = [
     official: false,
     tags: ['contentful', 'cms', 'headless'],
     sourceUrl: 'https://mcpservers.org/es/servers/contentful-mcp-server',
+  },
+  // ─── file-system (+2) ───────────────────────────────────────────────
+  {
+    id: 'filesystem-mcp-server',
+    name: 'Filesystem MCP',
+    description: 'Lectura, escritura y navegación de archivos y directorios locales con sandbox configurable.',
+    category: 'file-system',
+    official: true,
+    tags: ['filesystem', 'files', 'local'],
+    sourceUrl: 'https://mcpservers.org/es/servers/filesystem-mcp-server',
+  },
+  {
+    id: 'terminal-mcp-server',
+    name: 'Terminal MCP',
+    description: 'Ejecución de comandos de terminal con sandboxing, allowlists y captura de salida.',
+    category: 'file-system',
+    official: false,
+    tags: ['terminal', 'shell', 'commands'],
+    sourceUrl: 'https://mcpservers.org/es/servers/terminal-mcp-server',
+  },
+  // ─── communication (+2) ─────────────────────────────────────────────
+  {
+    id: 'twilio-mcp-server',
+    name: 'Twilio MCP',
+    description: 'Envío de SMS, llamadas de voz, verificación y gestión de comunicaciones programáticas.',
+    category: 'communication',
+    official: false,
+    tags: ['twilio', 'sms', 'voice'],
+    sourceUrl: 'https://mcpservers.org/es/servers/twilio-mcp-server',
+  },
+  {
+    id: 'sendgrid-mcp-server',
+    name: 'SendGrid MCP',
+    description: 'Envío de emails transaccionales y marketing con templates, analytics y listas de contactos.',
+    category: 'communication',
+    official: false,
+    tags: ['sendgrid', 'email', 'transactional'],
+    sourceUrl: 'https://mcpservers.org/es/servers/sendgrid-mcp-server',
   },
 ];
 

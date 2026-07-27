@@ -38,7 +38,7 @@ jobs:
         with:
           context: .
           file: Dockerfile.backend
-          tags: huascar-backend:test
+          tags: artemisa-backend:test
           load: true
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
@@ -50,7 +50,7 @@ jobs:
           # workspaces), not just the frontend/ subdirectory.
           context: .
           file: Dockerfile.frontend
-          tags: huascar-frontend:test
+          tags: artemisa-frontend:test
           load: true
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
@@ -60,14 +60,14 @@ jobs:
         with:
           context: .
           file: Dockerfile.agent-creator
-          tags: huascar-creator:test
+          tags: artemisa-creator:test
           load: true
           cache-from: type=gha,scope=agent-creator
           cache-to: type=gha,mode=max,scope=agent-creator
         continue-on-error: true
       - name: Verify backend starts
         run: |
-          docker run -d --name test-backend -e AUTH_REQUIRED=false -p 3001:3001 huascar-backend:test
+          docker run -d --name test-backend -e AUTH_REQUIRED=false -p 3001:3001 artemisa-backend:test
           for i in $(seq 1 30); do
             if curl -sf http://localhost:3001/api/health > /dev/null 2>&1; then
               echo "Backend healthy after ${i}s"

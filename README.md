@@ -1,13 +1,13 @@
-# Huascar
+# Artemisa
 
-[CI](https://github.com/VECTORG99/Huascar/actions/workflows/ci.yml) | [License](LICENSE) | [Homepage](https://huascar.vercel.app)
+[CI](https://github.com/VECTORG99/Artemisa/actions/workflows/ci.yml) | [License](LICENSE) | [Homepage](https://artemisa.vercel.app)
 
 > Construido para el Hackathon Kiro x Código Facilito 2026.
 > Documentación en español. Lectores LLM: leer AGENTS.md y CONTEXT.md para el contexto completo del proyecto.
 
 **Generador open-source de archivos de configuración para agentes de desarrollo y operación. Diseña mediante un árbol de decisiones, genera el bundle y explica por qué fue construido así.**
 
-Huascar **sólo genera archivos de configuración** (Markdown + JSON). No ejecuta, no despliega, no hostea agentes. El Runtime anterior (motor ReAct, LLM, RAG, MCP, SQLite) se eliminó en el issue #584 — ver [ADR-0008](docs/adr/0008-remove-runtime-generator-only.md).
+Artemisa **sólo genera archivos de configuración** (Markdown + JSON). No ejecuta, no despliega, no hostea agentes. El Runtime anterior (motor ReAct, LLM, RAG, MCP, SQLite) se eliminó en el issue #584 — ver [ADR-0008](docs/adr/0008-remove-runtime-generator-only.md).
 
 El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no modifica el proyecto del usuario. Sus preguntas, recomendaciones y artefactos son deterministas y auditables.
 
@@ -23,7 +23,7 @@ El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no 
 - Árbol de decisiones **stateless** de 32 preguntas (28 obligatorias, 4 opcionales) con ramas diferentes para desarrollo y producción.
 - Recomendaciones explicables con evidencia, beneficios, trade-offs y alternativas.
 - Preview de un bundle con blueprint, manifest, hashes SHA-256, instalación y justificación.
-- Generación condicional de Huascar, RAG, PR review, `AGENTS.md`, hooks, skills y configuración Kiro.
+- Generación condicional de Artemisa, RAG, PR review, `AGENTS.md`, hooks, skills y configuración Kiro.
 - Tutorial ficticio y skippable disponible como contenido de API.
 - Pruebas unitarias e integración para ramas, validación, determinismo y contrato HTTP.
 
@@ -56,7 +56,7 @@ El Creator no usa un LLM para decidir la arquitectura, no ejecuta comandos y no 
       ├─ desarrollo / producción / ambos
       ├─ DevOps, cloud y observabilidad
       ├─ permisos, conocimiento y PR review
-      └─ Huascar / Kiro / Portable
+      └─ Artemisa / Kiro / Portable
       ↓
 [Recomendaciones explicables]
       ↓
@@ -82,7 +82,7 @@ La entrada con cuenta permitirá guardar agentes, versionarlos y compartirlos. N
 1. definir un resultado verificable;
 2. separar reglas, documentación y datos vivos;
 3. conceder permisos mínimos;
-4. elegir artefactos Huascar, Kiro o portables.
+4. elegir artefactos Artemisa, Kiro o portables.
 
 El tutorial se puede omitir sin crear estado en el backend.
 
@@ -102,7 +102,7 @@ El árbol pregunta por:
 - capacidades y autonomía del agente;
 - RAG y fuentes de conocimiento;
 - PR review y criterios de revisión;
-- destinos Huascar, Kiro y portable;
+- destinos Artemisa, Kiro y portable;
 - hooks y skills.
 
 Todas las selecciones de catálogo aceptan `custom:<slug>`. Una opción custom se conserva en el blueprint y genera una advertencia de adaptador pendiente; `WHY.md` documenta las decisiones custom que forman parte de sus secciones explicativas.
@@ -125,27 +125,27 @@ Cada recomendación incluye motivo, evidencia usada, beneficios, trade-offs y al
 
 Siempre se generan:
 
-| Archivo                  | Función                                                     |
-| ------------------------ | ----------------------------------------------------------- |
-| `huascar.blueprint.json` | Modelo canónico de todas las decisiones.                    |
-| `manifest.json`          | Inventario de archivos y hashes SHA-256.                    |
-| `docs/INSTALL.md`        | Tutorial para aplicar y validar el agente.                  |
-| `docs/WHY.md`            | Explicación del objetivo, stack, entorno y recomendaciones. |
+| Archivo                   | Función                                                     |
+| ------------------------- | ----------------------------------------------------------- |
+| `artemisa.blueprint.json` | Modelo canónico de todas las decisiones.                    |
+| `manifest.json`           | Inventario de archivos y hashes SHA-256.                    |
+| `docs/INSTALL.md`         | Tutorial para aplicar y validar el agente.                  |
+| `docs/WHY.md`             | Explicación del objetivo, stack, entorno y recomendaciones. |
 
 Según las respuestas se agregan:
 
-| Condición                           | Artefactos                                                                      |
-| ----------------------------------- | ------------------------------------------------------------------------------- |
-| Desarrollo, Kiro o portable         | `AGENTS.md`                                                                     |
-| Skills activadas                    | `skills/<agente>/SKILL.md`                                                      |
-| Target Huascar                      | `huascar/steering.json`, `security-policy.json`, `governance.json`, `mcps.json` |
-| Target Huascar + RAG activado       | `huascar/rag.json`                                                              |
-| Target Huascar + PR review activado | `huascar/pr-review.json`                                                        |
-| Target Kiro                         | `.kiro/steering/<agente>.md`                                                    |
-| Kiro + hooks                        | `.kiro/hooks/<agente>-quality.json`                                             |
-| Kiro + skills                       | `.kiro/skills/<agente>/SKILL.md`                                                |
+| Condición                            | Artefactos                                                                       |
+| ------------------------------------ | -------------------------------------------------------------------------------- |
+| Desarrollo, Kiro o portable          | `AGENTS.md`                                                                      |
+| Skills activadas                     | `skills/<agente>/SKILL.md`                                                       |
+| Target Artemisa                      | `artemisa/steering.json`, `security-policy.json`, `governance.json`, `mcps.json` |
+| Target Artemisa + RAG activado       | `artemisa/rag.json`                                                              |
+| Target Artemisa + PR review activado | `artemisa/pr-review.json`                                                        |
+| Target Kiro                          | `.kiro/steering/<agente>.md`                                                     |
+| Kiro + hooks                         | `.kiro/hooks/<agente>-quality.json`                                              |
+| Kiro + skills                        | `.kiro/skills/<agente>/SKILL.md`                                                 |
 
-El bundle se devuelve como JSON. Huascar no escribe estos archivos automáticamente: el usuario debe revisarlos y copiarlos al proyecto destino. Para aplicarlos de forma segura, ver [`docs/reference/`](docs/reference/README.md): guías de `security-policy.json`, `steering.json` y la implementación de referencia de hooks.
+El bundle se devuelve como JSON. Artemisa no escribe estos archivos automáticamente: el usuario debe revisarlos y copiarlos al proyecto destino. Para aplicarlos de forma segura, ver [`docs/reference/`](docs/reference/README.md): guías de `security-policy.json`, `steering.json` y la implementación de referencia de hooks.
 
 ---
 
@@ -175,7 +175,7 @@ Prioriza:
 - logs, métricas, trazas, alertas y límites de costo;
 - timeout, rate limiting y auditoría de herramientas.
 
-Para EC2, Huascar recomienda documentar además el proceso de servicio, parcheo, acceso mediante SSM/IAM, CloudWatch, persistencia y recuperación. El preview **no despliega** en EC2 ni en otro proveedor.
+Para EC2, Artemisa recomienda documentar además el proceso de servicio, parcheo, acceso mediante SSM/IAM, CloudWatch, persistencia y recuperación. El preview **no despliega** en EC2 ni en otro proveedor.
 
 ---
 
@@ -206,7 +206,7 @@ Para EC2, Huascar recomienda documentar además el proceso de servicio, parcheo,
 - El mismo input produce el mismo blueprint, contenido y hash.
 - Escala horizontalmente sin coordinar sesiones ni compartir estado.
 
-### Por qué Huascar sólo genera y no ejecuta
+### Por qué Artemisa sólo genera y no ejecuta
 
 Generar configuración no debe iniciar procesos, llamar un LLM, cargar archivos, consultar URLs ni usar credenciales. El preview es una compilación pura. Ejecutar un agente requiere controles de autenticación, sandbox, autorización, cuotas y auditoría que están fuera del alcance de un generador. Quien aplique el bundle es responsable de esos controles; `docs/reference/` documenta cómo.
 
@@ -218,6 +218,62 @@ Base URL:
 
 ```text
 /api/v1/creator
+```
+
+### Autenticacion del Creator
+
+En produccion la autenticacion esta activa con `AUTH_REQUIRED=true` (ver `render.yaml`).
+Configura `ARTEMISA_API_KEYS` como una lista separada por comas y no commitees claves
+reales en `.env`, ejemplos, logs ni documentacion.
+
+```bash
+AUTH_REQUIRED=true
+ARTEMISA_API_KEYS=dev-key-1,ops-key-2
+```
+
+Las rutas protegidas aceptan cualquiera de estos headers:
+
+```bash
+curl -X POST http://localhost:3001/api/v1/creator/generate \
+  -H "Authorization: Bearer dev-key-1" \
+  -H "Content-Type: application/json" \
+  -d '{"answers":{}}'
+
+curl -X POST http://localhost:3001/api/v1/creator/preview \
+  -H "X-API-Key: dev-key-1" \
+  -H "Content-Type: application/json" \
+  -d '{"answers":{}}'
+```
+
+Rutas publicas del Creator, montadas antes de `requireAuth` y disponibles sin API key:
+
+| Ruta              | Metodo |
+| ----------------- | ------ |
+| `/catalog`        | GET    |
+| `/workflow`       | GET    |
+| `/tutorial`       | GET    |
+| `/skills`         | GET    |
+| `/mcps`           | GET    |
+| `/models`         | GET    |
+| `/docs`           | GET    |
+| `/agent`          | GET    |
+| `/agent/start`    | GET    |
+| `/agent/answer`   | POST   |
+| `/agent/generate` | POST   |
+| `/startup`        | GET    |
+
+Rutas protegidas del Creator, montadas despues de `requireAuth`:
+
+| Ruta        | Metodo |
+| ----------- | ------ |
+| `/evaluate` | POST   |
+| `/preview`  | POST   |
+| `/generate` | POST   |
+
+Para desarrollo local puedes desactivar auth:
+
+```bash
+AUTH_REQUIRED=false
 ```
 
 ### `GET /catalog`
@@ -363,7 +419,7 @@ Los esquemas JSON que validan estos archivos siguen en `src/kiro/schemas/` porqu
 
 ## Quick start
 
-Web app: https://huascar.vercel.app
+Web app: https://artemisa.vercel.app
 
 ### Backend
 
@@ -387,7 +443,7 @@ curl http://localhost:3001/api/v1/creator/workflow
 curl http://localhost:3001/api/v1/creator/tutorial
 ```
 
-> El backend no requiere `OPENAI_API_KEY`, base de datos ni disco persistente. Sólo necesita `HUASCAR_API_KEYS` y `BYPASS_SECRET` en producción (ver [`docs/deployment.md`](docs/deployment.md)).
+> El backend no requiere `OPENAI_API_KEY`, base de datos ni disco persistente. Sólo necesita `ARTEMISA_API_KEYS` y `BYPASS_SECRET` en producción (ver [`docs/deployment.md`](docs/deployment.md)).
 
 ### Frontend
 
@@ -423,7 +479,7 @@ La suite cubre:
 - catálogo, búsqueda y opciones custom;
 - progreso y ramas desarrollo/producción;
 - recomendaciones explicables;
-- generación Huascar, Kiro y portable;
+- generación Artemisa, Kiro y portable;
 - RAG, PR review, hooks, skills y `AGENTS.md`;
 - determinismo y hashes;
 - árbol incompleto y secretos literales;
@@ -488,7 +544,7 @@ test/
 - [ ] Servicio de ejecución separado y security-reviewed (sandbox, autorización, cuotas, audit).
 - [ ] Despliegue controlado en EC2, contenedores y Kubernetes.
 
-> Huascar no ejecuta agentes. La ejecución segura requiere un servicio aparte con sandboxing, autorización, cuotas y auditoría — fuera del alcance del generador (ADR-0008).
+> Artemisa no ejecuta agentes. La ejecución segura requiere un servicio aparte con sandboxing, autorización, cuotas y auditoría — fuera del alcance del generador (ADR-0008).
 
 ---
 

@@ -34,7 +34,7 @@ interface SecurityPolicy {
 // --- Policy Loading (fail-closed) ---
 
 function loadPolicy(): SecurityPolicy {
-  const policyPath = process.env.SECURITY_POLICY_PATH || path.resolve('./huascar/security-policy.json');
+  const policyPath = process.env.SECURITY_POLICY_PATH || path.resolve('./artemisa/security-policy.json');
   try {
     const raw = JSON.parse(fs.readFileSync(policyPath, 'utf8'));
     if (!raw.version || !raw.allowed_commands?.entries) {

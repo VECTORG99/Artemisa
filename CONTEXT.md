@@ -1,4 +1,4 @@
-# Huascar Project Context
+# Artemisa Project Context
 
 Updated: 2026-07-26
 
@@ -11,7 +11,7 @@ Updated: 2026-07-26
 - No persistence: no database, no filesystem writes, no network calls during generation. Every request is a pure function of its body.
 - Backend runtime dependencies are `express`, `helmet`, `cors`, `compression`, `express-rate-limit`, `pino`, `dotenv`. There is no `better-sqlite3`, `ai`, `@ai-sdk/*` or `@modelcontextprotocol/sdk`.
 - Reference artifacts rescued from the deleted runtime live in `docs/reference/`: `steering-roles.json` (the 7 curated roles), `security-policy.example.json`, `hooks-implementation.ts`, `mcps.example.json`, `rag.example.json`, `prompts/`, plus `security-policy-guide.md` and `steering-roles-guide.md`. They are documentation, never loaded by the server.
-- Auth is environment-driven in `src/middleware/auth.ts`: `AUTH_REQUIRED=false` for local development; `AUTH_REQUIRED=true` requires `HUASCAR_API_KEYS` through `Authorization: Bearer` or `X-API-Key`, and fails closed when keys are missing.
+- Auth is environment-driven in `src/middleware/auth.ts`: `AUTH_REQUIRED=false` for local development; `AUTH_REQUIRED=true` requires `ARTEMISA_API_KEYS` through `Authorization: Bearer` or `X-API-Key`, and fails closed when keys are missing.
 
 ## What Works
 
@@ -34,7 +34,7 @@ Updated: 2026-07-26
 ## Known Limitations
 
 - No accounts, no saved blueprints, no revision history: drafts live only in the browser's `sessionStorage`.
-- Huascar does not apply the bundle. The user copies files into the target project manually and reviews them.
+- Artemisa does not apply the bundle. The user copies files into the target project manually and reviews them.
 - Applying a generated `security-policy.json` requires the consumer to implement enforcement; `docs/reference/security-policy-guide.md` documents how, with `hooks-implementation.ts` as the reference.
 - `custom:<slug>` answers are preserved in the blueprint but produce an "adapter pending" warning; no adapter is generated.
 - Preview is capped at 40 files and 256 KB, and HTTP bodies at 128 KB.
@@ -70,7 +70,7 @@ src/server.ts
 frontend/src/app/agents/new/page.tsx
   -> frontend/src/lib/api.ts        (only /api/v1/creator/*)
   -> frontend/src/features/creator/*
-  -> packages/types                 (@huascar/types)
+  -> packages/types                 (@artemisa/types)
 
 docs/reference/*                     (documentation only, not imported)
 ```

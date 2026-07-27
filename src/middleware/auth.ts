@@ -3,10 +3,10 @@ import crypto from 'crypto';
 import { logger } from '../logger.js';
 
 /**
- * Authentication middleware for the Huascar API.
+ * Authentication middleware for the Artemisa API.
  *
  * Supports Bearer token auth via Authorization header or X-API-Key header.
- * API keys are configured via HUASCAR_API_KEYS env var (comma-separated).
+ * API keys are configured via ARTEMISA_API_KEYS env var (comma-separated).
  *
  * When AUTH_REQUIRED=false (default for development), auth is optional.
  * When AUTH_REQUIRED=true (production), all protected routes require a valid key.
@@ -15,7 +15,7 @@ import { logger } from '../logger.js';
 const AUTH_REQUIRED = process.env.AUTH_REQUIRED !== 'false';
 
 // Load API keys from environment — comma-separated list
-const API_KEYS = (process.env.HUASCAR_API_KEYS || '')
+const API_KEYS = (process.env.ARTEMISA_API_KEYS || '')
   .split(',')
   .map((k) => k.trim())
   .filter((k) => k.length > 0);
@@ -24,11 +24,13 @@ const API_KEYS = (process.env.HUASCAR_API_KEYS || '')
 if (AUTH_REQUIRED && API_KEYS.length === 0) {
   const isProduction = (process.env.NODE_ENV || '').toLowerCase() === 'production';
   if (isProduction) {
-    logger.fatal('AUTH_REQUIRED=true but no HUASCAR_API_KEYS configured — cannot start in production without API keys');
+    logger.fatal(
+      'AUTH_REQUIRED=true but no ARTEMISA_API_KEYS configured — cannot start in production without API keys',
+    );
     process.exit(1);
   } else {
     logger.warn(
-      'AUTH_REQUIRED is enabled but no HUASCAR_API_KEYS configured — set AUTH_REQUIRED=false for local development or configure keys',
+      'AUTH_REQUIRED is enabled but no ARTEMISA_API_KEYS configured — set AUTH_REQUIRED=false for local development or configure keys',
     );
   }
 }
@@ -38,11 +40,11 @@ if (AUTH_REQUIRED && API_KEYS.length === 0) {
  * preventing key length oracle attacks via timing differences.
  * Returns the key index (tenant identifier) or -1 if invalid. */
 function findValidKeyIndex(provided: string): number {
-  const providedHash = crypto.createHmac('sha256', 'huascar-auth').update(provided).digest();
+  const providedHash = crypto.createHmac('sha256', 'artemisa-auth').update(provided).digest();
   let foundIndex = -1;
   for (let i = 0; i < API_KEYS.length; i++) {
     const key = API_KEYS[i]!;
-    const keyHash = crypto.createHmac('sha256', 'huascar-auth').update(key).digest();
+    const keyHash = crypto.createHmac('sha256', 'artemisa-auth').update(key).digest();
     if (crypto.timingSafeEqual(providedHash, keyHash)) {
       foundIndex = i;
     }
@@ -89,7 +91,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
 
   // Fail closed: production auth misconfiguration must not allow protected requests.
   if (API_KEYS.length === 0) {
-    logger.error('AUTH_REQUIRED=true but no HUASCAR_API_KEYS configured');
+    logger.error('AUTH_REQUIRED=true but no ARTEMISA_API_KEYS configured');
     res.status(500).json({ error: 'Authentication misconfigured', code: 'AUTH_MISCONFIGURED' });
     return;
   }

@@ -23,7 +23,7 @@ export interface SkillCatalogItem {
   sourceName: string;
 }
 
-const SKILLS_CATALOG_VERSION = '2.0.0';
+const SKILLS_CATALOG_VERSION = '2.1.0';
 
 export const skillsCatalog: SkillCatalogItem[] = [
   // ─── Development ────────────────────────────────────────────────────────────
@@ -160,6 +160,25 @@ export const skillsCatalog: SkillCatalogItem[] = [
     focus: 'development',
     tags: ['backend', 'services', 'scalability'],
     sourceUrl: 'https://github.com/theneoai/awesome-skills/tree/main/skills/persona/enterprise',
+    sourceName: 'awesome-skills',
+  },
+  {
+    id: 'pr-review',
+    name: 'PR Review',
+    description:
+      'Revisa pull requests evaluando correctitud, seguridad, performance, tests y adherencia a estándares del equipo.',
+    focus: 'development',
+    tags: ['pull-request', 'review', 'quality-gate'],
+    sourceUrl: 'https://github.com/theneoai/awesome-skills/tree/main/skills/workflow/engineering',
+    sourceName: 'awesome-skills',
+  },
+  {
+    id: 'deploy-automation',
+    name: 'Deploy Automation',
+    description: 'Automatiza deploys con validaciones pre/post, rollback y notificaciones al equipo.',
+    focus: 'development',
+    tags: ['deploy', 'automation', 'ci-cd'],
+    sourceUrl: 'https://github.com/theneoai/awesome-skills/tree/main/skills/workflow/engineering',
     sourceName: 'awesome-skills',
   },
 
@@ -533,6 +552,26 @@ export const skillsCatalog: SkillCatalogItem[] = [
     focus: 'documentation',
     tags: ['knowledge-base', 'sync', 'drift-detection'],
     sourceUrl: 'https://github.com/theneoai/awesome-skills/tree/main/skills/workflow/meta',
+    sourceName: 'awesome-skills',
+  },
+  {
+    id: 'user-communication',
+    name: 'User Communication',
+    description:
+      'Redacta comunicaciones claras para usuarios: release notes, avisos de mantenimiento, guías de migración y respuestas a feedback.',
+    focus: 'documentation',
+    tags: ['communication', 'users', 'release-notes'],
+    sourceUrl: 'https://github.com/theneoai/awesome-skills/tree/main/skills/workflow/engineering',
+    sourceName: 'awesome-skills',
+  },
+  {
+    id: 'runbook-authoring',
+    name: 'Runbook Authoring',
+    description:
+      'Documenta procedimientos operativos paso a paso con condiciones de entrada, validaciones y escalamiento.',
+    focus: 'documentation',
+    tags: ['runbooks', 'operations', 'procedures'],
+    sourceUrl: 'https://github.com/theneoai/awesome-skills/tree/main/skills/workflow/engineering',
     sourceName: 'awesome-skills',
   },
 ];

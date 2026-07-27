@@ -37,6 +37,23 @@ describe('Skills catalog', () => {
     const item = getSkillById('no-existe');
     assert.strictEqual(item, undefined);
   });
+
+  it('has PR review skill (#647)', () => {
+    const item = getSkillById('pr-review');
+    assert.ok(item);
+    assert.strictEqual(item.focus, 'development');
+  });
+
+  it('has user communication skill (#647)', () => {
+    const item = getSkillById('user-communication');
+    assert.ok(item);
+    assert.strictEqual(item.focus, 'documentation');
+  });
+
+  it('has no duplicate ids', () => {
+    const ids = skillsCatalog.map((item) => item.id);
+    assert.strictEqual(ids.length, new Set(ids).size, 'Skills catalog must not have duplicate ids');
+  });
 });
 
 describe('MCP catalog', () => {
@@ -67,5 +84,23 @@ describe('MCP catalog', () => {
   it('getMcpById returns undefined for a nonexistent id', () => {
     const item = getMcpById('no-existe');
     assert.strictEqual(item, undefined);
+  });
+
+  it('has file-system category entries (#647)', () => {
+    const result = getMcpCatalog({ category: 'file-system' });
+    assert.ok(result.items.length >= 2, 'should have filesystem and terminal MCPs');
+    assert.ok(result.items.some((item) => item.id === 'filesystem-mcp-server'));
+    assert.ok(result.items.some((item) => item.id === 'terminal-mcp-server'));
+  });
+
+  it('has communication MCPs including twilio and sendgrid (#647)', () => {
+    const result = getMcpCatalog({ category: 'communication' });
+    assert.ok(result.items.some((item) => item.id === 'twilio-mcp-server'));
+    assert.ok(result.items.some((item) => item.id === 'sendgrid-mcp-server'));
+  });
+
+  it('has no duplicate ids', () => {
+    const ids = mcpCatalog.map((item) => item.id);
+    assert.strictEqual(ids.length, new Set(ids).size, 'MCP catalog must not have duplicate ids');
   });
 });

@@ -10,7 +10,7 @@ const json = { type: 'object', additionalProperties: true };
 const openApiSpec = {
   openapi: '3.1.0',
   info: {
-    title: 'Huascar API',
+    title: 'Artemisa API',
     version: '0.1.0',
   },
   paths: {

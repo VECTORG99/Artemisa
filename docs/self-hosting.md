@@ -1,6 +1,6 @@
 # Self-Hosting Guide
 
-> Huascar only generates configuration files. The backend is a stateless Express server — no database, no LLM API keys, no persistent disk, no MCP connections. This makes self-hosting significantly simpler than the previous Runtime-based deployment.
+> Artemisa only generates configuration files. The backend is a stateless Express server — no database, no LLM API keys, no persistent disk, no MCP connections. This makes self-hosting significantly simpler than the previous Runtime-based deployment.
 
 ---
 
@@ -17,8 +17,8 @@
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/VECTORG99/Huascar
-cd Huascar
+git clone https://github.com/VECTORG99/Artemisa
+cd Artemisa
 npm ci          # from the root only (npm workspaces)
 cp .env.example .env
 ```
@@ -30,7 +30,7 @@ Edit `.env` with production values:
 ```bash
 # Required for production
 AUTH_REQUIRED=true
-HUASCAR_API_KEYS=generate-a-long-random-key-here
+ARTEMISA_API_KEYS=generate-a-long-random-key-here
 BYPASS_SECRET=another-long-random-string
 METRICS_SECRET=yet-another-long-random-string
 
@@ -46,7 +46,7 @@ LOG_LEVEL=info
 Generate secure keys:
 
 ```bash
-openssl rand -hex 32    # use for HUASCAR_API_KEYS, BYPASS_SECRET, METRICS_SECRET
+openssl rand -hex 32    # use for ARTEMISA_API_KEYS, BYPASS_SECRET, METRICS_SECRET
 ```
 
 ### 3. Build and start
@@ -67,18 +67,18 @@ curl http://localhost:3001/api/health
 
 ## systemd service
 
-Create `/etc/systemd/system/huascar.service`:
+Create `/etc/systemd/system/artemisa.service`:
 
 ```ini
 [Unit]
-Description=Huascar Backend (Creator)
+Description=Artemisa Backend (Creator)
 After=network.target
 
 [Service]
 Type=simple
-User=huascar
-WorkingDirectory=/opt/huascar
-EnvironmentFile=/opt/huascar/.env
+User=artemisa
+WorkingDirectory=/opt/artemisa
+EnvironmentFile=/opt/artemisa/.env
 ExecStart=/usr/bin/node --import tsx/esm src/server.ts
 Restart=always
 RestartSec=5
@@ -88,7 +88,7 @@ NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
-ReadWritePaths=/opt/huascar
+ReadWritePaths=/opt/artemisa
 
 [Install]
 WantedBy=multi-user.target
@@ -96,9 +96,9 @@ WantedBy=multi-user.target
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable huascar
-sudo systemctl start huascar
-sudo systemctl status huascar
+sudo systemctl enable artemisa
+sudo systemctl start artemisa
+sudo systemctl status artemisa
 ```
 
 ---
@@ -165,13 +165,13 @@ npm run start
 ## Docker (self-hosted)
 
 ```bash
-docker build -f Dockerfile.backend -t huascar-backend .
+docker build -f Dockerfile.backend -t artemisa-backend .
 docker run -d \
-  --name huascar \
+  --name artemisa \
   -p 127.0.0.1:3001:3001 \
   --env-file .env \
   --restart unless-stopped \
-  huascar-backend
+  artemisa-backend
 ```
 
 No volume mounts needed — the Creator is stateless.
@@ -204,7 +204,7 @@ RestartSec=10
 
 ## Security checklist
 
-- [ ] `AUTH_REQUIRED=true` with a strong `HUASCAR_API_KEYS`
+- [ ] `AUTH_REQUIRED=true` with a strong `ARTEMISA_API_KEYS`
 - [ ] `BYPASS_SECRET` set (emergency override, auto-redacted from logs)
 - [ ] `METRICS_SECRET` set (protects `/api/metrics`)
 - [ ] `CORS_ALLOWED_ORIGINS` lists only your frontend origins
@@ -223,7 +223,7 @@ Because the Runtime was removed (#584, ADR-0008):
 - ❌ No SQLite database or persistent disk
 - ❌ No MCP server connections
 - ❌ No RAG vector index
-- ❌ No `HUASCAR_DB_PATH`
+- ❌ No `ARTEMISA_DB_PATH`
 - ❌ No database migrations or init scripts
 - ❌ No backup strategy for runtime state
 

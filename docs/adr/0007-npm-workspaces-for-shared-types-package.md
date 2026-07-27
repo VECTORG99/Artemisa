@@ -7,7 +7,7 @@ Accepted
 ## Context
 
 - The repo previously kept backend, `frontend/`, and `agent-creator/` as separate install domains (no longer the case).
-- `packages/types` (`@huascar/types`) now exists as a shared TypeScript types package consumed by both the backend and `frontend/`.
+- `packages/types` (`@artemisa/types`) now exists as a shared TypeScript types package consumed by both the backend and `frontend/`.
 - Root `package.json` currently declares `"workspaces": ["packages/*", "frontend", "agent-creator"]`.
 - `agent-creator/` still keeps its own `package-lock.json` history but is hoisted through the root workspace install; `frontend/` no longer keeps its own lockfile (removed in the same change that introduced workspaces).
 - `npm ci` must run from the repo root to install all workspaces; `npm --prefix <app> ci` fails because per-app lockfiles are no longer authoritative. `npm --prefix <app> run <script>` still works for build/dev/test scripts.

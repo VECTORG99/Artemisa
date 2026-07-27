@@ -35,13 +35,13 @@ describe('creator draft persistence', () => {
   });
 
   it('survives corrupt storage instead of throwing', () => {
-    window.sessionStorage.setItem('huascar.creator.draft.v1', '{not json');
+    window.sessionStorage.setItem('artemisa.creator.draft.v1', '{not json');
     expect(loadDraft(VERSION)).toBeNull();
   });
 
   it('drops answer values that are not valid creator types', () => {
     window.sessionStorage.setItem(
-      'huascar.creator.draft.v1',
+      'artemisa.creator.draft.v1',
       JSON.stringify({
         workflowVersion: VERSION,
         mode: 'auto-corto',
@@ -58,7 +58,7 @@ describe('creator draft persistence', () => {
 
   it('rejects an unknown mode', () => {
     window.sessionStorage.setItem(
-      'huascar.creator.draft.v1',
+      'artemisa.creator.draft.v1',
       JSON.stringify({ workflowVersion: VERSION, mode: 'telepathy', answers: {} }),
     );
     expect(loadDraft(VERSION)?.mode).toBeNull();

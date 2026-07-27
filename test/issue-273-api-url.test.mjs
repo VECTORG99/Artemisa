@@ -8,7 +8,7 @@ describe('Issue #273: Frontend API URL safe default', () => {
     const api = fs.readFileSync('frontend/src/lib/api.ts', 'utf8');
     assert.match(api, /NEXT_PUBLIC_API_URL.*\|\|.*['"]http:\/\/localhost:3001['"]/);
     assert.doesNotMatch(api, /onrender\.com/);
-    assert.doesNotMatch(api, /huascar\./);
+    assert.doesNotMatch(api, /artemisa\./);
   });
 
   it('warns in development if API URL is non-local', () => {

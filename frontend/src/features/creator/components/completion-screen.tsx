@@ -19,7 +19,7 @@ import {
 import { glassButton, glassCard, glassNotice, glassPill, glassPrimaryButton } from '@/lib/glass';
 import { downloadFile } from '@/lib/utils';
 import { detectArtifactLanguage, highlightArtifact } from '@/features/creator/lib/artifact-highlight';
-import type { ArtifactKind, GeneratedAgentBundle, GeneratedArtifact } from '@huascar/types';
+import type { ArtifactKind, GeneratedAgentBundle, GeneratedArtifact } from '@artemisa/types';
 
 interface CompletionScreenProps {
   bundle: GeneratedAgentBundle;
@@ -78,12 +78,12 @@ function downloadArtifact(artifact: GeneratedArtifact) {
 }
 
 function downloadBundleJson(bundle: GeneratedAgentBundle) {
-  downloadFile('huascar-bundle.json', JSON.stringify(bundle, null, 2), 'application/json');
+  downloadFile('artemisa-bundle.json', JSON.stringify(bundle, null, 2), 'application/json');
 }
 
 /**
  * Downloads every artifact as a single .zip preserving the relative paths
- * declared by the generator (e.g. `huascar/steering.json`, `docs/INSTALL.md`).
+ * declared by the generator (e.g. `artemisa/steering.json`, `docs/INSTALL.md`).
  * The manifest and blueprint are included at the root so the user can verify
  * integrity after extraction.
  */
@@ -93,12 +93,12 @@ async function downloadBundleZip(bundle: GeneratedAgentBundle) {
     zip.file(artifact.path, artifact.content);
   }
   zip.file('manifest.json', JSON.stringify(bundle.manifest, null, 2));
-  zip.file('huascar.blueprint.json', JSON.stringify(bundle.blueprint, null, 2));
+  zip.file('artemisa.blueprint.json', JSON.stringify(bundle.blueprint, null, 2));
   const blob = await zip.generateAsync({ type: 'blob' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${bundle.blueprint?.identity?.name?.toLowerCase().replace(/\s+/g, '-') ?? 'huascar-agent'}.zip`;
+  link.download = `${bundle.blueprint?.identity?.name?.toLowerCase().replace(/\s+/g, '-') ?? 'artemisa-agent'}.zip`;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -108,7 +108,7 @@ async function downloadBundleZip(bundle: GeneratedAgentBundle) {
  * parts of the response that were previously discarded: the per-file SHA-256
  * from the manifest (the bundle's reproducibility claim is unverifiable
  * without it) and `applicationGuide`, which is the only place that explains
- * how to apply the bundle — Huascar never writes these files itself.
+ * how to apply the bundle — Artemisa never writes these files itself.
  *
  * The default tab is "Cómo aplicarlo" (#567): the bundle is the only product
  * output, so the first thing the user should see is what to do with it.
@@ -116,7 +116,7 @@ async function downloadBundleZip(bundle: GeneratedAgentBundle) {
 export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
   const [tab, setTab] = useState<Tab>('apply');
   const [activePath, setActivePath] = useState(bundle.artifacts[0]?.path ?? '');
-  const [showSuccessBurst, setShowSuccessBurst] = useState(true);
+  const [showSuccessRing, setShowSuccessRing] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
   const [copyError, setCopyError] = useState('');
   const [zipping, setZipping] = useState(false);
@@ -149,7 +149,7 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
   }, [bundle.artifacts]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setShowSuccessBurst(false), 900);
+    const timer = window.setTimeout(() => setShowSuccessRing(false), 900);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -263,16 +263,16 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      {showSuccessBurst && (
-        <div className="flex items-center justify-center py-2" role="status" aria-live="polite">
-          <span className="relative flex h-14 w-14 items-center justify-center">
+      <div className="flex items-center justify-center py-2" role="status" aria-live="polite">
+        <span className="relative flex h-14 w-14 items-center justify-center">
+          {showSuccessRing && (
             <span className="animate-success-ring absolute inset-0 rounded-full border-2 border-white/50" />
-            <span className="animate-success-pop relative flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-white/[0.08] text-white">
-              <LuCheck className="h-7 w-7" aria-hidden="true" />
-            </span>
+          )}
+          <span className="animate-success-pop relative flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-white/[0.08] text-white">
+            <LuCheck className="h-7 w-7" aria-hidden="true" />
           </span>
-        </div>
-      )}
+        </span>
+      </div>
 
       <div className="text-center">
         <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">Bundle generado</span>
@@ -280,7 +280,7 @@ export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
           {bundle.blueprint?.identity?.name ?? 'Agente generado'}
         </h2>
         <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-zinc-400">
-          {bundle.artifacts.length} artefactos listos. Huascar no escribe nada en tu proyecto: revisa, descarga y copia
+          {bundle.artifacts.length} artefactos listos. Artemisa no escribe nada en tu proyecto: revisa, descarga y copia
           los archivos tú mismo.
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">

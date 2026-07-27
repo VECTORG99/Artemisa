@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { LuRocket, LuFlaskConical, LuLayers, LuScale, LuGithub, LuBookOpen } from 'react-icons/lu';
+import { LuRocket, LuFlaskConical, LuLayers, LuBookOpen, LuScale, LuGithub, LuUsers } from 'react-icons/lu';
 import type { IconType } from 'react-icons';
 import { glassStyle, useLandingModal, type LandingModalId } from './landing-modal';
 
 /**
  * Floating, pill-shaped header — always fully opaque so the liquid-glass
  * background, blur and border remain visible over the starfield.
+ * Contains the main navigation tabs of the site.
  */
 export function StickyHeader() {
   const { open } = useLandingModal();
@@ -35,6 +36,14 @@ export function StickyHeader() {
           <LuBookOpen className="h-3.5 w-3.5" aria-hidden="true" />
           Docs
         </Link>
+        <Link
+          href="/desarrolladores"
+          aria-label="Ver desarrolladores"
+          className="flex items-center gap-1.5 transition-colors hover:text-white"
+        >
+          <LuUsers className="h-3.5 w-3.5" aria-hidden="true" />
+          Equipo
+        </Link>
         <a
           href="#tecnologia"
           aria-label="Ir a sección Tecnología"
@@ -43,41 +52,15 @@ export function StickyHeader() {
           <LuFlaskConical className="h-3.5 w-3.5" aria-hidden="true" />
           Tecnología
         </a>
-        <a
-          href="#casos-de-uso"
+        <button
+          type="button"
           aria-label="Ver casos de uso"
-          onClick={(event) => {
-            event.preventDefault();
-            open('casos-de-uso');
-          }}
+          onClick={() => open('casos-de-uso')}
           className="hidden items-center gap-1.5 transition-colors hover:text-white sm:inline-flex"
         >
           <LuLayers className="h-3.5 w-3.5" aria-hidden="true" />
           Casos de uso
-        </a>
-        <a
-          href="#legal"
-          aria-label="Ver información legal"
-          onClick={(event) => {
-            event.preventDefault();
-            open('legal');
-          }}
-          className="hidden items-center gap-1.5 transition-colors hover:text-white sm:inline-flex"
-        >
-          <LuScale className="h-3.5 w-3.5" aria-hidden="true" />
-          Legal
-        </a>
-        <a
-          href="https://github.com/VECTORG99/Huascar"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="GitHub (se abre en nueva pestaña)"
-          className="flex items-center gap-1.5 rounded-full px-3 py-1 text-white/80 transition-colors hover:text-white"
-          style={glassStyle}
-        >
-          <LuGithub className="h-3.5 w-3.5" aria-hidden="true" />
-          GitHub
-        </a>
+        </button>
       </nav>
     </header>
   );
@@ -93,14 +76,21 @@ interface FooterLink {
 }
 
 const footerLinks: FooterLink[] = [
-  { label: 'Creador', href: '/agents/new', icon: LuRocket, ariaLabel: 'Ir al Creador de agentes' },
-  { label: 'Docs', href: '/docs', icon: LuBookOpen, ariaLabel: 'Ver documentación oficial' },
-  { label: 'Tecnología', href: '#tecnologia', icon: LuFlaskConical, ariaLabel: 'Ir a sección Tecnología' },
-  { label: 'Casos de uso', modal: 'casos-de-uso', icon: LuLayers, ariaLabel: 'Ver casos de uso' },
-  { label: 'Legal', modal: 'legal', icon: LuScale, ariaLabel: 'Ver información legal' },
+  {
+    label: 'Equipo',
+    href: '/desarrolladores',
+    icon: LuUsers,
+    ariaLabel: 'Ver desarrolladores',
+  },
+  {
+    label: 'Legal',
+    modal: 'legal',
+    icon: LuScale,
+    ariaLabel: 'Ver información legal',
+  },
   {
     label: 'GitHub',
-    href: 'https://github.com/VECTORG99/Huascar',
+    href: 'https://github.com/VECTORG99/Artemisa',
     external: true,
     icon: LuGithub,
     ariaLabel: 'GitHub (se abre en nueva pestaña)',
@@ -110,9 +100,7 @@ const footerLinks: FooterLink[] = [
 /**
  * Floating, pill-shaped footer — always fully opaque so the liquid-glass
  * background, blur and border remain visible over the starfield.
- * Kept to a single row of essential links plus a copyright line; secondary
- * information (tech stack, use cases, legal) opens in a modal instead of
- * expanding the footer itself.
+ * Contains legal information and secondary/extra links.
  */
 export function StickyFooter() {
   const { open } = useLandingModal();
@@ -150,15 +138,6 @@ export function StickyFooter() {
                     <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                     {link.label}
                   </a>
-                ) : link.href!.startsWith('#') ? (
-                  <a
-                    href={link.href}
-                    aria-label={link.ariaLabel}
-                    className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
-                  >
-                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                    {link.label}
-                  </a>
                 ) : (
                   <Link
                     href={link.href!}
@@ -174,7 +153,7 @@ export function StickyFooter() {
           })}
         </ul>
         <p className="mt-3 border-t border-white/[0.06] pt-3 text-[11px] text-white/80">
-          © {new Date().getFullYear()} Huascar y sus contribuidores · MPL-2.0
+          © {new Date().getFullYear()} Artemisa y sus contribuidores · MPL-2.0
         </p>
       </div>
     </footer>

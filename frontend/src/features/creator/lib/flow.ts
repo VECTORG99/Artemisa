@@ -1,4 +1,4 @@
-import type { CreatorAnswers, DecisionEvaluation, DecisionQuestion } from '@huascar/types';
+import type { CreatorAnswers, DecisionEvaluation, DecisionQuestion } from '@artemisa/types';
 import { SHORT_FLOW_QUESTION_IDS } from '../presets/short-flow';
 
 /**

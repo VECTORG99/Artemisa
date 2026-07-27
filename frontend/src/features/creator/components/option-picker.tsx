@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { LuCheck, LuPlus, LuSearch, LuTriangleAlert, LuX } from 'react-icons/lu';
+import { LuCheck, LuChevronDown, LuChevronUp, LuPlus, LuSearch, LuTriangleAlert, LuX } from 'react-icons/lu';
 import { TechIcon } from '@/features/creator/lib/tech-icons';
 import { glassFilterChip, glassInput, glassOptionCard, glassPill } from '@/lib/glass';
 import { slugify } from '@/lib/utils';
@@ -31,6 +31,10 @@ interface OptionPickerProps {
   maxHeightClass?: string;
   columnsClass?: string;
   showIcons?: boolean;
+  /** When true, lists longer than `collapseThreshold` start collapsed with an expand toggle. */
+  collapsible?: boolean;
+  /** Number of visible options before collapsing. Defaults to 8. */
+  collapseThreshold?: number;
 }
 
 /**
@@ -55,11 +59,14 @@ export function OptionPicker({
   maxHeightClass = 'max-h-[46vh]',
   columnsClass = 'sm:grid-cols-2',
   showIcons = true,
+  collapsible = false,
+  collapseThreshold = 8,
 }: OptionPickerProps) {
   const [query, setQuery] = useState('');
   const [customDraft, setCustomDraft] = useState('');
   const [customOpen, setCustomOpen] = useState(false);
   const [atEnd, setAtEnd] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const selected = useMemo<string[]>(
@@ -99,6 +106,9 @@ export function OptionPicker({
     );
   }, [allOptions, normalized]);
 
+  const shouldCollapse = collapsible && !normalized && filtered.length > collapseThreshold;
+  const visibleOptions = shouldCollapse && !expanded ? filtered.slice(0, collapseThreshold) : filtered;
+
   const toggle = useCallback(
     (id: string) => {
       if (!multiple) {
@@ -125,7 +135,7 @@ export function OptionPicker({
 
   useEffect(() => {
     syncScrollEdge();
-  }, [filtered.length, syncScrollEdge]);
+  }, [visibleOptions.length, syncScrollEdge]);
 
   function addCustom() {
     const slug = slugify(customDraft);
@@ -136,9 +146,9 @@ export function OptionPicker({
       onChange([...selected, id]);
     } else {
       onChange(id);
+      setCustomOpen(false);
     }
     setCustomDraft('');
-    setCustomOpen(false);
   }
 
   const showSearch = allOptions.length > searchThreshold;
@@ -200,7 +210,7 @@ export function OptionPicker({
         aria-label={ariaLabel}
         className={`creator-scroll scroll-fade-bottom grid gap-2.5 overflow-y-auto pr-1 ${maxHeightClass} ${columnsClass}`}
       >
-        {filtered.map((option, index) => {
+        {visibleOptions.map((option) => {
           const isSelected = selected.includes(option.id);
           const blocked = multiple && !isSelected && atMax;
           return (
@@ -239,6 +249,28 @@ export function OptionPicker({
           </p>
         )}
       </div>
+
+      {shouldCollapse && (
+        <button
+          type="button"
+          onClick={() => setExpanded((prev) => !prev)}
+          className="flex items-center gap-1.5 self-start text-[11px] text-zinc-400 transition-colors hover:text-white"
+          aria-expanded={expanded}
+          aria-controls={ariaLabel}
+        >
+          {expanded ? (
+            <>
+              <LuChevronUp className="h-3 w-3" aria-hidden="true" />
+              Mostrar menos
+            </>
+          ) : (
+            <>
+              <LuChevronDown className="h-3 w-3" aria-hidden="true" />
+              Mostrar {filtered.length - collapseThreshold} más
+            </>
+          )}
+        </button>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         {multiple && max !== undefined && (

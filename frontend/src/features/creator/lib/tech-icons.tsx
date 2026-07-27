@@ -44,8 +44,10 @@ import {
   SiCircleci,
   SiClojure,
   SiCloudflare,
+  SiCoderabbit,
   SiConsul,
   SiCplusplus,
+  SiCursor,
   SiCypress,
   SiDart,
   SiDatadog,
@@ -103,6 +105,7 @@ import {
   SiLaravel,
   SiLinux,
   SiLua,
+  SiMarkdown,
   SiMetasploit,
   SiMlflow,
   SiMongodb,
@@ -171,6 +174,7 @@ import {
   SiVuedotjs,
   SiWeb3Dotjs,
   SiWeightsandbiases,
+  SiWindsurf,
   SiWireguard,
   SiWireshark,
   SiZig,
@@ -491,7 +495,16 @@ const TECH_ICONS: Record<string, IconType> = {
   'local-repository': LuFolderTree,
 
   // --- agent-platform ---
-  huascar: LuBot,
+  // The 7 catalog targets (src/creator/catalog.ts, category 'agent-platform').
+  // Brand marks come from Simple Icons when one exists; Kilo Code has no
+  // Simple Icon entry so it falls back to a semantic Lucide shape. Each card
+  // also renders the platform label, so the icon is decorative (aria-hidden).
+  artemisa: LuBot,
+  'agents-md': SiMarkdown,
+  cursor: SiCursor,
+  'devin-desktop': SiWindsurf,
+  coderabbit: SiCoderabbit,
+  'kilo-code': LuBoxes,
   kiro: LuSparkles,
   portable: LuFileText,
 
@@ -637,7 +650,17 @@ export function categoryIcon(category: string): IconType {
  * Decorative icon for an option card: brand icon -> category icon -> dot.
  * Always `aria-hidden`, because the adjacent label already names the item.
  */
-export function TechIcon({ id, category, className }: { id: string; category?: string; className?: string }) {
+export function TechIcon({
+  id,
+  category,
+  className,
+  style,
+}: {
+  id: string;
+  category?: string;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   const Icon = techIcon(id) ?? (category ? categoryIcon(category) : FALLBACK_ICON);
-  return <Icon aria-hidden="true" focusable="false" className={className} />;
+  return <Icon aria-hidden="true" focusable="false" className={className} style={style} />;
 }

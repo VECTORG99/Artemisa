@@ -203,14 +203,26 @@ export function SpaceSimulation({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let width = window.innerWidth;
-    let height = window.innerHeight;
+    let stars: Star[] = [];
+    let width = document.documentElement.clientWidth;
+    let height = document.documentElement.clientHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
     const resize = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = width;
-      canvas.height = height;
+      const prevWidth = width;
+      const prevHeight = height;
+      width = document.documentElement.clientWidth;
+      height = document.documentElement.clientHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      if (prevWidth > 0 && prevHeight > 0 && stars.length > 0) {
+        for (const star of stars) {
+          star.ox = (star.ox / prevWidth) * width;
+          star.oy = (star.oy / prevHeight) * height;
+        }
+      }
     };
     resize();
     window.addEventListener('resize', resize);
@@ -229,6 +241,16 @@ export function SpaceSimulation({
       influenceRadius: Math.min(width, height) * 0.75,
     };
 
+    // Update black hole on viewport resize
+    const resizeWell = () => {
+      well.x = width * 0.5;
+      well.y = height * 0.5;
+      well.eventRadius = Math.min(width, height) * 0.16;
+      well.photonRadius = Math.min(width, height) * 0.205;
+      well.influenceRadius = Math.min(width, height) * 0.75;
+    };
+    window.addEventListener('resize', resizeWell);
+
     // Parallax scroll offset: stars and meteors drift with scroll to feel
     // like the frame is opening up more space as the user scrolls down,
     // while the black hole itself stays perfectly still on screen.
@@ -244,8 +266,9 @@ export function SpaceSimulation({
     const METEOR_PARALLAX = 0.35;
     let lastScrollY = 0;
     let scrollVelocity = 0;
+    let lastTime = 0;
 
-    const stars: Star[] = Array.from({ length: STAR_COUNT }, () => createStar(width, height));
+    stars = Array.from({ length: STAR_COUNT }, () => createStar(width, height));
     const meteors: Meteor[] = [];
 
     // #403: respect prefers-reduced-motion — render a single static frame
@@ -256,7 +279,25 @@ export function SpaceSimulation({
       window.matchMedia &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    // Track frame times for adaptive quality
+    let slowFrames = 0;
+    let activeStarCount = stars.length;
+
     const animate = () => {
+      const now = performance.now();
+      const dt = lastTime ? Math.min(now - lastTime, 50) : 16.667;
+      const frameScale = (dt || 16.667) / 16.667;
+      lastTime = now;
+
+      // Adaptive quality: if frames are consistently slow (>20ms), reduce stars
+      if (dt > 20) slowFrames++;
+      else slowFrames = Math.max(0, slowFrames - 1);
+      if (slowFrames > 30 && activeStarCount > 150) {
+        activeStarCount = Math.max(150, activeStarCount - 50);
+      }
+
+      ctx.save();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.fillStyle = 'rgba(0, 0, 0, 1)';
       ctx.fillRect(0, 0, width, height);
 
@@ -274,13 +315,15 @@ export function SpaceSimulation({
       // scroll position: it spikes while the user is scrolling (up or
       // down, transitioning between phases) and decays back to 0 quickly
       // once the scroll settles, restoring the calm baseline canvas.
-      const rawScrollDelta = Math.abs(scrollY - lastScrollY);
+      // Normalize by frameScale so the visual effect is the same at any FPS.
+      const rawScrollDelta = Math.abs(scrollY - lastScrollY) / frameScale;
       lastScrollY = scrollY;
-      scrollVelocity = Math.max(rawScrollDelta, scrollVelocity * 0.9);
+      scrollVelocity = Math.max(rawScrollDelta, scrollVelocity * Math.pow(0.9, frameScale));
       const lightConsumption = clampOpacity(scrollVelocity / 40);
 
-      for (const star of stars) {
-        star.twinklePhase += star.twinkleSpeed * 16;
+      for (let si = 0; si < activeStarCount; si++) {
+        const star = stars[si];
+        star.twinklePhase += star.twinkleSpeed * 16 * frameScale;
         const twinkle = Math.sin(star.twinklePhase);
         const baseOp = star.baseOpacity * (0.35 + Math.abs(twinkle) * 0.65);
         const baseR = star.baseRadius * (0.75 + Math.abs(twinkle) * 0.5);
@@ -390,7 +433,7 @@ export function SpaceSimulation({
       if (showBlackHoleRef.current) {
         const energy = accretionEnergyRef.current;
         const diskBrightness = 0.75 + energy * 0.55;
-        const t = performance.now() * 0.00035;
+        const t = now * 0.00035;
 
         // Orbital perspective driven by scroll: as the user scrolls down it
         // feels like we are orbiting around the black hole and swinging
@@ -450,16 +493,7 @@ export function SpaceSimulation({
             const s = samples[i % samples.length];
             ctx.lineTo(s.x, s.y);
           }
-          ctx.strokeStyle = buildNoiseGradient(
-            ctx,
-            well.x,
-            well.y,
-            performance.now(),
-            ratio,
-            RING_TINT_SATURATION,
-            84,
-            fadedOp,
-          );
+          ctx.strokeStyle = buildNoiseGradient(ctx, well.x, well.y, now, ratio, RING_TINT_SATURATION, 84, fadedOp);
           ctx.lineWidth = avgWidth * (1 + energy * 0.6) * orbitScale;
           ctx.lineCap = 'round';
           ctx.lineJoin = 'round';
@@ -488,16 +522,7 @@ export function SpaceSimulation({
               const s = innerSamples[i % innerSamples.length];
               ctx.lineTo(s.x, s.y);
             }
-            ctx.strokeStyle = buildNoiseGradient(
-              ctx,
-              well.x,
-              well.y,
-              performance.now(),
-              5,
-              RING_TINT_SATURATION,
-              88,
-              op,
-            );
+            ctx.strokeStyle = buildNoiseGradient(ctx, well.x, well.y, now, 5, RING_TINT_SATURATION, 88, op);
             ctx.lineWidth = avgWidth * 1.3 * (1 + energy * 0.8) * orbitScale;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
@@ -550,16 +575,7 @@ export function SpaceSimulation({
             for (let i = 1; i < secondary.length; i++) {
               ctx.lineTo(secondary[i].x, secondary[i].y);
             }
-            ctx.strokeStyle = buildNoiseGradient(
-              ctx,
-              well.x,
-              well.y,
-              performance.now(),
-              11,
-              RING_TINT_SATURATION,
-              86,
-              op,
-            );
+            ctx.strokeStyle = buildNoiseGradient(ctx, well.x, well.y, now, 11, RING_TINT_SATURATION, 86, op);
             ctx.lineWidth = avgWidth * (1 + energy * 0.6) * orbitScale;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
@@ -588,16 +604,7 @@ export function SpaceSimulation({
             ctx.lineTo(rx, ry);
           }
         }
-        ctx.strokeStyle = buildNoiseGradient(
-          ctx,
-          well.x,
-          well.y,
-          performance.now(),
-          23,
-          RING_TINT_SATURATION,
-          90,
-          ringBaseOpacity,
-        );
+        ctx.strokeStyle = buildNoiseGradient(ctx, well.x, well.y, now, 23, RING_TINT_SATURATION, 90, ringBaseOpacity);
         ctx.lineWidth = 2 + energy * 2;
         ctx.lineJoin = 'round';
         ctx.stroke();
@@ -625,16 +632,7 @@ export function SpaceSimulation({
             } else if (arcOpen) {
               ctx.lineTo(rx, ry);
               const op = clampOpacity((0.25 + energy * 0.3) * (0.85 + orbitProximity * 0.3));
-              ctx.strokeStyle = buildNoiseGradient(
-                ctx,
-                well.x,
-                well.y,
-                performance.now(),
-                31,
-                RING_TINT_SATURATION,
-                92,
-                op,
-              );
+              ctx.strokeStyle = buildNoiseGradient(ctx, well.x, well.y, now, 31, RING_TINT_SATURATION, 92, op);
               ctx.lineWidth = 3.5 + energy * 2;
               ctx.lineCap = 'round';
               ctx.lineJoin = 'round';
@@ -655,7 +653,7 @@ export function SpaceSimulation({
       const effectiveSpawnRate = METEOR_SPAWN_RATE * spawnRateRef.current;
       const dynamicSpawnRate = effectiveSpawnRate * (1 + scrollFactor * METEOR_PARALLAX);
       const dynamicMeteorCount = Math.round(effectiveMaxMeteors * (1 + scrollFactor * 0.4));
-      if (meteors.length < dynamicMeteorCount && Math.random() < dynamicSpawnRate) {
+      if (meteors.length < dynamicMeteorCount && Math.random() < dynamicSpawnRate * frameScale) {
         meteors.push(createMeteor(width, height));
       }
 
@@ -666,8 +664,8 @@ export function SpaceSimulation({
         // Apply gravity only when the black hole is visible
         if (showBlackHoleRef.current) {
           const grav = gravityEffect({ x: m.x, y: m.y }, well);
-          m.vx += grav.acceleration.x;
-          m.vy += grav.acceleration.y;
+          m.vx += grav.acceleration.x * frameScale;
+          m.vy += grav.acceleration.y * frameScale;
           m.stretch = grav.tidalStretch;
           gravInfluence = grav.influence;
 
@@ -681,10 +679,10 @@ export function SpaceSimulation({
           m.stretch = 0;
         }
 
-        m.x += m.vx;
-        m.y += m.vy + scrollFactor * 0.6;
-        m.life++;
-        m.hue = (m.hue + m.hueSpeed) % 360;
+        m.x += m.vx * frameScale;
+        m.y += (m.vy + scrollFactor * 0.6) * frameScale;
+        m.life += frameScale;
+        m.hue = (m.hue + m.hueSpeed * frameScale) % 360;
 
         const progress = m.life / m.maxLife;
         const fadeOut = progress > 0.7 ? 1 - (progress - 0.7) / 0.3 : 1;
@@ -751,14 +749,15 @@ export function SpaceSimulation({
 
           // High glyph-flicker rate: digits keep flipping between 0/1 so the
           // trail reads as raw, busy binary noise rather than static text.
-          if (Math.random() < 0.22) charData.char = randomChar();
+          if (Math.random() < 0.22 * frameScale) charData.char = randomChar();
         }
         ctx.shadowBlur = 0;
       }
 
       // Decay accretion energy over time
-      accretionEnergyRef.current = Math.max(0, accretionEnergyRef.current - 0.004);
+      accretionEnergyRef.current = Math.max(0, accretionEnergyRef.current - 0.004 * frameScale);
 
+      ctx.restore();
       animRef.current = requestAnimationFrame(animate);
     };
 
@@ -807,6 +806,7 @@ export function SpaceSimulation({
     return () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', resize);
+      window.removeEventListener('resize', resizeWell);
       scrollContainer?.removeEventListener('scroll', handleScroll);
       document.removeEventListener('visibilitychange', onVisibility);
       intersectionObserver?.disconnect();
@@ -814,6 +814,11 @@ export function SpaceSimulation({
   }, []);
 
   return (
-    <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 z-[1] h-screen w-screen" aria-hidden="true" />
+    <canvas
+      ref={canvasRef}
+      className="pointer-events-none fixed inset-0 z-[1] h-full w-full"
+      style={{ willChange: 'contents', contain: 'strict' }}
+      aria-hidden="true"
+    />
   );
 }

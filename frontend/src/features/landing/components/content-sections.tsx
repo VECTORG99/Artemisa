@@ -18,6 +18,7 @@ import {
   SiVite,
   SiVitest,
 } from 'react-icons/si';
+import { LuGitBranch, LuLayers, LuScale } from 'react-icons/lu';
 import { glassStyle, Modal, useLandingModal } from './landing-modal';
 import { useTranslations } from '@/i18n';
 import { glassButton, glassCard } from '@/lib/glass';
@@ -39,7 +40,7 @@ export function HeroSection() {
   return (
     <section
       id="contenido-principal"
-      className="flex h-screen snap-start snap-always flex-col items-center justify-center px-6"
+      className="flex min-h-screen sm:h-screen snap-start snap-always flex-col items-center justify-center px-6"
     >
       <div className="relative z-10 max-w-3xl text-center">
         <h1 className="text-5xl font-bold tracking-tight text-white text-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-6xl lg:text-7xl xl:text-8xl">
@@ -84,45 +85,43 @@ interface ValueProp {
   title: string;
   description: string;
   hue: number;
-  icon: string;
+  icon: IconType;
 }
 
 const valueProps: ValueProp[] = [
   {
     title: 'Árbol de decisiones determinista',
     description:
-      '32 preguntas stateless que se adaptan a tu contexto: desarrollo, producción o ambos. Sin un LLM decidiendo la arquitectura por ti.',
-    hue: 200,
-    icon: '/images/arbol.svg',
+      '32 pasos guiados que adaptan la configuración a tu contexto: desarrollo, producción o ambos. Reduce horas de ajuste a minutos sin dejar que un LLM decida la arquitectura por ti.',
+    hue: 205,
+    icon: LuGitBranch,
   },
   {
     title: 'Recomendaciones con evidencia',
     description:
-      'Cada sugerencia incluye motivo, trade-offs y alternativas. Sabes por qué se elige cada opción, no solo qué elegir.',
+      'Cada sugerencia incluye motivo, trade-offs y alternativas comparadas. Configura con criterio visible y reduce decisiones ciegas.',
     hue: 280,
-    icon: '/images/recomendaciones.svg',
+    icon: LuScale,
   },
   {
-    title: 'Bundle listo para aplicar',
+    title: 'Compatible con 6+ plataformas',
     description:
-      'Blueprint, manifest, hashes SHA-256, INSTALL.md y WHY.md. Reproducible, auditable y seguro desde el primer commit.',
+      'Un mismo bundle se adapta a Cursor, Devin, CodeRabbit, Kilo Code, Kiro y otras herramientas. Aplica tu agente donde ya trabajas, sin reescribir configuraciones.',
     hue: 160,
-    icon: '/images/bundle.svg',
+    icon: LuLayers,
   },
 ];
 
-function GlassIcon({ src, alt }: { src: string; alt: string; hue: number }) {
+function ValueIconBox({ icon: Icon, hue }: { icon: IconType; hue: number }) {
   return (
-    <div className="relative mx-auto h-40 w-40 shrink-0">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={alt}
-        width={512}
-        height={512}
-        className="h-full w-full object-contain"
-        style={{ mixBlendMode: 'screen' }}
-      />
+    <div
+      className="mx-auto flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl"
+      style={{
+        background: `hsla(${hue}, 70%, 45%, 0.12)`,
+        border: `1px solid hsla(${hue}, 70%, 60%, 0.35)`,
+      }}
+    >
+      <Icon className="h-8 w-8" style={{ color: `hsla(${hue}, 80%, 70%, 1)` }} aria-hidden="true" />
     </div>
   );
 }
@@ -130,7 +129,7 @@ function GlassIcon({ src, alt }: { src: string; alt: string; hue: number }) {
 function ValuePropsSection() {
   const ref = useSectionFadeIn<HTMLDivElement>();
   return (
-    <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
+    <section className="flex min-h-screen sm:h-screen snap-start snap-always items-center justify-center px-6">
       <h2 className="sr-only">Características principales</h2>
       <div ref={ref} className="section-content relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
         {valueProps.map((prop) => (
@@ -139,7 +138,7 @@ function ValuePropsSection() {
             className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
             style={glassStyle}
           >
-            <GlassIcon src={prop.icon} alt={prop.title} hue={prop.hue} />
+            <ValueIconBox icon={prop.icon} hue={prop.hue} />
             <h3 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
               {prop.title}
             </h3>
@@ -160,45 +159,61 @@ interface TechItem {
   label: string;
   url: string;
   Icon?: IconType;
+  /** Brand colour applied to the icon + label text (solid RGB, no blend). */
+  color: string;
 }
 
 const techGroups: { title: string; items: TechItem[] }[] = [
   {
     title: 'Backend',
     items: [
-      { label: 'Node.js', url: 'https://nodejs.org', Icon: SiNodedotjs },
-      { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript },
-      { label: 'Express', url: 'https://expressjs.com', Icon: SiExpress },
+      { label: 'Node.js', url: 'https://nodejs.org', Icon: SiNodedotjs, color: 'rgb(83,175,43)' },
+      { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript, color: 'rgb(49,120,198)' },
+      { label: 'Express', url: 'https://expressjs.com', Icon: SiExpress, color: 'rgb(200,200,200)' },
     ],
   },
   {
     title: 'Frontend',
     items: [
-      { label: 'Next.js 16', url: 'https://nextjs.org', Icon: SiNextdotjs },
-      { label: 'React 19', url: 'https://react.dev', Icon: SiReact },
-      { label: 'Vite', url: 'https://vitejs.dev', Icon: SiVite },
-      { label: 'Tailwind CSS 4', url: 'https://tailwindcss.com', Icon: SiTailwindcss },
-      { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript },
+      { label: 'Next.js 16', url: 'https://nextjs.org', Icon: SiNextdotjs, color: 'rgb(255,255,255)' },
+      { label: 'React 19', url: 'https://react.dev', Icon: SiReact, color: 'rgb(97,219,251)' },
+      { label: 'Vite 8', url: 'https://vitejs.dev', Icon: SiVite, color: 'rgb(167,139,250)' },
+      { label: 'Tailwind CSS 4', url: 'https://tailwindcss.com', Icon: SiTailwindcss, color: 'rgb(56,189,248)' },
+      { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript, color: 'rgb(49,120,198)' },
     ],
   },
   {
     title: 'Calidad y CI',
     items: [
-      { label: 'Node test runner', url: 'https://nodejs.org/api/test.html', Icon: SiNodedotjs },
-      { label: 'Vitest', url: 'https://vitest.dev', Icon: SiVitest },
-      { label: 'Playwright', url: 'https://playwright.dev' },
-      { label: 'ESLint', url: 'https://eslint.org', Icon: SiEslint },
-      { label: 'Prettier', url: 'https://prettier.io', Icon: SiPrettier },
-      { label: 'GitHub Actions', url: 'https://github.com/features/actions', Icon: SiGithubactions },
+      {
+        label: 'Node test runner',
+        url: 'https://nodejs.org/api/test.html',
+        Icon: SiNodedotjs,
+        color: 'rgb(83,175,43)',
+      },
+      { label: 'Vitest', url: 'https://vitest.dev', Icon: SiVitest, color: 'rgb(223,224,226)' },
+      { label: 'ESLint', url: 'https://eslint.org', Icon: SiEslint, color: 'rgb(75,174,223)' },
+      { label: 'Prettier', url: 'https://prettier.io', Icon: SiPrettier, color: 'rgb(247,175,168)' },
+      {
+        label: 'GitHub Actions',
+        url: 'https://github.com/features/actions',
+        Icon: SiGithubactions,
+        color: 'rgb(136,200,255)',
+      },
     ],
   },
   {
     title: 'Infraestructura',
     items: [
-      { label: 'Docker', url: 'https://www.docker.com', Icon: SiDocker },
-      { label: 'Docker Compose', url: 'https://docs.docker.com/compose/', Icon: SiDocker },
-      { label: 'npm workspaces', url: 'https://docs.npmjs.com/cli/v10/using-npm/workspaces', Icon: SiNpm },
-      { label: 'Render', url: 'https://render.com', Icon: SiRender },
+      { label: 'Docker', url: 'https://www.docker.com', Icon: SiDocker, color: 'rgb(36,150,237)' },
+      { label: 'Docker Compose', url: 'https://docs.docker.com/compose/', Icon: SiDocker, color: 'rgb(36,150,237)' },
+      {
+        label: 'npm workspaces',
+        url: 'https://docs.npmjs.com/cli/v10/using-npm/workspaces',
+        Icon: SiNpm,
+        color: 'rgb(203,13,43)',
+      },
+      { label: 'Render', url: 'https://render.com', Icon: SiRender, color: 'rgb(70,225,170)' },
     ],
   },
 ];
@@ -206,7 +221,10 @@ const techGroups: { title: string; items: TechItem[] }[] = [
 function TechStackSection() {
   const ref = useSectionFadeIn<HTMLDivElement>();
   return (
-    <section id="tecnologia" className="flex h-screen snap-start snap-always items-center justify-center px-6">
+    <section
+      id="tecnologia"
+      className="flex min-h-screen sm:h-screen snap-start snap-always items-center justify-center px-6"
+    >
       <div
         ref={ref}
         className="section-content relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10"
@@ -215,7 +233,7 @@ function TechStackSection() {
         <span className="text-xs font-semibold uppercase tracking-wider text-white/80">Stack real del proyecto</span>
         <h2 className="mt-2 text-3xl font-bold text-white">Tecnología que usamos</h2>
         <p className="mx-auto mt-2 max-w-xl text-sm text-white/80">
-          Huascar es open source. Este es el stack exacto con el que está construido.
+          Artemisa es open source. Este es el stack exacto con el que está construido.
         </p>
         <div className="mt-8 grid gap-6 text-center sm:grid-cols-2">
           {techGroups.map((group) => (
@@ -228,11 +246,12 @@ function TechStackSection() {
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs text-white/80 transition-colors hover:text-white"
+                      className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs transition-colors"
                       style={{
                         backdropFilter: 'blur(6px)',
                         background: 'rgba(255,255,255,0.03)',
                         border: '1px solid rgba(255,255,255,0.08)',
+                        color: item.color,
                       }}
                     >
                       {item.Icon && <item.Icon className="h-3.5 w-3.5" aria-hidden="true" />}
@@ -256,7 +275,7 @@ function FinalCtaSection() {
   const ref = useSectionFadeIn<HTMLDivElement>();
 
   return (
-    <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
+    <section className="flex min-h-screen sm:h-screen snap-start snap-always items-center justify-center px-6">
       <div
         ref={ref}
         className="section-content relative z-10 w-full max-w-2xl rounded-3xl p-10 text-center"
@@ -344,9 +363,9 @@ function LegalModalContent() {
       <h2 className="mt-2 text-3xl font-bold text-white">Licencia y uso</h2>
       <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-white/80">
         <p>
-          Huascar se distribuye bajo la{' '}
+          Artemisa se distribuye bajo la{' '}
           <a
-            href="https://github.com/VECTORG99/Huascar/blob/development/LICENSE"
+            href="https://github.com/VECTORG99/Artemisa/blob/development/LICENSE"
             target="_blank"
             rel="noopener noreferrer"
             className="text-white/90 underline underline-offset-2 hover:text-white"
@@ -359,18 +378,18 @@ function LegalModalContent() {
         </p>
         <p>
           El creador no ejecuta código, no realiza llamadas de red ni usa credenciales durante la generación de
-          configuración: es una compilación pura, determinista y auditable. Huascar sólo genera archivos de
+          configuración: es una compilación pura, determinista y auditable. Artemisa sólo genera archivos de
           configuración; aplicarlos y ejecutar el agente queda siempre del lado del usuario.
         </p>
         <p className="text-white/70">
           Código fuente completo, historial de cambios, autores y reporte de issues disponibles en{' '}
           <a
-            href="https://github.com/VECTORG99/Huascar"
+            href="https://github.com/VECTORG99/Artemisa"
             target="_blank"
             rel="noopener noreferrer"
             className="text-white/80 underline underline-offset-2 hover:text-white"
           >
-            github.com/VECTORG99/Huascar
+            github.com/VECTORG99/Artemisa
           </a>
           .
         </p>

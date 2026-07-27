@@ -14,7 +14,7 @@ describe('useTranslations', () => {
   it('returns the landing namespace with hero and cta copy', () => {
     const landing = useTranslations('landing');
     expect(landing).toBe(messages.landing);
-    expect(landing.heroTitle).toBe('Huascar');
+    expect(landing.heroTitle).toBe('Artemisa');
     expect(landing.ctaButton).toBe('Iniciar creador →');
   });
 

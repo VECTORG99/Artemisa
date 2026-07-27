@@ -1,4 +1,4 @@
-# Huascar — AI Agent Directives
+# Artemisa — AI Agent Directives
 
 Audience: AI agents changing this repository. Keep this file as the entrypoint; use linked docs for full detail.
 

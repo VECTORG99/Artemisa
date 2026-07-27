@@ -17,9 +17,9 @@ describe('QuickStartCopy', () => {
 
   it('renderiza el prompt con la URL', () => {
     render(<QuickStartCopy url="https://example.com/startup" />);
-    const textbox = screen.getByRole('textbox') as HTMLTextAreaElement;
+    const textbox = screen.getByRole('textbox') as HTMLInputElement;
     expect(textbox.value).toMatch(/https:\/\/example\.com\/startup/);
-    expect(textbox.value).toMatch(/Huascar/);
+    expect(textbox.value).toMatch(/Artemisa/);
   });
 
   it('muestra el título "Inicio Rápido: Pega en tu chat de IA" con tilde (#554)', () => {
@@ -27,11 +27,14 @@ describe('QuickStartCopy', () => {
     expect(screen.getByRole('heading', { name: /Inicio Rápido: Pega en tu chat de IA/i })).toBeInTheDocument();
   });
 
-  it('renderiza el prompt completo en un textarea multilínea legible (#572)', () => {
+  it('renderiza el prompt en una sola línea truncada con elipsis, sin scroll (#604)', () => {
     render(<QuickStartCopy url="https://example.com/startup" />);
-    const textbox = screen.getByRole('textbox') as HTMLTextAreaElement;
-    expect(textbox.tagName).toBe('TEXTAREA');
-    expect(textbox.rows).toBeGreaterThanOrEqual(2);
+    const textbox = screen.getByRole('textbox') as HTMLInputElement;
+    expect(textbox.tagName).toBe('INPUT');
+    // Single line: no rows attribute, truncation class applied, full text kept for copy.
+    expect(textbox).not.toHaveAttribute('rows');
+    expect(textbox.className).toMatch(/truncate/);
+    expect(textbox.value).toContain('https://example.com/startup');
   });
 
   it('botón de copiar llama navigator.clipboard.writeText con el prompt completo', async () => {
@@ -39,7 +42,7 @@ describe('QuickStartCopy', () => {
     const button = screen.getByRole('button', { name: /copiar/i });
     fireEvent.click(button);
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('https://example.com/startup')));
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('Huascar')));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('Artemisa')));
   });
 
   it('muestra feedback "¡Copiado!" una sola vez vía aria-live (#572)', async () => {

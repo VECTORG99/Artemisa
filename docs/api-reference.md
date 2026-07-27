@@ -254,11 +254,11 @@ Returns the OpenAPI 3.1 document for all active routes.
 
 When `AUTH_REQUIRED=true` (recommended for production), protected routes require an API key:
 
-| Variable           | Required                      | Description                                                   |
-| ------------------ | ----------------------------- | ------------------------------------------------------------- |
-| `AUTH_REQUIRED`    | No (default `false`)          | When `true`, protected routes fail closed without a valid key |
-| `HUASCAR_API_KEYS` | Yes (if `AUTH_REQUIRED=true`) | Comma-separated valid API keys                                |
-| `BYPASS_SECRET`    | No                            | Emergency override (auto-redacted from logs)                  |
+| Variable            | Required                      | Description                                                   |
+| ------------------- | ----------------------------- | ------------------------------------------------------------- |
+| `AUTH_REQUIRED`     | No (default `false`)          | When `true`, protected routes fail closed without a valid key |
+| `ARTEMISA_API_KEYS` | Yes (if `AUTH_REQUIRED=true`) | Comma-separated valid API keys                                |
+| `BYPASS_SECRET`     | No                            | Emergency override (auto-redacted from logs)                  |
 
 Send the key via:
 
@@ -277,7 +277,7 @@ Creator errors use `application/problem+json` (RFC 9457) with `issues[]` contain
 
 ```json
 {
-  "type": "https://huascar.dev/problems/validation",
+  "type": "https://artemisa.dev/problems/validation",
   "title": "Validation Error",
   "status": 422,
   "detail": "Tree incomplete",

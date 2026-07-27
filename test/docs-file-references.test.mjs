@@ -25,7 +25,7 @@ const PATH_REGEX = /(?<![a-zA-Z0-9/_-])((?:src|frontend\/src|agent-creator\/src)
 // Files known to have been removed; if cited, the test fails.
 const REMOVED_FILES = [
   'src/engine/init.ts',
-  'src/engine/HuascarEngine.ts',
+  'src/engine/ArtemisaEngine.ts',
   'src/engine/RagEngine.ts',
   'src/engine/Store.ts',
   'src/security/PolicyEngine.ts',

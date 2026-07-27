@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import type { Catalog, CreatorRecommendation, Workflow } from '@huascar/types';
+import type { Catalog, CreatorRecommendation, Workflow } from '@artemisa/types';
 import { ReviewScreen } from './review-screen';
 
 const catalog: Catalog = {
@@ -24,6 +24,15 @@ const catalog: Catalog = {
       category: 'agent-platform',
       label: 'Kiro',
       description: 'Steering y hooks',
+      tags: [],
+      environments: ['development'],
+      recommendedFor: [],
+    },
+    {
+      id: 'cursor',
+      category: 'agent-platform',
+      label: 'Cursor',
+      description: 'Reglas .cursor/rules',
       tags: [],
       environments: ['development'],
       recommendedFor: [],
@@ -173,5 +182,21 @@ describe('ReviewScreen', () => {
     });
     expect(screen.getByText('Sin responder')).toBeInTheDocument();
     expect(screen.getByText('No')).toBeInTheDocument();
+  });
+
+  it('renders agent_targets as per-platform chips with icons, not a comma-joined string (issue #604)', () => {
+    renderReview({
+      answers: {
+        agent_name: 'reviewer',
+        technologies: ['typescript'],
+        pr_review_enabled: true,
+        agent_targets: ['kiro', 'cursor'],
+      },
+    });
+    // Each platform label renders on its own chip…
+    expect(screen.getByText('Kiro')).toBeInTheDocument();
+    expect(screen.getByText('Cursor')).toBeInTheDocument();
+    // …and they are not joined into a single "Kiro, Cursor" text node.
+    expect(screen.queryByText('Kiro, Cursor')).not.toBeInTheDocument();
   });
 });

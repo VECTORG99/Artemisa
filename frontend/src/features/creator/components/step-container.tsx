@@ -15,6 +15,10 @@ interface StepContainerProps {
   withActionBar?: boolean;
   /** `wide` is used by Review and Completion, which show two columns. */
   size?: 'default' | 'wide';
+  /** When true, the panel grows to fit its content instead of capping at
+   * `max-h-[78vh]` and scrolling. Used by the mode-select screen, whose
+   * content is meant to be seen in one glance (issue #604). */
+  fill?: boolean;
 }
 
 /**
@@ -30,8 +34,10 @@ export function StepContainer({
   stepLabel,
   withActionBar = false,
   size = 'default',
+  fill = false,
 }: StepContainerProps) {
   const maxWidth = size === 'wide' ? 'max-w-6xl' : 'max-w-5xl';
+  const heightClass = fill ? '' : 'creator-scroll max-h-[78vh] overflow-y-auto';
 
   return (
     <div className={`relative z-10 mx-auto flex w-full flex-col gap-4 ${maxWidth}`}>
@@ -54,18 +60,14 @@ export function StepContainer({
             aria-label={progressLabel ? `Progreso: ${progressLabel}` : 'Progreso'}
           >
             <div
-              className="h-full rounded-full bg-accent shadow-[0_0_10px_rgba(245,11,11,0.45)] transition-[width] duration-500 ease-out"
+              className="h-full rounded-full bg-accent shadow-[0_0_10px_rgba(249,115,22,0.45)] transition-[width] duration-500 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
       )}
 
-      <section
-        className={glassPanel(
-          `creator-scroll max-h-[78vh] overflow-y-auto rounded-2xl p-6 sm:p-8 ${withActionBar ? 'pb-20' : ''}`,
-        )}
-      >
+      <section className={glassPanel(`rounded-2xl p-6 sm:p-8 ${heightClass} ${withActionBar ? 'pb-20' : ''}`)}>
         {children}
       </section>
     </div>

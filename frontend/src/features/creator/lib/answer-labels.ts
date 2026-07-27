@@ -3,7 +3,7 @@
  * label/value pairs (issue #435).
  *
  * The Creator keeps answers as backend ids (`pr_review_enabled: true`,
- * `agent_targets: ['huascar', 'kiro']`). Those ids are the wire contract, not
+ * `agent_targets: ['artemisa', 'kiro']`). Those ids are the wire contract, not
  * something a user should read. This module resolves each id back to the label
  * the backend already ships — `question.options[].label` for select-style
  * questions, catalog `item.label` for catalog-backed ones, skill/MCP `name`
@@ -13,7 +13,7 @@
  * Deliberately free of React, fetch and `@/lib/api` so it can be unit tested
  * and reused from server components.
  */
-import type { Catalog, CreatorAnswers, CreatorAnswerValue, DecisionQuestion, Workflow } from '@huascar/types';
+import type { Catalog, CreatorAnswers, CreatorAnswerValue, DecisionQuestion, Workflow } from '@artemisa/types';
 
 /** Section used for answers that have no matching question in the workflow. */
 export const FALLBACK_SECTION = 'Otros';

@@ -96,6 +96,7 @@ export const creatorQuestions: DecisionQuestion[] = [
       option('new', 'Proyecto nuevo', 'Se diseñará una base coherente desde cero.'),
       option('existing', 'Proyecto existente', 'Se respetará la arquitectura y convenciones actuales.'),
       option('migration', 'Migración', 'Se documentarán estados origen, destino y convivencia.'),
+      option('other', 'Otro (especificar)', 'Se adaptará el enfoque al contexto descrito por el usuario.'),
     ],
   },
   {
@@ -137,6 +138,9 @@ export const creatorQuestions: DecisionQuestion[] = [
       option('development', 'Sólo desarrollo', 'Opera sobre código y herramientas de desarrollo.'),
       option('production', 'Sólo producción', 'Asiste en un entorno operacional controlado.'),
       option('both', 'Desarrollo y producción', 'Genera políticas separadas para ambos contextos.'),
+      option('testing', 'Testing / QA', 'Entorno de pruebas con datos sintéticos y validación automatizada.'),
+      option('staging', 'Staging / Pre-producción', 'Réplica de producción para validación final antes del release.'),
+      option('local', 'Local / Recreativo', 'Entorno personal de experimentación sin impacto externo.'),
     ],
   },
   {
@@ -146,7 +150,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     description: 'Permite generar pasos de instalación reproducibles.',
     type: 'select',
     required: true,
-    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['development', 'both'] },
+    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['development', 'both', 'local'] },
     options: [
       option('local', 'Local', 'Dependencias instaladas en la estación del desarrollador.'),
       option('docker-compose', 'Docker Compose', 'Servicios locales reproducibles mediante contenedores.'),
@@ -163,7 +167,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     required: false,
     catalogCategories: ['testing'],
     maxSelections: 6,
-    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['development', 'both'] },
+    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['development', 'both', 'local'] },
   },
   {
     id: 'deployment_target',
@@ -173,7 +177,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     type: 'catalog-select',
     required: true,
     catalogCategories: ['cloud'],
-    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both'] },
+    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both', 'testing', 'staging'] },
   },
   {
     id: 'container_platforms',
@@ -184,7 +188,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     required: false,
     catalogCategories: ['container'],
     maxSelections: 5,
-    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both'] },
+    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both', 'testing', 'staging'] },
   },
   {
     id: 'ci_cd',
@@ -205,7 +209,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     required: false,
     catalogCategories: ['infrastructure'],
     maxSelections: 5,
-    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both'] },
+    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both', 'testing', 'staging'] },
   },
   {
     id: 'observability',
@@ -216,7 +220,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     required: true,
     catalogCategories: ['observability'],
     maxSelections: 6,
-    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both'] },
+    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both', 'testing', 'staging'] },
   },
   {
     id: 'security_controls',
@@ -235,7 +239,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     description: 'Concede sólo lo necesario. Producción no habilita escritura o despliegue por defecto.',
     type: 'multiselect',
     required: true,
-    maxSelections: 16,
+    maxSelections: 22,
     options: [
       option('read-repository', 'Leer repositorio', 'Analiza código y documentación.'),
       option('edit-code', 'Proponer cambios', 'Genera parches, sin aplicarlos automáticamente.'),
@@ -253,6 +257,12 @@ export const creatorQuestions: DecisionQuestion[] = [
       option('automate-workflows', 'Automatizar workflows', 'Crea y ejecuta pipelines de automatización.'),
       option('audit-compliance', 'Auditar cumplimiento', 'Verifica políticas y estándares.'),
       option('generate-reports', 'Generar reportes', 'Produce documentación y dashboards.'),
+      option('web-browsing', 'Navegar web', 'Busca información y consulta documentación online.'),
+      option('file-management', 'Gestionar archivos', 'Crea, mueve y organiza archivos del proyecto.'),
+      option('database-access', 'Acceder a base de datos', 'Consulta y modifica datos en bases de datos.'),
+      option('api-integration', 'Integrar APIs', 'Consume y orquesta servicios externos vía API.'),
+      option('shell-execution', 'Ejecutar shell', 'Ejecuta comandos de sistema con restricciones allowlisted.'),
+      option('monitoring', 'Monitorizar', 'Observa métricas, logs y alertas en tiempo real.'),
     ],
   },
   {
@@ -266,6 +276,11 @@ export const creatorQuestions: DecisionQuestion[] = [
       option('advisory', 'Asesor', 'Sólo analiza y recomienda.'),
       option('assisted', 'Asistido', 'Prepara acciones que una persona aprueba.'),
       option('autonomous', 'Autónomo acotado', 'Ejecuta únicamente operaciones allowlisted y reversibles.'),
+      option(
+        'full-autonomous',
+        'Máxima autonomía (con controles de seguridad)',
+        'Ejecuta cualquier operación permitida con auditoría, rate limiting y rollback automático.',
+      ),
     ],
   },
   {
@@ -278,7 +293,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     visibleWhen: {
       operator: 'any',
       conditions: [
-        { operator: 'oneOf', questionId: 'autonomy', values: ['assisted', 'autonomous'] },
+        { operator: 'oneOf', questionId: 'autonomy', values: ['assisted', 'autonomous', 'full-autonomous'] },
         { operator: 'includes', questionId: 'capabilities', value: 'operate-production' },
         { operator: 'includes', questionId: 'capabilities', value: 'deploy' },
       ],
@@ -432,7 +447,7 @@ export const creatorTutorial = {
     {
       id: 'delivery',
       title: 'La salida',
-      narrative: 'Compara artefactos Huascar, Kiro y portables.',
+      narrative: 'Compara artefactos Artemisa, Kiro y portables.',
       learning: 'Cada decisión queda explicada y es reversible.',
     },
   ],
@@ -1109,6 +1124,7 @@ function buildRecommendations(answers: CreatorAnswers): CreatorRecommendation[] 
   }
   if (
     answers.autonomy === 'autonomous' ||
+    answers.autonomy === 'full-autonomous' ||
     (Array.isArray(answers.capabilities) &&
       answers.capabilities.some((value) => value === 'deploy' || value === 'operate-production'))
   ) {
