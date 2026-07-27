@@ -12,7 +12,6 @@ import {
   LuSearch,
   LuServer,
   LuTarget,
-  LuTriangleAlert,
   LuWrench,
   LuX,
 } from 'react-icons/lu';
@@ -243,14 +242,6 @@ export function FineTuningDashboard({
     [orphanQuestions.length],
   );
 
-  /** Which section a given question id belongs to, for the rail's jump links. */
-  const sectionOfQuestion = useMemo(() => {
-    const map = new Map<string, SectionId>();
-    for (const section of SECTIONS) for (const id of section.questionIds) map.set(id, section.id);
-    for (const question of orphanQuestions) map.set(question.id, 'other');
-    return map;
-  }, [orphanQuestions]);
-
   const questionsOfSection = useCallback(
     (section: Section): DecisionQuestion[] =>
       section.id === 'other'
@@ -313,21 +304,6 @@ export function FineTuningDashboard({
   const active = sectionsToRender.find((section) => section.id === activeSection) ?? SECTIONS[0];
   const activeQuestions = questionsOfSection(active);
 
-  /** Focuses a question from the rail: switches section, then scrolls to it. */
-  const jumpToQuestion = useCallback(
-    (questionId: string) => {
-      setSearch('');
-      const target = sectionOfQuestion.get(questionId);
-      if (target) setActiveSection(target);
-      // The section content mounts in this same commit, so the scroll is
-      // deferred to the next frame.
-      window.requestAnimationFrame(() => {
-        document.getElementById(questionDomId(questionId))?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      });
-    },
-    [sectionOfQuestion],
-  );
-
   if (!workflow || !catalog) {
     return (
       <div className={`flex h-[70vh] items-center justify-center rounded-3xl ${glassPanel()}`} role="status">
@@ -340,7 +316,7 @@ export function FineTuningDashboard({
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[14rem_minmax(0,1fr)_16rem]">
+    <div className="grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)]">
       {/* ── Sections ───────────────────────────────────────────────────────── */}
       <aside className={`flex h-[76vh] min-h-0 flex-col rounded-3xl p-3 ${glassPanel()}`}>
         <nav className="creator-scroll flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto" aria-label="Secciones">
@@ -480,68 +456,6 @@ export function FineTuningDashboard({
           </div>
         </div>
       </div>
-
-      {/* ── Blocking answers rail ──────────────────────────────────────────── */}
-      <aside
-        className={`hidden h-[76vh] min-h-0 flex-col rounded-3xl p-4 xl:flex ${glassPanel()}`}
-        aria-label="Pendientes"
-      >
-        <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-zinc-500">Antes de generar</span>
-
-        <div className="creator-scroll mt-3 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
-          <div className="flex flex-col gap-2">
-            <span className="text-[11px] text-zinc-600">
-              {missingRequired.length === 0
-                ? 'Todas las obligatorias están respondidas.'
-                : `${missingRequired.length} obligatoria${missingRequired.length === 1 ? '' : 's'} sin responder`}
-            </span>
-            {missingRequired.map((question) => (
-              <button
-                key={question.id}
-                type="button"
-                onClick={() => jumpToQuestion(question.id)}
-                className="flex items-start gap-2 rounded-xl border border-warn/25 bg-warn/[0.05] px-2.5 py-2 text-left text-[11px] leading-relaxed text-amber-100 transition-colors hover:border-warn/50 hover:bg-warn/[0.1]"
-              >
-                <LuTriangleAlert className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
-                <span className="min-w-0">{question.prompt}</span>
-              </button>
-            ))}
-          </div>
-
-          {issues.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <span className="text-[11px] text-zinc-600">Respuestas rechazadas por el backend</span>
-              {issues.map((issue, index) => {
-                const id = issue.path.replace(/^answers\./, '');
-                return (
-                  <button
-                    key={`${id}-${index}`}
-                    type="button"
-                    onClick={() => jumpToQuestion(id)}
-                    className="flex items-start gap-2 rounded-xl border border-accent-muted/50 bg-accent-deep/25 px-2.5 py-2 text-left text-[11px] leading-relaxed text-danger transition-colors hover:border-accent"
-                  >
-                    <LuCircleAlert className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
-                    <span className="min-w-0">
-                      {questionsById.get(id)?.prompt ?? id}: {issue.message}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="flex flex-col gap-1.5 border-t border-white/[0.06] pt-3">
-            <span className="text-[11px] text-zinc-600">Preguntas visibles</span>
-            <span className="text-sm tabular-nums text-zinc-300">
-              {visibleQuestions.length}
-              <span className="ml-1 text-[11px] text-zinc-600">de {workflow.questions.length} en el árbol</span>
-            </span>
-            <p className="mt-1 text-[11px] leading-relaxed text-zinc-600">
-              Las ramas ocultas no se envían: el backend descarta las respuestas de ramas no visibles.
-            </p>
-          </div>
-        </div>
-      </aside>
     </div>
   );
 }
