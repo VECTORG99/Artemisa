@@ -160,45 +160,61 @@ interface TechItem {
   label: string;
   url: string;
   Icon?: IconType;
+  /** Brand colour applied to the icon + label text (solid RGB, no blend). */
+  color: string;
 }
 
 const techGroups: { title: string; items: TechItem[] }[] = [
   {
     title: 'Backend',
     items: [
-      { label: 'Node.js', url: 'https://nodejs.org', Icon: SiNodedotjs },
-      { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript },
-      { label: 'Express', url: 'https://expressjs.com', Icon: SiExpress },
+      { label: 'Node.js', url: 'https://nodejs.org', Icon: SiNodedotjs, color: 'rgb(83,175,43)' },
+      { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript, color: 'rgb(49,120,198)' },
+      { label: 'Express', url: 'https://expressjs.com', Icon: SiExpress, color: 'rgb(200,200,200)' },
     ],
   },
   {
     title: 'Frontend',
     items: [
-      { label: 'Next.js 16', url: 'https://nextjs.org', Icon: SiNextdotjs },
-      { label: 'React 19', url: 'https://react.dev', Icon: SiReact },
-      { label: 'Vite', url: 'https://vitejs.dev', Icon: SiVite },
-      { label: 'Tailwind CSS 4', url: 'https://tailwindcss.com', Icon: SiTailwindcss },
-      { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript },
+      { label: 'Next.js 16', url: 'https://nextjs.org', Icon: SiNextdotjs, color: 'rgb(255,255,255)' },
+      { label: 'React 19', url: 'https://react.dev', Icon: SiReact, color: 'rgb(97,219,251)' },
+      { label: 'Vite 8', url: 'https://vitejs.dev', Icon: SiVite, color: 'rgb(167,139,250)' },
+      { label: 'Tailwind CSS 4', url: 'https://tailwindcss.com', Icon: SiTailwindcss, color: 'rgb(56,189,248)' },
+      { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript, color: 'rgb(49,120,198)' },
     ],
   },
   {
     title: 'Calidad y CI',
     items: [
-      { label: 'Node test runner', url: 'https://nodejs.org/api/test.html', Icon: SiNodedotjs },
-      { label: 'Vitest', url: 'https://vitest.dev', Icon: SiVitest },
-      { label: 'Playwright', url: 'https://playwright.dev' },
-      { label: 'ESLint', url: 'https://eslint.org', Icon: SiEslint },
-      { label: 'Prettier', url: 'https://prettier.io', Icon: SiPrettier },
-      { label: 'GitHub Actions', url: 'https://github.com/features/actions', Icon: SiGithubactions },
+      {
+        label: 'Node test runner',
+        url: 'https://nodejs.org/api/test.html',
+        Icon: SiNodedotjs,
+        color: 'rgb(83,175,43)',
+      },
+      { label: 'Vitest', url: 'https://vitest.dev', Icon: SiVitest, color: 'rgb(223,224,226)' },
+      { label: 'ESLint', url: 'https://eslint.org', Icon: SiEslint, color: 'rgb(75,174,223)' },
+      { label: 'Prettier', url: 'https://prettier.io', Icon: SiPrettier, color: 'rgb(247,175,168)' },
+      {
+        label: 'GitHub Actions',
+        url: 'https://github.com/features/actions',
+        Icon: SiGithubactions,
+        color: 'rgb(136,200,255)',
+      },
     ],
   },
   {
     title: 'Infraestructura',
     items: [
-      { label: 'Docker', url: 'https://www.docker.com', Icon: SiDocker },
-      { label: 'Docker Compose', url: 'https://docs.docker.com/compose/', Icon: SiDocker },
-      { label: 'npm workspaces', url: 'https://docs.npmjs.com/cli/v10/using-npm/workspaces', Icon: SiNpm },
-      { label: 'Render', url: 'https://render.com', Icon: SiRender },
+      { label: 'Docker', url: 'https://www.docker.com', Icon: SiDocker, color: 'rgb(36,150,237)' },
+      { label: 'Docker Compose', url: 'https://docs.docker.com/compose/', Icon: SiDocker, color: 'rgb(36,150,237)' },
+      {
+        label: 'npm workspaces',
+        url: 'https://docs.npmjs.com/cli/v10/using-npm/workspaces',
+        Icon: SiNpm,
+        color: 'rgb(203,13,43)',
+      },
+      { label: 'Render', url: 'https://render.com', Icon: SiRender, color: 'rgb(70,225,170)' },
     ],
   },
 ];
@@ -231,11 +247,12 @@ function TechStackSection() {
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs text-white/80 transition-colors hover:text-white"
+                      className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs transition-colors"
                       style={{
                         backdropFilter: 'blur(6px)',
                         background: 'rgba(255,255,255,0.03)',
                         border: '1px solid rgba(255,255,255,0.08)',
+                        color: item.color,
                       }}
                     >
                       {item.Icon && <item.Icon className="h-3.5 w-3.5" aria-hidden="true" />}

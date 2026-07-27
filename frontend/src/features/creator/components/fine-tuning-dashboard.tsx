@@ -703,7 +703,7 @@ function QuestionControl({ question, value, onChange, catalogItems, issues, show
 
 function RequiredMark() {
   return (
-    <span className="ml-1 text-accent/80" title="Obligatoria" aria-label="obligatoria">
+    <span className="ml-1 text-red-500" title="Obligatoria" aria-label="obligatoria">
       *
     </span>
   );

@@ -846,7 +846,7 @@ export default function NewAgentPage() {
             {status === 'ready' && (
               <AnimatedPanel phase={phase}>
                 {!mode && (
-                  <StepContainer>
+                  <StepContainer fill>
                     <ModeSelect onSelect={selectMode} />
                   </StepContainer>
                 )}
@@ -979,7 +979,7 @@ export default function NewAgentPage() {
                     setDraftNotice(null);
                     resetDraft();
                   }}
-                  className="text-xs font-medium text-red-400 transition-colors hover:text-red-300"
+                  className="text-xs font-medium text-orange-500 transition-colors hover:text-orange-400"
                 >
                   Reiniciar
                 </button>
