@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { HeroSection } from '@/features/landing';
 import { LandingModalProvider } from '@/features/landing/components/landing-modal';
+import { useAnimationPreference } from '@/features/landing/hooks/use-animation-preference';
 
 const SpaceSimulation = dynamic(
   () => import('@/features/landing/components/space-simulation').then((m) => m.SpaceSimulation),
@@ -22,23 +23,27 @@ const ContentSections = dynamic(
   { ssr: false },
 );
 
+const AnimationToggle = dynamic(
+  () => import('@/features/landing/components/animation-toggle').then((m) => m.AnimationToggle),
+  { ssr: false },
+);
+
 export default function HomePage() {
+  const { animationsEnabled } = useAnimationPreference();
+
   return (
     <LandingModalProvider>
       {/* Navigation */}
       <StickyHeader />
       <StickyFooter />
+      <AnimationToggle />
 
       {/* Scrollable content with unified space simulation as background */}
       <div
         id="space-scroll-container"
         className="relative h-screen snap-y snap-mandatory overflow-x-hidden overflow-y-auto scroll-smooth"
       >
-        {/* The simulation renders the black hole + stars + meteors as a
-            fixed full-viewport canvas (see space-simulation.tsx) so the
-            black hole stays anchored on screen while stars/meteors keep
-            falling infinitely as the user scrolls down. */}
-        <SpaceSimulation />
+        {animationsEnabled && <SpaceSimulation showBlackHole maxMeteors={undefined} meteorSpawnRate={1} />}
         <HeroSection />
         <ContentSections />
       </div>
