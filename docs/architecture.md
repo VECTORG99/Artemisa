@@ -282,7 +282,7 @@ artemisa/
 ├── packages/types/                  # Tipos compartidos (@artemisa/types)
 ├── docs/
 │   ├── architecture.md              # Este documento
-│   ├── deployment.md               # Despliegue local, Docker y Render
+│   ├── deployment.md               # Despliegue local, Docker y DigitalOcean
 │   ├── CONVENTIONS.md              # Convenciones de equipo
 │   ├── debug-tooling.md            # Herramientas de debug (dev)
 │   ├── use_cases.md                # Casos de uso
