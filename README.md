@@ -389,7 +389,7 @@ curl http://localhost:3001/api/v1/creator/tutorial
 ### Frontend
 
 ```bash
-cd frontend && npm ci && npm run dev
+cd frontend && npm run dev
 ```
 
 - Creator: `http://localhost:3000/agents/new`

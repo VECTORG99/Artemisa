@@ -1,5 +1,10 @@
 # ADR-0005: Current repository layout without npm workspaces
 
+> **⚠ SUPERSEDED — do not follow this ADR.**
+> The repository migrated to npm workspaces in ADR-0007. The layout described
+> here (separate lockfiles per app, no `workspaces` field) no longer matches the
+> repo. This document is kept as historical record only.
+
 ## Status
 
 Superseded by ADR-0007

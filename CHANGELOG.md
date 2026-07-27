@@ -191,3 +191,12 @@ All notable changes to this project are documented here.
 - Revert "fix: robustness fixes for issues #209-#237 (#238)" (2ab6515)
 - cleanup: remove emojis from source files (4c640d8)
 - Initial commit: Dev Productivity Agent Builder platform (62d34bf)
+
+> **Note (post-1.0 pivot):** Several features listed above were removed in #584
+> (ADR-0008) when Huascar pivoted to being a configuration file generator only.
+> The Runtime — ReAct engine, LLM providers, RAG, MCP pool, SQLite persistence,
+> audit log, policy engine, agent sessions, ephemeral agent registry, commit
+> approvals — is no longer part of the product. Entries referencing those
+> components are kept as historical record; they do not reflect current
+> capabilities. See `docs/adr/0008-remove-runtime-generator-only.md` for the
+> full list of removed modules and the rationale.
