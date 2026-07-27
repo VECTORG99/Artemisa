@@ -339,12 +339,39 @@ function LegalModalContent() {
   );
 }
 
+function CompatibilityModalContent() {
+  const t = useTranslations('landing');
+  return (
+    <>
+      <span className="text-xs font-semibold uppercase tracking-wider text-white/80">{t.compatibility.eyebrow}</span>
+      <h2 className="mt-2 text-3xl font-bold text-white">{t.compatibility.title}</h2>
+      <p className="mt-2 max-w-xl text-sm text-white/80">{t.compatibility.subtitle}</p>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        {t.compatibility.stats.map((stat) => (
+          <div key={stat.label} className={glassCard('rounded-xl p-5 text-center')}>
+            <p className="text-3xl font-bold text-white">{stat.value}</p>
+            <p className="mt-1 text-sm text-white/80">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-8 text-center text-xs font-medium uppercase tracking-wider text-white/70">
+        {t.compatibility.trust}
+      </p>
+    </>
+  );
+}
+
 function LandingModals() {
   const { openModal, close } = useLandingModal();
   const t = useTranslations('landing');
   return (
-    <Modal open={openModal === 'legal'} onClose={close} title={t.legal.title}>
-      <LegalModalContent />
-    </Modal>
+    <>
+      <Modal open={openModal === 'compatibilidad'} onClose={close} title={t.compatibility.title}>
+        <CompatibilityModalContent />
+      </Modal>
+      <Modal open={openModal === 'legal'} onClose={close} title={t.legal.title}>
+        <LegalModalContent />
+      </Modal>
+    </>
   );
 }
