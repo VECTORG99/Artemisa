@@ -198,30 +198,29 @@
      is a deliberate, fluid glide rather than a teleport. */
 
   #space-scroll-container {
-    scroll-behavior: smooth;
-    scroll-snap-stop: always;
-    /* Firefox supports scroll-timeline for smoother snap */
-    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
   }
 
   #space-scroll-container > section {
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
+    min-height: 100vh;
   }
 
   /* Section content fade-in on scroll into viewport.
-     Applied via IntersectionObserver in content-sections.tsx. */
+     Applied via IntersectionObserver in content-sections.tsx.
+     Uses will-change and translate3d for GPU compositing — performs
+     identically with or without hardware acceleration. */
   .section-content {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translate3d(0, 30px, 0);
+    will-change: opacity, transform;
     transition:
-      opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s,
-      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+      opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s,
+      transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
   }
 
   .section-content.is-visible {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 
   /* Respect reduced motion — skip the fade-in transition entirely */
@@ -234,6 +233,7 @@
       opacity: 1;
       transform: none;
       transition: none;
+      will-change: auto;
     }
   }
 
