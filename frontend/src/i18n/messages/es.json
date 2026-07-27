@@ -25,7 +25,7 @@
   "landing": {
     "heroTitle": "Huascar",
     "heroCta": "Generar agente",
-    "heroDescription": "Diseña agentes de desarrollo y operación con un árbol de decisiones determinista. Sin caja negra: entiendes exactamente por qué se generó cada configuración.",
+    "heroDescription": "Diseña agentes de desarrollo y operación con decisiones explicables.",
     "ctaTitle": "¿Listo para construir tu agente?",
     "ctaDescription": "El creador te guía paso a paso. Sin sorpresas, sin caja negra.",
     "ctaButton": "Iniciar creador →"
