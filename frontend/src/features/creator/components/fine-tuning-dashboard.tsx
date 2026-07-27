@@ -66,7 +66,7 @@ const SECTIONS: Section[] = [
   {
     id: 'environments',
     label: 'Entornos',
-    description: 'Dónde trabaja el agente y cómo se despliega la aplicación.',
+    description: 'Contexto de trabajo y destino de despliegue declarados en la configuración.',
     Icon: LuServer,
     questionIds: ['environment', 'development_setup', 'testing_tools', 'deployment_target', 'container_platforms'],
   },

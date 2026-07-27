@@ -28,8 +28,7 @@ const proc = spawn('npx', ['tsx', 'src/server.ts'], {
   env: {
     ...process.env,
     PORT: '3002',
-    HUASCAR_DB_PATH: '/tmp/huascar_test.db',
-    LLM_MOCK_MODE: 'true',
+    AUTH_REQUIRED: 'false',
     RATE_LIMIT_AGENT: '120',
   },
   stdio: ['ignore', 'pipe', 'pipe'],
@@ -61,18 +60,13 @@ try {
   const preview = await assertJson('POST', '/api/v1/creator/preview', { answers: developmentAnswers, workflowVersion: '1.0.0', catalogVersion: '1.0.0' }, 200, 'artifacts');
   if (!preview.artifacts.some(file => file.path === 'docs/WHY.md')) throw new Error('Preview missing WHY documentation');
 
-  // Legacy behavior remains available
-  await assertJson('POST', '/api/agent/execute', {}, 400, 'error');
-  await assertJson('POST', '/api/agent/execute', { task: 'Revisa el codigo', role: 'PR_REVIEWER' }, 200, 'response');
-  await assertJson('GET', '/api/history', null, 200, 'history');
-
-  const res = await fetch(`${BASE}/api/history?limit=5`);
-  const history = await res.json();
-  const ok = res.status === 200 && Array.isArray(history.history);
-  console.log(`GET /api/history?limit=5 -> ${res.status} ${ok ? 'PASS' : 'FAIL'}`);
-  if (ok) passed++; else failed++;
-
-  await assertJson('POST', '/api/agent/execute', { task: 'test', role: 'NONEXISTENT' }, 404, 'error');
+  // The runtime was removed (#584): its routes must no longer exist.
+  for (const removed of ['/api/agent/execute', '/api/history', '/api/roles', '/api/rag/sources']) {
+    const removedRes = await fetch(`${BASE}${removed}`, { method: 'GET' });
+    const removedOk = removedRes.status === 404;
+    console.log(`GET ${removed} -> ${removedRes.status} ${removedOk ? 'PASS' : 'FAIL'}`);
+    if (removedOk) passed++; else { failed++; throw new Error(`${removed} should be 404`); }
+  }
 
   // --- Agent Protocol endpoints ---
   const protocol = await assertJson('GET', '/api/v1/creator/agent', null, 200, 'protocol');

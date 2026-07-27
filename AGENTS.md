@@ -5,7 +5,7 @@ Audience: AI agents changing this repository. Keep this file as the entrypoint; 
 ## Required Reading Order
 
 1. `AGENTS.md` — execution rules, workflow, protected branches.
-2. `CONTEXT.md` — required before architecture, routes, persistence, RAG, auth, deployment, or frontend/backend integration changes.
+2. `CONTEXT.md` — required before architecture, routes, generation contract, auth, deployment, or frontend/backend integration changes.
 3. `docs/CONVENTIONS.md` — required before code changes; source, tests, docs, Git/PR style.
 4. `CONTRIBUTING.md` — AI contributor recipes and PR quality gate.
 5. Relevant `docs/adr/*.md` — required before proposing/changing architecture decisions.
@@ -14,6 +14,8 @@ Audience: AI agents changing this repository. Keep this file as the entrypoint; 
 
 - Multi-app repo using npm workspaces (`packages/*`, `frontend`, `agent-creator`); root `package.json` owns backend scripts/tests and hoists shared deps.
 - Backend: root Express/TypeScript app; entrypoint `src/server.ts` -> `src/app.ts`; root `package.json` owns backend scripts/tests.
+- Backend scope is generation only (ADR-0008): the Runtime (ReAct engine, LLM, RAG, MCP, SQLite, agent execution) was removed in #584. Do not reintroduce execution, persistence or network calls.
+- Reference artifacts from the removed runtime live in `docs/reference/` as documentation; they are never loaded by the server.
 - Frontend: `frontend/` Next app; hosts both the dashboard (`/dashboard`) and the Creator (`/agents/new`); separate dependency domain.
 - `agent-creator/` Vite app: legacy, no longer the active Creator UI (superseded by `frontend/agents/new`, see issue #390). Kept in the workspace but not part of active feature work; do not add new Creator features there.
 - Docs: root docs plus `docs/`, `docs/adr/`; docs are machine-readable for agents.
@@ -44,21 +46,21 @@ Audience: AI agents changing this repository. Keep this file as the entrypoint; 
 
 Run from repository root unless noted.
 
-| Command                                             | Use                                                                             |
-| --------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `npm run test:unit`                                 | Default required unit/docs/config check.                                        |
-| `npx tsc --noEmit`                                  | TypeScript validation after source/API/config changes or when tests require it. |
-| `npm run test:all`                                  | Unit plus legacy API test when broader backend confidence is needed.            |
-| `node --import tsx/esm --test test/<file>.test.mjs` | Narrow test for a touched area.                                                 |
-| `npm --prefix frontend run build`                   | Frontend dashboard changes only.                                                |
-| `npm --prefix agent-creator run build`              | Agent creator changes only.                                                     |
+| Command                                             | Use                                                                                   |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `npm run test:unit`                                 | Default required unit/docs/config check.                                              |
+| `npx tsc --noEmit`                                  | TypeScript validation after source/API/config changes or when tests require it.       |
+| `npm run test:all`                                  | Unit plus HTTP contract test (`test/api_test.mjs`) when broader confidence is needed. |
+| `node --import tsx/esm --test test/<file>.test.mjs` | Narrow test for a touched area.                                                       |
+| `npm --prefix frontend run build`                   | Frontend dashboard changes only.                                                      |
+| `npm --prefix agent-creator run build`              | Agent creator changes only.                                                           |
 
 ## Environment Variables
 
 - Primary reference: `.env.example` at repo root.
 - Next dashboard public env is documented in root `.env.example` (for example `NEXT_PUBLIC_API_URL`).
 - Agent creator local public env reference: `agent-creator/.env.example` when changing that app.
-- Config owner: `src/config.ts`; auth env is also read by `src/middleware/auth.ts`.
+- Config owner: `src/config.ts` (server settings only); auth env is read by `src/middleware/auth.ts`; rate limits are read in `src/app.ts`.
 - Env/config changes require care: update `.env.example` and docs/tests in the same PR; never print or commit secret values.
 
 ## Useful Commands
@@ -82,6 +84,7 @@ Run from repository root unless noted.
 - Do not create unnecessary docs or decorative README prose; agent docs stay direct, structured, path-specific.
 - Tests after changes are required; if a check cannot run, document the blocker in PR and final response.
 - Config/env/security/auth/deploy changes require matching `.env.example`/docs/tests updates and no secret output.
+- Generated artifacts must stay deterministic and schema-valid (`src/kiro/schemas/*.json`).
 - CI runs on all branches/PRs; fix failing tests before requesting merge.
 - Releases are `development` -> `master` only when requested or milestone-defined.
 - Destructive GitHub operations require confirmation: `gh repo delete`, `gh pr merge --admin`, `gh release delete`, irreversible destructive actions.

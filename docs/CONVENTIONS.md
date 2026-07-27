@@ -8,7 +8,7 @@ Core rule: smallest safe change that solves the issue. Do not add abstractions, 
 
 Principles:
 
-- Keep modules focused on one runtime concern: route registration, storage, engine logic, provider integration, schema/config loading, or UI component.
+- Keep modules focused on one concern: route registration, decision-tree evaluation, artifact generation, schema/config loading, or UI component.
 - Put code next to the layer that owns it. Do not create shared utilities until at least two real call sites need the same behavior.
 - Preserve existing naming style in the target folder. Use PascalCase for classes and class-backed modules, camelCase for functions/values, kebab-case for docs/branch names.
 - Prefer small exported functions over large exported objects. Export only what tests or other modules import.
@@ -21,8 +21,8 @@ Recommended layout behavior:
 - `src/server.ts` / app bootstrap: wiring only. No business rules hidden in startup.
 - `src/routes` or route modules: HTTP parsing, validation, status codes, response shape.
 - Engine/service modules: deterministic business behavior; no Express request/response objects.
-- Store/persistence modules: SQL/filesystem details and durable invariants.
-- `src/kiro/*.json`: agent-consumed config. Keep schema-valid and update tests when required.
+- `src/creator/*`: deterministic catalog, decision tree and generation logic; no Express objects, no I/O.
+- `src/kiro/schemas/*.json`: schemas for generated artifacts. Keep them valid and update tests when required.
 - `test/*.test.mjs`: node:test unit and contract checks. Keep fixtures inline unless reused.
 - `docs/*.md`: machine-readable operational documentation. Use concrete paths, rules, and update triggers.
 
@@ -215,7 +215,7 @@ Rules:
 - Prefer inline fixtures. Move fixtures to files only when reuse or readability demands it.
 - Keep each test name behavior-oriented: `rejects missing agent name`, not `test parseCreateAgent`.
 - Use exact assertions for stable shapes and `assert.match` for messages/markdown headings.
-- When adding docs required by RAG or Kiro config, test that the file remains discoverable and schema-valid if cheap.
+- When adding reference docs under `docs/reference/`, test that JSON examples remain schema-valid if cheap.
 
 Do:
 

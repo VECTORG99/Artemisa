@@ -154,7 +154,7 @@ describe('ReviewScreen', () => {
     const { onGenerate } = renderReview({
       issues: [{ path: 'answers.technologies', message: 'La lista contiene una tecnología fuera de la categoría.' }],
     });
-    const button = screen.getByRole('button', { name: /Generar agente/i });
+    const button = screen.getByRole('button', { name: /Generar configuración/i });
     expect(button).toBeDisabled();
     fireEvent.click(button);
     expect(onGenerate).not.toHaveBeenCalled();
@@ -163,7 +163,7 @@ describe('ReviewScreen', () => {
 
   it('generates when there is nothing blocking', () => {
     const { onGenerate } = renderReview();
-    fireEvent.click(screen.getByRole('button', { name: /Generar agente/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Generar configuración/i }));
     expect(onGenerate).toHaveBeenCalledTimes(1);
   });
 
