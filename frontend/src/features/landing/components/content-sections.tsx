@@ -21,7 +21,7 @@ import {
 import { LuGitBranch, LuLayers, LuScale } from 'react-icons/lu';
 import { glassStyle, Modal, useLandingModal } from './landing-modal';
 import { useTranslations } from '@/i18n';
-import { glassButton, glassCard } from '@/lib/glass';
+import { glassButton, glassCard, glassPanel } from '@/lib/glass';
 import { apiUrl } from '@/lib/api';
 import { QuickStartCopy } from '@/components/ui/quick-start-copy';
 import { useSectionFadeIn } from '../hooks/use-section-fade-in';
@@ -119,8 +119,9 @@ function ValuePropsSection() {
           return (
             <div
               key={copy.title}
-              className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
-              style={glassStyle}
+              className={glassCard(
+                'group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1',
+              )}
             >
               <ValueIconBox icon={prop.icon} hue={prop.hue} />
               <h3 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
@@ -218,8 +219,7 @@ function TechStackSection() {
     >
       <div
         ref={ref}
-        className="section-content relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10"
-        style={glassStyle}
+        className={glassPanel('section-content relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10')}
       >
         <span className="text-xs font-semibold uppercase tracking-wider text-white/80">{t.techStack.eyebrow}</span>
         <h2 className="mt-2 text-3xl font-bold text-white">{t.techStack.title}</h2>
