@@ -138,42 +138,40 @@ export function ReviewScreen({
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <section className="flex flex-col gap-3">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">Tus decisiones</h3>
-          <div className="grid gap-3 lg:grid-cols-2">
-            {sections.map((section) => (
-              <div key={section.section} className={glassCard('flex flex-col gap-2 rounded-2xl p-4')}>
-                <span className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-                  {section.section}
-                  {section.section === FALLBACK_SECTION && (
-                    <span className="ml-2 normal-case text-zinc-600">(sin sección en el workflow)</span>
-                  )}
-                </span>
-                <dl className="flex flex-col divide-y divide-white/[0.05]">
-                  {section.answers.map((answer) => (
-                    <AnswerRow key={answer.questionId} answer={answer} onEdit={onEditAnswer} />
-                  ))}
-                </dl>
-              </div>
-            ))}
-          </div>
-        </section>
+      <section className="flex flex-col gap-3">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">Por qué el bundle se verá así</h3>
+        {sorted.length === 0 && (
+          <p className={glassNotice('neutral', 'text-zinc-500')}>
+            El árbol no produjo recomendaciones para esta combinación de respuestas.
+          </p>
+        )}
+        <div className="grid gap-3 lg:grid-cols-2">
+          {sorted.map((recommendation) => (
+            <RecommendationCard key={recommendation.id} recommendation={recommendation} />
+          ))}
+        </div>
+      </section>
 
-        <section className="flex flex-col gap-3">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">Por qué el bundle se verá así</h3>
-          {sorted.length === 0 && (
-            <p className={glassNotice('neutral', 'text-zinc-500')}>
-              El árbol no produjo recomendaciones para esta combinación de respuestas.
-            </p>
-          )}
-          <div className="flex flex-col gap-2.5">
-            {sorted.map((recommendation) => (
-              <RecommendationCard key={recommendation.id} recommendation={recommendation} />
-            ))}
-          </div>
-        </section>
-      </div>
+      <section className="flex flex-col gap-3">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">Tus decisiones</h3>
+        <div className="grid gap-3 lg:grid-cols-2">
+          {sections.map((section) => (
+            <div key={section.section} className={glassCard('flex flex-col gap-2 rounded-2xl p-4')}>
+              <span className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                {section.section}
+                {section.section === FALLBACK_SECTION && (
+                  <span className="ml-2 normal-case text-zinc-600">(sin sección en el workflow)</span>
+                )}
+              </span>
+              <dl className="flex flex-col divide-y divide-white/[0.05]">
+                {section.answers.map((answer) => (
+                  <AnswerRow key={answer.questionId} answer={answer} onEdit={onEditAnswer} />
+                ))}
+              </dl>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {error && (
         <div className={glassNotice('danger')} role="alert">

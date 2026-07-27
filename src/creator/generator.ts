@@ -769,6 +769,66 @@ function buildAllowedCommandLines(blueprint: AgentBlueprint): string[] {
   return commands.map((entry) => `- ${entry.binary}: ${entry.allowed_args.join(', ')}`);
 }
 
+/**
+ * Consolidated copy-paste prompt for the agent. It is intentionally concise
+ * and references the other bundle artifacts (blueprint.json, docs/INSTALL.md,
+ * docs/WHY.md and the target-specific files) instead of duplicating them.
+ */
+function buildPromptMd(blueprint: AgentBlueprint): string {
+  const stack = blueprint.project.technologies.map(describeCatalogSelection).join(', ') || 'No especificado';
+  const architecture = describeCatalogSelection(blueprint.project.architecture);
+  const commands = buildAllowedCommandLines(blueprint);
+  const targets = blueprint.agent.targets.map((t) => `\`${t}\``).join(', ');
+
+  const lines = [
+    `# ${blueprint.identity.name}`,
+    '',
+    `## Objetivo`,
+    '',
+    blueprint.purpose.objective || 'Configurar el agente según el blueprint generado.',
+    '',
+    `## Criterio de éxito`,
+    '',
+    blueprint.purpose.successCriteria || 'El agente aplica los artefactos sin exceder su alcance ni revelar secretos.',
+    '',
+    `## Contexto`,
+    '',
+    `- Stack: ${stack}`,
+    `- Arquitectura: ${architecture}`,
+    `- Entorno: ${blueprint.environments.target}`,
+    `- Capacidades: ${blueprint.agent.capabilities.map((c) => c.replace(/-/g, ' ')).join(', ')}`,
+    '',
+    `## Autonomía y reglas de aprobación`,
+    '',
+    `- Autonomía: ${blueprint.agent.autonomy}`,
+    blueprint.agent.requireHumanApproval
+      ? '- Solicita aprobación humana explícita antes de cualquier acción con efectos.'
+      : '- Trabaja en modo asesor; no ejecutes acciones con efectos.',
+    '- No escribas nunca secretos, tokens ni credenciales en el código o los prompts.',
+    '- Explica evidencia, riesgos, supuestos y trade-offs antes de proponer cambios.',
+    '',
+    `## Comandos de build/test/lint permitidos`,
+    '',
+    ...(commands.length > 0 ? commands : ['- No se permiten comandos de shell para este agente.']),
+    '',
+    `## Alcance y limitaciones`,
+    '',
+    `- Este prompt acompaña a los artefactos del bundle (${targets}).`,
+    '- No reejecutes el bundle generador ni modifiques los archivos de configuración sin revisión.',
+    `- ${blueprint.environments.target === 'production' ? 'Producción requiere staging, observabilidad, rollback y aprobación humana verificados.' : 'Valida primero en desarrollo antes de promover a producción.'}`,
+    '',
+    `## Instrucción de cierre`,
+    '',
+    'Aplica estos artefactos y reporta evidencia antes de cualquier acción con efectos.',
+  ];
+
+  if (blueprint.purpose.persona) {
+    lines.push('', `## Tono/restricciones adicionales`, '', blueprint.purpose.persona);
+  }
+
+  return lines.join('\n') + '\n';
+}
+
 function buildCursorRules(blueprint: AgentBlueprint): GeneratedArtifact[] {
   const slug = blueprint.identity.slug;
   const globs = inferStackGlobs(blueprint.project.technologies);
@@ -1197,6 +1257,14 @@ export function generateAgentBundle(input: unknown): GeneratedAgentBundle {
       'documentation',
       'Explicación de decisiones, recomendaciones y trade-offs.',
       buildWhy(blueprint),
+    ),
+  );
+  add(
+    markdownArtifact(
+      'PROMPT.md',
+      'instruction',
+      'Prompt consolidado para copiar y enviar al agente con todo el contexto del bundle.',
+      buildPromptMd(blueprint),
     ),
   );
 
