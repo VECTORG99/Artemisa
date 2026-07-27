@@ -14,7 +14,7 @@ export default function NotFound() {
       <StarfieldBackground />
       <main className="relative z-10 flex min-h-[80vh] flex-col items-center justify-center text-center">
         <div className={glassPanel('w-full max-w-lg rounded-2xl p-10 shadow-xl')}>
-          <p className="text-sm font-medium uppercase tracking-[0.3em] text-accent">Error 404</p>
+          <p className="text-sm font-medium uppercase tracking-[0.3em] text-pink-400">Error 404</p>
           <h1 className="mt-3 text-4xl font-bold tracking-tight text-zinc-50">Página no encontrada</h1>
           <p className="mt-4 text-sm text-zinc-400">
             La ruta que buscas no existe o fue movida. Huascar genera archivos de configuración, no aloja agentes;
@@ -23,13 +23,13 @@ export default function NotFound() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/"
-              className="rounded-md border border-white/[0.08] bg-white/[0.02] px-5 py-2.5 text-sm font-medium text-zinc-200 backdrop-blur-[9px] transition-colors hover:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-zinc-950"
+              className="rounded-md border border-white/[0.08] bg-white/[0.02] px-5 py-2.5 text-sm font-medium text-zinc-200 backdrop-blur-[9px] transition-colors hover:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-zinc-950"
             >
               Volver al inicio
             </Link>
             <Link
               href="/agents/new"
-              className="rounded-md border border-accent/40 bg-accent/10 px-5 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-accent/20 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-zinc-950"
+              className="rounded-md border border-pink-500/40 bg-pink-500/10 px-5 py-2.5 text-sm font-medium text-pink-400 transition-colors hover:bg-pink-500/20 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-zinc-950"
             >
               Abrir el Creador
             </Link>
