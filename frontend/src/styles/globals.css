@@ -191,6 +191,52 @@
     animation: fade-in-up 0.25s ease-out both;
   }
 
+  /* ── Landing scroll snap transitions (issue #388) ──────────────────────
+     Smooth, eased scroll-snap between landing sections. The default
+     browser snap is instant (~200ms) which feels mechanical. This adds
+     scroll-behavior: smooth + scroll-snap-stop: always so each section
+     is a deliberate, fluid glide rather than a teleport. */
+
+  #space-scroll-container {
+    scroll-behavior: smooth;
+    scroll-snap-stop: always;
+    /* Firefox supports scroll-timeline for smoother snap */
+    scroll-snap-type: y mandatory;
+  }
+
+  #space-scroll-container > section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  /* Section content fade-in on scroll into viewport.
+     Applied via IntersectionObserver in content-sections.tsx. */
+  .section-content {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s,
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+  }
+
+  .section-content.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Respect reduced motion — skip the fade-in transition entirely */
+  @media (prefers-reduced-motion: reduce) {
+    #space-scroll-container {
+      scroll-behavior: auto;
+    }
+
+    .section-content {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
   /* Success checkmark — a gentle scale-in without the exaggerated bounce */
   @keyframes success-pop {
     0% {

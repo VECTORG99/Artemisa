@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dynamicImport from 'next/dynamic';
-import { LuArrowLeft, LuArrowRight, LuKeyboard, LuMonitor, LuRotateCcw, LuSkipForward } from 'react-icons/lu';
+import {
+  LuArrowLeft,
+  LuArrowRight,
+  LuKeyboard,
+  LuMonitor,
+  LuRotateCcw,
+  LuSkipForward,
+  LuSparkles,
+  LuMoon,
+} from 'react-icons/lu';
 
 import {
   CompletionScreen,
@@ -31,8 +40,9 @@ import {
 } from '@/features/creator/lib/flow';
 import { clearDraft, loadDraft, saveDraft } from '@/features/creator/lib/session';
 import { GlassBackButton, GlassIconButton } from '@/components/ui/glass-icon-button';
-import { glassButton, glassNotice, glassPrimaryButton } from '@/lib/glass';
+import { glassButton, glassNotice, glassPrimaryButton, glassStyle } from '@/lib/glass';
 import { ApiError, creator } from '@/lib/api';
+import { useAnimationPreference } from '@/features/landing/hooks/use-animation-preference';
 import type {
   Catalog,
   CatalogItem,
@@ -139,6 +149,7 @@ function usePanelTransition() {
 type Status = 'loading' | 'fatal' | 'ready';
 
 export default function NewAgentPage() {
+  const { animationsEnabled, toggle: toggleAnimations } = useAnimationPreference();
   const [status, setStatus] = useState<Status>('loading');
   const [fatalError, setFatalError] = useState('');
   const [retrying, setRetrying] = useState(false);
@@ -721,7 +732,7 @@ export default function NewAgentPage() {
       <div className="hidden md:block">
         {/* Persistent background — renders once, never re-mounts */}
         <div className="fixed inset-0 z-0">
-          <SpaceSimulation showBlackHole={false} maxMeteors={8} meteorSpawnRate={0.4} />
+          {animationsEnabled && <SpaceSimulation showBlackHole={false} maxMeteors={8} meteorSpawnRate={0.4} />}
         </div>
 
         <main className="relative flex h-screen flex-col items-center justify-center overflow-hidden px-4 py-6 text-zinc-50 sm:px-8">
@@ -732,11 +743,40 @@ export default function NewAgentPage() {
             </div>
           )}
 
-          {/* Utilities — shortcuts help, and reset while a draft exists */}
-          {status === 'ready' && (
+          {/* Reset — top right while a draft exists */}
+          {status === 'ready' && mode && (
             <div className="absolute right-4 top-6 z-20 flex items-center gap-2 sm:right-8">
-              {mode && <GlassIconButton onClick={resetDraft} label="Reiniciar borrador" icon={LuRotateCcw} />}
-              <GlassIconButton onClick={() => setShortcutsOpen(true)} label="Atajos de teclado" icon={LuKeyboard} />
+              <GlassIconButton onClick={resetDraft} label="Reiniciar borrador" icon={LuRotateCcw} />
+            </div>
+          )}
+
+          {/* Utilities — animation toggle + shortcuts, bottom-left like the landing */}
+          {status === 'ready' && (
+            <div className="absolute bottom-5 left-5 z-20 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={toggleAnimations}
+                aria-label={animationsEnabled ? 'Desactivar animaciones' : 'Activar animaciones'}
+                className="flex items-center gap-2 rounded-full px-3 py-2 text-xs text-white/80 transition-colors hover:text-white"
+                style={glassStyle}
+              >
+                {animationsEnabled ? (
+                  <LuSparkles className="h-4 w-4" aria-hidden="true" />
+                ) : (
+                  <LuMoon className="h-4 w-4" aria-hidden="true" />
+                )}
+                <span>{animationsEnabled ? 'Desactivar animaciones' : 'Activar animaciones'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShortcutsOpen(true)}
+                aria-label="Atajos de teclado"
+                className="flex items-center gap-2 rounded-full px-3 py-2 text-xs text-white/80 transition-colors hover:text-white"
+                style={glassStyle}
+              >
+                <LuKeyboard className="h-4 w-4" aria-hidden="true" />
+                <span>Atajos de teclado</span>
+              </button>
             </div>
           )}
 

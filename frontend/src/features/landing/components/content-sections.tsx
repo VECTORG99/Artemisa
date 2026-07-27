@@ -23,6 +23,7 @@ import { useTranslations } from '@/i18n';
 import { glassButton, glassCard } from '@/lib/glass';
 import { apiUrl } from '@/lib/api';
 import { QuickStartCopy } from '@/components/ui/quick-start-copy';
+import { useSectionFadeIn } from '../hooks/use-section-fade-in';
 
 // ─── Hero ───────────────────────────────────────────────────────────────────
 // Minimal by design: one headline, one subheadline, one call to action.
@@ -119,9 +120,10 @@ function PlanetIcon({ hue }: { hue: number }) {
 }
 
 function ValuePropsSection() {
+  const ref = useSectionFadeIn<HTMLDivElement>();
   return (
     <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
-      <div className="relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
+      <div ref={ref} className="section-content relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
         {valueProps.map((prop) => (
           <div
             key={prop.title}
@@ -193,9 +195,14 @@ const techGroups: { title: string; items: TechItem[] }[] = [
 ];
 
 function TechStackSection() {
+  const ref = useSectionFadeIn<HTMLDivElement>();
   return (
     <section id="tecnologia" className="flex h-screen snap-start snap-always items-center justify-center px-6">
-      <div className="relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10" style={glassStyle}>
+      <div
+        ref={ref}
+        className="section-content relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10"
+        style={glassStyle}
+      >
         <span className="text-xs font-semibold uppercase tracking-wider text-white/80">Stack real del proyecto</span>
         <h2 className="mt-2 text-3xl font-bold text-white">Tecnología que usamos</h2>
         <p className="mx-auto mt-2 max-w-xl text-sm text-white/80">
@@ -237,10 +244,15 @@ function TechStackSection() {
 
 function FinalCtaSection() {
   const t = useTranslations('landing');
+  const ref = useSectionFadeIn<HTMLDivElement>();
 
   return (
     <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
-      <div className="relative z-10 w-full max-w-2xl rounded-3xl p-10 text-center" style={glassStyle}>
+      <div
+        ref={ref}
+        className="section-content relative z-10 w-full max-w-2xl rounded-3xl p-10 text-center"
+        style={glassStyle}
+      >
         <h2 className="text-3xl font-bold text-white">{t.ctaTitle}</h2>
         <p className="mt-3 max-w-md mx-auto text-white/80">{t.ctaDescription}</p>
         <Link
