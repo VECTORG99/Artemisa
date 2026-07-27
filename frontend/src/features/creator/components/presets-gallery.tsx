@@ -5,7 +5,6 @@ import {
   LuArrowRight,
   LuBookOpen,
   LuBrainCircuit,
-  LuChevronDown,
   LuDatabase,
   LuFileCode2,
   LuGitPullRequestArrow,
@@ -14,8 +13,8 @@ import {
   LuShieldCheck,
   LuWrench,
 } from 'react-icons/lu';
-import type { Catalog, CreatorAnswerValue, Workflow } from '@artemisa/types';
-import { buildLabelLookup, groupAnswersBySection } from '@/features/creator/lib/answer-labels';
+import type { Catalog, CreatorAnswerValue } from '@artemisa/types';
+import { buildLabelLookup } from '@/features/creator/lib/answer-labels';
 import { glassCard, glassPill, glassPrimaryButton } from '@/lib/glass';
 import { CREATOR_PRESETS, type CreatorPreset } from '../presets/presets';
 
@@ -24,7 +23,6 @@ interface PresetsGalleryProps {
   /** True while an /evaluate call for a preset is in flight. */
   applying?: boolean;
   catalog: Catalog | null;
-  workflow?: Workflow | null;
 }
 
 const PURPOSE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -41,6 +39,9 @@ const ENVIRONMENT_LABELS: Record<string, string> = {
   development: 'Desarrollo',
   production: 'Producción',
   both: 'Desarrollo + producción',
+  testing: 'Testing / QA',
+  staging: 'Staging / Pre-producción',
+  local: 'Local / Recreativo',
 };
 
 const AUTONOMY_LABELS: Record<string, string> = {
@@ -63,8 +64,7 @@ function asArray(value: CreatorAnswerValue | undefined): string[] {
  * de partida" is not a real choice when the only visible difference between
  * eight cards is a sentence of prose.
  */
-export function PresetsGallery({ onSelect, applying = false, catalog, workflow }: PresetsGalleryProps) {
-  const [expanded, setExpanded] = useState<string | null>(null);
+export function PresetsGallery({ onSelect, applying = false, catalog }: PresetsGalleryProps) {
   const [pending, setPending] = useState<string | null>(null);
 
   const lookup = useMemo(() => buildLabelLookup({ catalog }), [catalog]);
@@ -95,7 +95,6 @@ export function PresetsGallery({ onSelect, applying = false, catalog, workflow }
           const targets = asArray(answers.agent_targets);
           const technologies = asArray(answers.technologies);
           const capabilities = asArray(answers.capabilities);
-          const isExpanded = expanded === preset.id;
           const isPending = applying && pending === preset.id;
 
           return (
@@ -138,44 +137,7 @@ export function PresetsGallery({ onSelect, applying = false, catalog, workflow }
                 )}
               </div>
 
-              {isExpanded && workflow && (
-                <div className="creator-scroll max-h-56 overflow-y-auto rounded-2xl border border-white/[0.06] bg-black/20 p-3">
-                  {groupAnswersBySection(answers, workflow, lookup).map((section) => (
-                    <div key={section.section} className="mb-3 last:mb-0">
-                      <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
-                        {section.section}
-                      </span>
-                      <dl className="mt-1 flex flex-col gap-1">
-                        {section.answers.map((answer) => (
-                          <div key={answer.questionId} className="flex gap-2 text-[11px]">
-                            <dt className="min-w-0 flex-1 truncate text-zinc-500">{answer.label}</dt>
-                            <dd className="max-w-[55%] text-right text-zinc-300">{answer.values.join(', ') || '—'}</dd>
-                          </div>
-                        ))}
-                      </dl>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="mt-auto flex items-center justify-between gap-2 pt-1">
-                {workflow ? (
-                  <button
-                    type="button"
-                    onClick={() => setExpanded(isExpanded ? null : preset.id)}
-                    aria-expanded={isExpanded}
-                    className="inline-flex items-center gap-1 text-xs text-zinc-500 transition-colors hover:text-zinc-200"
-                  >
-                    <LuChevronDown
-                      className={`h-3 w-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                      aria-hidden="true"
-                    />
-                    {isExpanded ? 'Ocultar respuestas' : 'Ver las respuestas'}
-                  </button>
-                ) : (
-                  <span />
-                )}
-
+              <div className="mt-auto flex items-center justify-end gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => choose(preset)}

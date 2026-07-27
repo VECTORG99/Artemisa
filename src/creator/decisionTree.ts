@@ -96,6 +96,7 @@ export const creatorQuestions: DecisionQuestion[] = [
       option('new', 'Proyecto nuevo', 'Se diseñará una base coherente desde cero.'),
       option('existing', 'Proyecto existente', 'Se respetará la arquitectura y convenciones actuales.'),
       option('migration', 'Migración', 'Se documentarán estados origen, destino y convivencia.'),
+      option('other', 'Otro (especificar)', 'Se adaptará el enfoque al contexto descrito por el usuario.'),
     ],
   },
   {
@@ -137,6 +138,9 @@ export const creatorQuestions: DecisionQuestion[] = [
       option('development', 'Sólo desarrollo', 'Opera sobre código y herramientas de desarrollo.'),
       option('production', 'Sólo producción', 'Asiste en un entorno operacional controlado.'),
       option('both', 'Desarrollo y producción', 'Genera políticas separadas para ambos contextos.'),
+      option('testing', 'Testing / QA', 'Entorno de pruebas con datos sintéticos y validación automatizada.'),
+      option('staging', 'Staging / Pre-producción', 'Réplica de producción para validación final antes del release.'),
+      option('local', 'Local / Recreativo', 'Entorno personal de experimentación sin impacto externo.'),
     ],
   },
   {
@@ -146,7 +150,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     description: 'Permite generar pasos de instalación reproducibles.',
     type: 'select',
     required: true,
-    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['development', 'both'] },
+    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['development', 'both', 'local'] },
     options: [
       option('local', 'Local', 'Dependencias instaladas en la estación del desarrollador.'),
       option('docker-compose', 'Docker Compose', 'Servicios locales reproducibles mediante contenedores.'),
@@ -163,7 +167,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     required: false,
     catalogCategories: ['testing'],
     maxSelections: 6,
-    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['development', 'both'] },
+    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['development', 'both', 'local'] },
   },
   {
     id: 'deployment_target',
@@ -173,7 +177,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     type: 'catalog-select',
     required: true,
     catalogCategories: ['cloud'],
-    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both'] },
+    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both', 'testing', 'staging'] },
   },
   {
     id: 'container_platforms',
@@ -184,7 +188,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     required: false,
     catalogCategories: ['container'],
     maxSelections: 5,
-    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both'] },
+    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both', 'testing', 'staging'] },
   },
   {
     id: 'ci_cd',
@@ -205,7 +209,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     required: false,
     catalogCategories: ['infrastructure'],
     maxSelections: 5,
-    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both'] },
+    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both', 'testing', 'staging'] },
   },
   {
     id: 'observability',
@@ -216,7 +220,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     required: true,
     catalogCategories: ['observability'],
     maxSelections: 6,
-    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both'] },
+    visibleWhen: { operator: 'oneOf', questionId: 'environment', values: ['production', 'both', 'testing', 'staging'] },
   },
   {
     id: 'security_controls',
