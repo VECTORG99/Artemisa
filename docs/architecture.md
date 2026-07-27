@@ -172,6 +172,7 @@ GET  /api/v1/creator/tutorial
 GET  /api/v1/creator/skills
 GET  /api/v1/creator/mcps
 GET  /api/v1/creator/models
+GET  /api/v1/creator/docs
 POST /api/v1/creator/evaluate
 POST /api/v1/creator/preview
 POST /api/v1/creator/generate

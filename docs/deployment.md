@@ -107,8 +107,6 @@ Defaults per environment:
 | Variable             | Required | Default                 | Description                           |
 | -------------------- | -------- | ----------------------- | ------------------------------------- |
 | `VITE_API_URL`       | No       | `http://localhost:3001` | Backend API URL for the Vite dev tool |
-| `VITE_DASHBOARD_URL` | No       | `http://localhost:3000` | Dashboard URL link                    |
-
 > The `agent-creator/` Vite app is legacy (superseded by `frontend/agents/new`, issue #390). It remains in the workspace but is not the active Creator UI.
 
 ---
