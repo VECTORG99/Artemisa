@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant U as User
+    participant LT as LanguageToggle
+    participant LP as LocaleProvider
+    participant LS as localStorage
+    participant D as Document
+
+    U->>LT: Clicks "EN"
+    LT->>LP: setLocale('en')
+    LP->>LS: setItem('artemisa-locale', 'en')
+    LP->>D: document.documentElement.lang = 'en'
+    LP->>LP: Update state (trigger re-render)
+    Note over LP: useTranslations('landing') returns en.json[landing]

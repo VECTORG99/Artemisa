@@ -1,0 +1,16 @@
+graph TD
+    subgraph "Natural Language Space"
+        A["User Answers (CreatorAnswers)"]
+        B["Selected Role (e.g., 'architect')"]
+    end
+
+    subgraph "Code Entity Space"
+        C["src/creator/generator.ts:generateAgentBundle()"]
+        D["src/kiro/schemas/steering.schema.json"]
+        E["steering.json Artifact"]
+    end
+
+    A --> C
+    B --> C
+    C -- "validates against" --> D
+    C -- "produces" --> E

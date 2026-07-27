@@ -1,0 +1,30 @@
+graph TD
+    subgraph "Natural Language Space"
+        R1["'Verify Agent Generation'"]
+        R2["'Check UI Components'"]
+        R3["'Validate API Health'"]
+    end
+
+    subgraph "Code Entity Space"
+        E1["generateAgentBundle()"]
+        E2["evaluateDecisionTree()"]
+        E3["ReviewScreen.tsx"]
+        E4["app.ts / /api/health"]
+    end
+
+    subgraph "Testing Suite"
+        T1["test/e2e-agent-creation.test.mjs"]
+        T2["frontend/src/components/ReviewScreen.test.tsx"]
+        T3["e2e/tests/api-health.spec.ts"]
+    end
+
+    R1 --> E1
+    R1 --> E2
+    E1 --> T1
+    E2 --> T1
+    
+    R2 --> E3
+    E3 --> T2
+    
+    R3 --> E4
+    E4 --> T3

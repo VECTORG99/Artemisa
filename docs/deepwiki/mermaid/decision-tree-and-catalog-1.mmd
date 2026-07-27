@@ -1,0 +1,20 @@
+graph TD
+    subgraph "Natural Language Space (User UI)"
+        UI_Search["Search Input (McpBrowser.tsx)"]
+        UI_Filter["Category Chips (SkillsBrowser.tsx)"]
+    end
+
+    subgraph "Code Entity Space (Backend & Types)"
+        TS_Catalog["CreatorCatalog (@artemisa/types)"]
+        F_GetCatalog["getCreatorCatalog() (catalog.ts)"]
+        D_Skills["skillsCatalog.ts"]
+        D_MCP["mcpCatalog.ts"]
+        D_Models["modelsCatalog.ts"]
+    end
+
+    UI_Search -->|API Request| F_GetCatalog
+    UI_Filter -->|API Request| F_GetCatalog
+    F_GetCatalog --> TS_Catalog
+    D_Skills -.->|Static Import| F_GetCatalog
+    D_MCP -.->|Static Import| F_GetCatalog
+    D_Models -.->|Static Import| F_GetCatalog

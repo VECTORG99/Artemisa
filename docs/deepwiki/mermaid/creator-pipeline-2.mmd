@@ -1,0 +1,18 @@
+graph LR
+    subgraph "Generator Functions"
+        GB["generateAgentBundle()"]
+        MA["makeArtifact()"]
+    end
+
+    subgraph "Target Artifacts"
+        T1["Cursor (.cursorrules, .mdc)"]
+        T2["Kiro (.kiro/steering, .kiro/hooks)"]
+        T3["CodeRabbit (.coderabbit.yaml)"]
+        T4["Documentation (INSTALL.md, WHY.md)"]
+    end
+
+    GB --> MA
+    MA --> T1
+    MA --> T2
+    MA --> T3
+    MA --> T4

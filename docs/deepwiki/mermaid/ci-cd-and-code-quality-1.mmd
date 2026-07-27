@@ -1,0 +1,30 @@
+graph TD
+    subgraph "Developer Environment"
+        "Dev[Developer]" -- "git commit" --> "Husky[Husky Hooks]"
+        "Husky" --> "LintStaged[lint-staged]"
+        "LintStaged" --> "TSC[tsc --noEmit]"
+        "LintStaged" --> "Prettier[prettier --write]"
+    end
+
+    "Husky" -- "git push" --> "GitHub[GitHub Actions]"
+
+    subgraph "ci.yml (Primary CI)"
+        "GitHub" --> "LintJob[Job: lint]"
+        "GitHub" --> "TestJob[Job: test]"
+        "GitHub" --> "SecJob[Job: security]"
+        
+        "TestJob" --> "Shard1[Shard 1: Unit + Integration]"
+        "TestJob" --> "Shard2[Shard 2: Unit]"
+        "TestJob" --> "Shard3[Shard 3: Unit]"
+        
+        "SecJob" --> "Audit[npm audit --audit-level=critical]"
+        "Audit" -- "Fail: Registry Error" --> "Retry[Retry Loop (3x)]"
+        "Audit" -- "Fail: Vulnerability" --> "HardFail[Immediate Failure]"
+    end
+
+    subgraph "release.yml"
+        "GitHub" -- "Merge to master" --> "Cliff[git-cliff]"
+        "Cliff" --> "Changelog[Update docs/CHANGELOG.md]"
+        "Changelog" --> "Tag[git tag vX.Y.Z]"
+        "Tag" --> "GHRelease[gh release create]"
+    end

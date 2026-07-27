@@ -1,0 +1,10 @@
+graph TD
+    "Err[Error Occurs]" --> "EH[errorHandler.ts]"
+    "EH" --> "Log[logger.error]"
+    "Log" -- "Includes" --> "Stack[err.stack]"
+    "EH" --> "ProdCheck{isProduction?}"
+    "ProdCheck" -- "Yes" --> "SafeResp[JSON Response: code + message]"
+    "ProdCheck" -- "No" --> "DevResp[JSON Response: code + message + details]"
+    
+    style "Stack" stroke-dasharray: 5 5
+    style "SafeResp" stroke-width: 2px

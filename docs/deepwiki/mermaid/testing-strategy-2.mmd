@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant FE["Frontend /agents/new"]
+    participant API["Backend Express Server"]
+    participant CRT["Creator Module"]
+    
+    Note over FE, CRT: Playwright E2E Flow
+    FE->>API: POST /api/v1/creator/evaluate
+    API->>CRT: evaluateDecisionTree(answers)
+    CRT-->>API: { progress, nextQuestion }
+    API-->>FE: 200 OK
+    
+    Note over API, CRT: Node.js Unit Test Flow
+    API->>CRT: generateAgentBundle(answers)
+    CRT-->>API: GeneratedAgentBundle (with SHA-256)

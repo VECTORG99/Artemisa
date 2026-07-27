@@ -4,7 +4,7 @@ El Creator genera `artemisa/security-policy.json` cuando el bundle tiene target 
 
 Referencias en este directorio:
 
-- [`security-policy.example.json`](security-policy.example.json): política real que usó el runtime de Artemisa.
+- [`security-policy.example.json`](security-policy.example.json): política allowlist de ejemplo.
 - [`hooks-implementation.ts`](hooks-implementation.ts): implementación de referencia del hook `before_action`.
 
 ## 1. Qué es una política allowlist

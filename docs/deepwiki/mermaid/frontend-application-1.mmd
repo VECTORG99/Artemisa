@@ -1,0 +1,26 @@
+graph TD
+    subgraph "Next.js App Router [/src/app]"
+        ROOT["RootLayout [layout.tsx]"]
+        HOME["HomePage [page.tsx]"]
+        CREATOR_ROUTE["Creator Page [/agents/new/page.tsx]"]
+    end
+
+    subgraph "Features [/src/features]"
+        LANDING["Landing Feature [/landing]"]
+        CREATOR["Creator Feature [/creator]"]
+    end
+
+    subgraph "Design & Logic [/src/lib]"
+        GLASS["Glass UI [glass.ts]"]
+        API["API Client [api.ts]"]
+        I18N["i18n System [/i18n]"]
+    end
+
+    ROOT --> HOME
+    ROOT --> CREATOR_ROUTE
+    HOME --> LANDING
+    CREATOR_ROUTE --> CREATOR
+    LANDING --> GLASS
+    CREATOR --> GLASS
+    CREATOR --> API
+    ROOT --> I18N

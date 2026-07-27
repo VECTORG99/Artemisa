@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant U as "User (Browser)"
+    participant F as "frontend/src/lib/api.ts"
+    participant B as "src/creator/router.ts"
+    participant G as "src/creator/generator.ts"
+
+    U->>F: "Answers Question"
+    F->>B: "POST /evaluate (Answers)"
+    B-->>F: "VisibleQuestions + NextQuestion"
+    U->>F: "Click Generate"
+    F->>B: "POST /generate (Final Answers)"
+    B->>G: "generateAgentBundle()"
+    G-->>B: "Artifacts + SHA-256 Hashes"
+    B-->>F: "Downloadable Bundle"

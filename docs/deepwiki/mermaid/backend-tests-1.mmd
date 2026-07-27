@@ -1,0 +1,22 @@
+graph TD
+    subgraph "Natural Language Space"
+        A["User Answers"]
+        B["Validation Rules"]
+        C["Agent Files"]
+    end
+
+    subgraph "Code Entity Space"
+        A1["CreatorAnswers (domain.ts)"]
+        B1["evaluateDecisionTree() (decisionTree.ts)"]
+        B2["CreatorInputError (domain.ts)"]
+        C1["generateAgentBundle() (generator.ts)"]
+        C2["GeneratedArtifact (domain.ts)"]
+    end
+
+    A -->|"input to"| A1
+    A1 -->|"processed by"| B1
+    B1 -- "if invalid" --> B2
+    B1 -- "if complete" --> C1
+    C1 -->|"produces"| C2
+    C2 -->|"mapped to"| C
+    B2 -->|"mapped to"| B

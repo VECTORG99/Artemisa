@@ -1,0 +1,23 @@
+graph TD
+    subgraph "Code Entity Space: @artemisa/types"
+        [index.ts] --> T1["CreatorAnswers"]
+        [index.ts] --> T2["DecisionEvaluation"]
+        [index.ts] --> T3["GeneratedAgentBundle"]
+    end
+
+    subgraph "Natural Language Space: Frontend Application"
+        F_State["UI State Management"]
+        F_API["API Client (lib/api.ts)"]
+    end
+
+    subgraph "Natural Language Space: Backend Core"
+        B_Creator["Creator Pipeline"]
+        B_Routes["API Routes"]
+    end
+
+    T1 -.-> F_State
+    T1 -.-> B_Creator
+    T2 -.-> F_API
+    T2 -.-> B_Routes
+    T3 -.-> F_API
+    T3 -.-> B_Creator

@@ -1,0 +1,14 @@
+graph TD
+    subgraph "Playwright Test Context"
+        A["browser.newContext({ viewport: { width: 390 } })"] --> B["page.goto('/agents/new')"]
+    end
+
+    subgraph "Frontend Component: CreatorPage"
+        B --> C{Width < 768px?}
+        C -- "Yes" --> D["Render MobileBlocker Component"]
+        C -- "No" --> E["Render ModeSelector Component"]
+    end
+
+    subgraph "E2E Assertion"
+        D --> F["expect(heading 'usa un computador').toBeVisible()"]
+    end

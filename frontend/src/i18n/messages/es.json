@@ -85,12 +85,29 @@
       "p3Link": "github.com/VECTORG99/Artemisa",
       "p3After": "."
     },
+    "compatibility": {
+      "eyebrow": "Cobertura real del catálogo",
+      "title": "Compatible con tu stack",
+      "subtitle": "Artemisa no es un generador genérico: entiende 400+ tecnologías, 90 MCPs, 59 skills y 7 agentes distintos.",
+      "stats": [
+        { "label": "Preguntas guiadas", "value": "32" },
+        { "label": "Ítems del catálogo", "value": "419" },
+        { "label": "Servidores MCP", "value": "90" },
+        { "label": "Skills curadas", "value": "59" },
+        { "label": "Plataformas/agentes", "value": "7" },
+        { "label": "Proveedores Git", "value": "5" },
+        { "label": "Opciones cloud", "value": "8" },
+        { "label": "Niveles de autonomía", "value": "4" }
+      ],
+      "trust": "Bundles deterministas con SHA-256 · Sin persistencia · MPL-2.0"
+    },
     "nav": {
       "ariaLabel": "Navegación principal",
       "creator": "Creador",
       "docs": "Docs",
       "team": "Equipo",
-      "technology": "Tecnología"
+      "technology": "Tecnología",
+      "compatibility": "Compatibilidad"
     },
     "footer": {
       "ariaLabel": "Pie de página",
@@ -173,6 +190,7 @@
       "loading": "Cargando contrato del workflow…",
       "searchPlaceholder": "Buscar una pregunta en todo el árbol…",
       "searchAriaLabel": "Buscar preguntas",
+      "sectionsNavAriaLabel": "Secciones",
       "searchResults": "{count} pregunta(s) en todas las secciones",
       "searchResultsTitle": "Resultados para «{query}»",
       "noSearchResults": "Ninguna pregunta visible coincide con esa búsqueda.",

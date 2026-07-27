@@ -1,0 +1,24 @@
+classDiagram
+    class "Stateless Generator" {
+        <<Concept>>
+        src/creator/generator.ts
+        src/creator/decisionTree.ts
+    }
+    class "Security Boundary" {
+        <<Middleware>>
+        src/middleware/auth.ts
+        src/app.ts (Helmet/CORS)
+    }
+    class "Shared Contracts" {
+        <<Workspace>>
+        packages/types/index.ts
+    }
+    class "Deployment Specs" {
+        <<Infrastructure>>
+        .do/app.yaml
+        Dockerfile.backend
+    }
+
+    "Stateless Generator" ..> "Shared Contracts" : Uses interfaces
+    "Security Boundary" ..> "Stateless Generator" : Protects /generate
+    "Deployment Specs" ..> "Security Boundary" : Configures ARTEMISA_API_KEYS

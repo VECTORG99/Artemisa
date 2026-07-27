@@ -1,6 +1,6 @@
 # Self-Hosting Guide
 
-> Artemisa only generates configuration files. The backend is a stateless Express server — no database, no LLM API keys, no persistent disk, no MCP connections. This makes self-hosting significantly simpler than the previous Runtime-based deployment.
+> Artemisa only generates configuration files. The backend is a stateless Express server — no database, no external API keys, no persistent disk, no network connections. This makes self-hosting simple.
 
 ---
 
@@ -217,14 +217,10 @@ RestartSec=10
 
 ## What you do NOT need
 
-Because the Runtime was removed (#584, ADR-0008):
+The deployment is a single stateless Node.js process behind a reverse proxy. You do not need:
 
-- ❌ No `OPENAI_API_KEY` or any LLM credentials
-- ❌ No SQLite database or persistent disk
-- ❌ No MCP server connections
-- ❌ No RAG vector index
-- ❌ No `ARTEMISA_DB_PATH`
-- ❌ No database migrations or init scripts
-- ❌ No backup strategy for runtime state
-
-The entire deployment is a single stateless Node.js process behind a reverse proxy.
+- ❌ External AI/LLM credentials
+- ❌ A database or persistent disk
+- ❌ Vector stores
+- ❌ Database migrations or init scripts
+- ❌ Backup strategies for server-side state

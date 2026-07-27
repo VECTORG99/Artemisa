@@ -1,0 +1,10 @@
+graph LR
+    BE["Backend /evaluate"] -- "returns visibleQuestions" --> FM["flow.ts"]
+    FM -->|"flowQuestionIds()"| IDS["Active ID Subset"]
+    IDS -->|"pruneVisited()"| Trail["Cleaned Visited Trail"]
+    Trail -->|"resolveNextStep()"| UI["Current Question Display"]
+    
+    subgraph "Short Flow Logic"
+        SF["short-flow.ts"] -.->|"SHORT_FLOW_QUESTION_IDS"| FM
+        SF -.->|"buildShortFlowDefaults()"| ANS["Final Answers"]
+    end

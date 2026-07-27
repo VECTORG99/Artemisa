@@ -1,0 +1,19 @@
+graph TD
+    subgraph "Natural Language Space (UI)"
+        A["ModeSelect (Auto/Presets)"] -- "Sets" --> B["CreatorAnswers"]
+        C["OptionPicker"] -- "Updates" --> B
+        D["ReviewScreen"] -- "Triggers" --> E["Generate Action"]
+    end
+
+    subgraph "Code Entity Space (Frontend & Types)"
+        B --> F["@artemisa/types: CreatorAnswers"]
+        E --> G["lib/api.ts: creator.generate(answers)"]
+        G -- "POST /api/v1/creator/generate" --> H["Backend Pipeline"]
+        H -- "Returns" --> I["GeneratedAgentBundle"]
+    end
+
+    subgraph "Output Space"
+        I --> J["CompletionScreen"]
+        J --> K[".zip Download"]
+        J --> L["Artifact Preview"]
+    end

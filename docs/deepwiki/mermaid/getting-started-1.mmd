@@ -1,0 +1,16 @@
+graph TD
+    subgraph "Local Environment"
+        B["Backend (Port :3001)"]
+        F["Next.js Frontend (Port :3000)"]
+        L["Legacy Creator (Port :5173)"]
+    end
+
+    B -->| "Entrypoint" | S["src/server.ts"]
+    B -->| "App Logic" | A["src/app.ts"]
+    
+    F -->| "Main Route" | NR["frontend/src/app/agents/new/page.tsx"]
+    F -->| "API Client" | AC["frontend/src/lib/api.ts"]
+    
+    L -->| "Vite App" | VR["agent-creator/README.md"]
+
+    AC -->| "Fetches Catalog/Workflow" | B

@@ -49,7 +49,7 @@ Before copying anything to your project:
 1. Open `docs/WHY.md` — understand why each recommendation was made.
 2. Open `artemisa/security-policy.json` (if generated) — review the allowlist of allowed commands and paths.
 3. Open `artemisa/steering.json` (if generated) — review the roles, system prompts and tool permissions.
-4. Check the warnings shown in the Creator — they flag potential issues (e.g., SQLite in production, deploy privileges).
+4. Check the warnings shown in the Creator — they flag potential issues (e.g., a local database in production, deploy privileges).
 
 > **Never copy files without reading them first.** These files define what your agent can do. A misconfigured steering or security policy can grant excessive permissions.
 

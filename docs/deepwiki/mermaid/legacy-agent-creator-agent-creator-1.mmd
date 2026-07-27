@@ -1,0 +1,20 @@
+graph TD
+    subgraph "App Lifecycle"
+        START["App.jsx (StepProvider)"] --> INIT["StepContext: initialize()"]
+        INIT --> LOAD["Phase: loading"]
+        LOAD -- "API Success" --> TUTORIAL["Phase: tutorial (WelcomeStep)"]
+        TUTORIAL -- "Skip/Finish" --> Q["Phase: questions (DynamicQuestion)"]
+        Q -- "All Answered" --> REVIEW["Phase: review (ReviewStep)"]
+        REVIEW -- "Generate Clicked" --> DONE["Phase: complete (CompletionScreen)"]
+        INIT -- "API Failure" --> ERR["Phase: error (ErrorScreen)"]
+    end
+
+    subgraph "Data Entities"
+        definition["CreatorDefinition (Workflow + Catalog)"]
+        evaluation["EvaluationResult (VisibleQuestions + Progress)"]
+        bundle["GeneratedAgentBundle (Artifacts + SHA-256)"]
+    end
+
+    INIT -.-> definition
+    Q -.-> evaluation
+    DONE -.-> bundle

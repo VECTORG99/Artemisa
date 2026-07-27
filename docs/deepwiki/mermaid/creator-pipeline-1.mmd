@@ -1,0 +1,27 @@
+graph TD
+    subgraph "Natural Language Space (User Input)"
+        A["User Answers (JSON)"]
+    end
+
+    subgraph "Core Logic (src/creator/)"
+        B["evaluateDecisionTree()"]
+        C["buildBlueprint()"]
+        D["generateAgentBundle()"]
+        E["CreatorCatalog (Static)"]
+    end
+
+    subgraph "Code Entity Space (Artifacts)"
+        F["blueprint.json"]
+        G[".cursorrules / .windsurfrules"]
+        H[".kiro/steering/"]
+        I["SHA-256 Manifest"]
+    end
+
+    A --> B
+    E --> B
+    B --> C
+    C --> D
+    D --> F
+    D --> G
+    D --> H
+    D --> I
