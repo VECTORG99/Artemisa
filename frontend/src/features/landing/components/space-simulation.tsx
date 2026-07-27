@@ -203,14 +203,23 @@ export function SpaceSimulation({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let width = window.innerWidth;
-    let height = window.innerHeight;
+    let stars: Star[] = [];
+    let width = document.documentElement.clientWidth;
+    let height = document.documentElement.clientHeight;
 
     const resize = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
+      const prevWidth = width;
+      const prevHeight = height;
+      width = document.documentElement.clientWidth;
+      height = document.documentElement.clientHeight;
       canvas.width = width;
       canvas.height = height;
+      if (prevWidth > 0 && prevHeight > 0 && stars.length > 0) {
+        for (const star of stars) {
+          star.ox = (star.ox / prevWidth) * width;
+          star.oy = (star.oy / prevHeight) * height;
+        }
+      }
     };
     resize();
     window.addEventListener('resize', resize);
@@ -229,6 +238,16 @@ export function SpaceSimulation({
       influenceRadius: Math.min(width, height) * 0.75,
     };
 
+    // Update black hole on viewport resize
+    const resizeWell = () => {
+      well.x = width * 0.5;
+      well.y = height * 0.5;
+      well.eventRadius = Math.min(width, height) * 0.16;
+      well.photonRadius = Math.min(width, height) * 0.205;
+      well.influenceRadius = Math.min(width, height) * 0.75;
+    };
+    window.addEventListener('resize', resizeWell);
+
     // Parallax scroll offset: stars and meteors drift with scroll to feel
     // like the frame is opening up more space as the user scrolls down,
     // while the black hole itself stays perfectly still on screen.
@@ -245,7 +264,7 @@ export function SpaceSimulation({
     let lastScrollY = 0;
     let scrollVelocity = 0;
 
-    const stars: Star[] = Array.from({ length: STAR_COUNT }, () => createStar(width, height));
+    stars = Array.from({ length: STAR_COUNT }, () => createStar(width, height));
     const meteors: Meteor[] = [];
 
     // #403: respect prefers-reduced-motion — render a single static frame
@@ -807,6 +826,7 @@ export function SpaceSimulation({
     return () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', resize);
+      window.removeEventListener('resize', resizeWell);
       scrollContainer?.removeEventListener('scroll', handleScroll);
       document.removeEventListener('visibilitychange', onVisibility);
       intersectionObserver?.disconnect();
@@ -814,6 +834,6 @@ export function SpaceSimulation({
   }, []);
 
   return (
-    <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 z-[1] h-screen w-screen" aria-hidden="true" />
+    <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 z-[1] h-full w-full" aria-hidden="true" />
   );
 }

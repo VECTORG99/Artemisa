@@ -39,7 +39,7 @@ export function HeroSection() {
   return (
     <section
       id="contenido-principal"
-      className="flex h-screen snap-start snap-always flex-col items-center justify-center px-6"
+      className="flex min-h-screen sm:h-screen snap-start snap-always flex-col items-center justify-center px-6"
     >
       <div className="relative z-10 max-w-3xl text-center">
         <h1 className="text-5xl font-bold tracking-tight text-white text-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-6xl lg:text-7xl xl:text-8xl">
@@ -130,7 +130,7 @@ function GlassIcon({ src, alt }: { src: string; alt: string; hue: number }) {
 function ValuePropsSection() {
   const ref = useSectionFadeIn<HTMLDivElement>();
   return (
-    <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
+    <section className="flex min-h-screen sm:h-screen snap-start snap-always items-center justify-center px-6">
       <h2 className="sr-only">Características principales</h2>
       <div ref={ref} className="section-content relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
         {valueProps.map((prop) => (
@@ -222,7 +222,10 @@ const techGroups: { title: string; items: TechItem[] }[] = [
 function TechStackSection() {
   const ref = useSectionFadeIn<HTMLDivElement>();
   return (
-    <section id="tecnologia" className="flex h-screen snap-start snap-always items-center justify-center px-6">
+    <section
+      id="tecnologia"
+      className="flex min-h-screen sm:h-screen snap-start snap-always items-center justify-center px-6"
+    >
       <div
         ref={ref}
         className="section-content relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10"
@@ -273,7 +276,7 @@ function FinalCtaSection() {
   const ref = useSectionFadeIn<HTMLDivElement>();
 
   return (
-    <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
+    <section className="flex min-h-screen sm:h-screen snap-start snap-always items-center justify-center px-6">
       <div
         ref={ref}
         className="section-content relative z-10 w-full max-w-2xl rounded-3xl p-10 text-center"
