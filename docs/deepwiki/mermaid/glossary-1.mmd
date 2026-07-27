@@ -1,0 +1,26 @@
+graph TD
+    subgraph "Natural Language Space"
+        UserAnswers["User Answers (JSON)"]
+        Decision["Branching Logic"]
+        Gen["Bundle Generation"]
+    end
+
+    subgraph "Code Entity Space (Backend)"
+        Router["src/creator/router.ts"]
+        DTree["src/creator/decisionTree.ts"]
+        Eval["evaluateDecisionTree()"]
+        GenFunc["generateAgentBundle()"]
+        Blueprint["buildBlueprint()"]
+        Artifacts["makeArtifact()"]
+    end
+
+    UserAnswers --> Router
+    Router --> Eval
+    Eval --> DTree
+    Router --> GenFunc
+    GenFunc --> Blueprint
+    GenFunc --> Artifacts
+    
+    style UserAnswers stroke-dasharray: 5 5
+    style Decision stroke-dasharray: 5 5
+    style Gen stroke-dasharray: 5 5

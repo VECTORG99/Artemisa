@@ -1,0 +1,21 @@
+graph TD
+    subgraph "Natural Language Space"
+        A["Fetch Catalog"]
+        B["Evaluate Answers"]
+        C["Preview Bundle"]
+        D["Generate Bundle"]
+    end
+
+    subgraph "Code Entity Space (frontend/src/lib/api.ts)"
+        A --> E["creator.getCatalog()"]
+        B --> F["creator.evaluate()"]
+        C --> G["creator.preview()"]
+        D --> H["creator.generate()"]
+    end
+
+    subgraph "Backend Routes (CREATOR_BASE)"
+        E --> I["/catalog"]
+        F --> J["/evaluate"]
+        G --> K["/preview"]
+        H --> L["/generate"]
+    end

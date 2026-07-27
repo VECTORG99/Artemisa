@@ -1,0 +1,13 @@
+graph LR
+    subgraph "Stateless Backend (src/)"
+        Req["Express Request"]
+        Auth["src/middleware/auth.ts"]
+        Logic["src/creator/generator.ts"]
+        Schemas["src/kiro/schemas/*.json"]
+    end
+
+    Req --> Auth
+    Auth --> Logic
+    Logic -->|Validate| Schemas
+    Logic -->|Deterministic Hash| Manifest["manifest.json (SHA-256)"]
+    Logic -->|Final Output| ZIP["Configuration Bundle"]

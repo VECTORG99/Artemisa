@@ -1,0 +1,40 @@
+classDiagram
+    class LandingPage {
+        <<Page>>
+        HeroSection
+        ValuePropsSection
+        TechStackSection
+    }
+    
+    class SpaceSimulation {
+        <<Component>>
+        +intensity: number
+        +showBlackHole: boolean
+        drawStars()
+        drawBlackHole()
+    }
+    
+    class StickyHeader {
+        <<Component>>
+        +openModal(id)
+    }
+    
+    class QuickStartCopy {
+        <<Component>>
+        +url: string
+        handleCopy()
+    }
+
+    class LandingModalProvider {
+        <<Context>>
+        +openModal: string
+        +open(id)
+        +close()
+    }
+
+    LandingPage *-- HeroSection
+    HeroSection *-- QuickStartCopy
+    LandingPage *-- SpaceSimulation
+    LandingPage *-- StickyHeader
+    StickyHeader ..> LandingModalProvider : calls open()
+    LandingModalProvider --* Modal : controls

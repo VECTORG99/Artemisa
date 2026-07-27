@@ -1,0 +1,20 @@
+graph LR
+    subgraph "Natural Language Space: Configuration Data"
+        Answers["User Answers"]
+        Logic["Decision Tree"]
+    end
+
+    subgraph "Code Entity Space: @artemisa/types"
+        Answers --> Blueprint["AgentBlueprint"]
+        Blueprint --> Artifact["GeneratedArtifact"]
+        Artifact --> Bundle["GeneratedAgentBundle"]
+        
+        subgraph "Artifact Properties"
+            A_Path["path: string"]
+            A_SHA["sha256: string"]
+            A_Kind["kind: ArtifactKind"]
+        end
+        Artifact --- A_Path
+        Artifact --- A_SHA
+        Artifact --- A_Kind
+    end

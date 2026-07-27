@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant CI as "CI/CD (GitHub Actions)"
+    participant DB as "docker-build-job"
+    participant VH as "Verify-Backend-Starts"
+    
+    CI->>DB: Build artemisa-backend:test
+    DB->>DB: npm install & tsc
+    CI->>VH: docker run -p 3001:3001
+    loop Health Check
+        VH->>VH: curl -sf http://localhost:3001/api/health
+    end
+    VH-->>CI: Healthy (Exit 0)

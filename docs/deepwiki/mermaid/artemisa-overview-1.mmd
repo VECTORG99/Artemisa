@@ -1,0 +1,22 @@
+graph TD
+    subgraph "Natural Language Space"
+        User["User Requirements"]
+        Answers["CreatorAnswers (32 Questions)"]
+    end
+
+    subgraph "Code Entity Space (Artemisa System)"
+        Router["src/creator/router.ts"]
+        Tree["evaluateDecisionTree()"]
+        Catalog["CreatorCatalog"]
+        Gen["generateAgentBundle()"]
+        Types["@artemisa/types"]
+    end
+
+    User -->|Interaction| Answers
+    Answers -->|POST /evaluate| Router
+    Router --> Tree
+    Tree -->|Consults| Catalog
+    Tree -->|Produces| Recommendation["Explainable Guidance"]
+    Recommendation -->|POST /generate| Gen
+    Gen -->|Implements| Types
+    Gen -->|Output| Bundle["GeneratedAgentBundle (.zip / .json)"]

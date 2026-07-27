@@ -1,0 +1,15 @@
+graph TD
+    subgraph "External Access"
+        "User Browser" -->|"Port 3000"| FE["frontend (Next.js)"]
+        "User Browser" -->|"Port 3001"| BE["backend (Express)"]
+        "User Browser" -->|"Port 5173"| AC["agent-creator (Legacy)"]
+    end
+
+    subgraph "artemisa-network"
+        FE -->|"API Calls"| BE
+        AC -->|"API Calls"| BE
+    end
+
+    subgraph "Backend Internals"
+        BE -->|"src/creator/generator.ts"| PURE["Pure Generation Logic"]
+    end

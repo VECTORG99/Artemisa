@@ -1,0 +1,18 @@
+graph TD
+    subgraph "Public Space"
+        [Browser/Agent] -->|NEXT_PUBLIC_API_URL| [Frontend_NextJS]
+    end
+
+    subgraph "Server Space"
+        [Frontend_NextJS] -->|JSON_API| [Express_App]
+        [Express_App] --> [Auth_Middleware]
+        [Express_App] --> [Creator_Module]
+    end
+
+    subgraph "Configuration Entities"
+        [Auth_Middleware] -.->|Reads| [ARTEMISA_API_KEYS]
+        [Express_App] -.->|Reads| [CORS_ALLOWED_ORIGINS]
+        [Creator_Module] -.->|Uses| [CreatorCatalog]
+    end
+
+    style [Express_App] stroke-dasharray: 5 5

@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant UI as "Creator UI"
+    participant API as "api.ts: creator.evaluate"
+    participant Net as "Backend (/evaluate)"
+
+    UI->>API: call evaluate(answers, versions)
+    API->>API: Generate keyFor(answers, versions)
+    alt Key matches lastResult
+        API-->>UI: Return cached lastPromise
+    else Key in inFlight Map
+        API-->>UI: Return running promise
+    else New Request
+        API->>Net: POST /evaluate
+        Net-->>API: DecisionEvaluation
+        API->>API: Store in lastPromise & clear inFlight
+        API-->>UI: Return result
+    end

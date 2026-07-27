@@ -1,0 +1,20 @@
+graph TD
+    subgraph "Natural Language Space"
+        A["Liquid Glass Effect"]
+        B["Brand Accent"]
+        C["Wizard Progress"]
+        D["Interactive Choices"]
+    end
+
+    subgraph "Code Entity Space"
+        A --> E["glassStyle object"]
+        A --> F["glassPanel() function"]
+        B --> G["--color-accent (CSS)"]
+        C --> H["StepContainer (Component)"]
+        D --> I["glassOptionCard() function"]
+    end
+
+    E -- "defines" --> J["frontend/src/lib/glass.ts:21"]
+    G -- "defines" --> K["frontend/src/styles/globals.css:20"]
+    H -- "uses" --> L["frontend/src/features/creator/components/step-container.tsx:64"]
+    I -- "implements" --> M["frontend/src/lib/glass.ts:129"]

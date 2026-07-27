@@ -1,0 +1,31 @@
+graph TD
+  subgraph "Entry & Lifecycle"
+    SERVER["src/server.ts"] -- "starts" --> APP["src/app.ts"]
+    SERVER -- "listens on" --> PORT["config.server.port"]
+  end
+
+  subgraph "Middleware Pipeline"
+    APP --> HELMET["helmet()"]
+    HELMET --> CORS["cors()"]
+    CORS --> SANITIZE["sanitizeRequestBody"]
+    SANITIZE --> LIMITER["globalLimiter"]
+  end
+
+  subgraph "Routing & Logic"
+    LIMITER --> PUBLIC["creatorPublicRouter"]
+    PUBLIC --> EVAL["evaluateDecisionTree()"]
+    
+    LIMITER --> AUTH["requireAuth"]
+    AUTH --> PROTECTED["creatorProtectedRouter"]
+    PROTECTED --> GEN["generateAgentBundle()"]
+  end
+
+  subgraph "Observability"
+    APP --> HEALTH["createHealthRouter()"]
+    APP --> METRICS["metricsRouter()"]
+  end
+
+  style SERVER stroke-width:2px
+  style APP stroke-width:2px
+  style EVAL stroke-dasharray: 5 5
+  style GEN stroke-dasharray: 5 5

@@ -1,0 +1,18 @@
+graph LR
+    subgraph "Input Space"
+        C1["capabilities: ['run-tests']"]
+        T1["technologies: ['typescript']"]
+    end
+
+    subgraph "Generator Logic (src/creator/generator.ts)"
+        G1["deriveAllowedCommands()"]
+    end
+
+    subgraph "Artifact Space"
+        P1["security-policy.json"]
+        CR["allowed_commands: { binary: 'npm', allowed_args: ['test', 'run'] }"]
+    end
+
+    C1 & T1 --> G1
+    G1 --> P1
+    P1 --> CR

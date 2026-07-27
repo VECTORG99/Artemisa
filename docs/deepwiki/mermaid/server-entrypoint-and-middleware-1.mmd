@@ -1,0 +1,31 @@
+graph TD
+    subgraph "Request Entry"
+        "Client Request" --> "app.ts"
+    end
+
+    subgraph "Security Layer"
+        "app.ts" --> "helmetMiddleware[helmet]"
+        "helmetMiddleware[helmet]" --> "corsMiddleware[cors]"
+        "corsMiddleware[cors]" --> "sanitize[sanitizeRequestBody]"
+    end
+
+    subgraph "Validation Layer"
+        "sanitize[sanitizeRequestBody]" --> "typeCheck[enforceJsonContentType]"
+        "typeCheck[enforceJsonContentType]" --> "paramVal[validatePathParams]"
+    end
+
+    subgraph "Traffic Control"
+        "paramVal[validatePathParams]" --> "globalLimiter[rateLimit]"
+        "globalLimiter[rateLimit]" --> "timeout[Request Timeout Timer]"
+    end
+
+    subgraph "Routing"
+        "timeout[Request Timeout Timer]" --> "creatorRouter[/api/v1/creator]"
+        "creatorRouter[/api/v1/creator]" --> "auth[requireAuth]"
+        "auth[requireAuth]" --> "protectedRoutes[Creator Protected Router]"
+    end
+
+    subgraph "Observability"
+        "app.ts" -.-> "metrics[metricsMiddleware]"
+        "metrics[metricsMiddleware]" -.-> "logger[requestLogger]"
+    end

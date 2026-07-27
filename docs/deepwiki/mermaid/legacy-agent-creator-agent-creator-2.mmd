@@ -1,0 +1,22 @@
+sequenceDiagram
+    participant UI as DynamicQuestion.jsx
+    participant CTX as StepContext.jsx
+    participant API as creatorApi.js
+    participant BE as Backend (/api/v1/creator)
+
+    UI->>CTX: updateAnswer(id, value)
+    UI->>CTX: continueFlow()
+    CTX->>API: evaluateCreator(answers, versions)
+    API->>BE: POST /evaluate
+    BE-->>API: EvaluationResult
+    API-->>CTX: setEvaluation(result)
+    CTX-->>UI: Update visibleQuestions & progress
+
+    Note over UI, BE: User reaches 100% progress
+
+    UI->>CTX: generate()
+    CTX->>API: previewCreator(answers, versions)
+    API->>BE: POST /generate
+    BE-->>API: GeneratedAgentBundle
+    API-->>CTX: setBundle(bundle)
+    CTX->>UI: Phase -> 'complete'

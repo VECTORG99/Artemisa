@@ -1,0 +1,29 @@
+graph TD
+    subgraph "Navigation & Layout"
+        SH["StickyHeader (sticky-nav.tsx)"]
+        SF["StickyFooter (sticky-nav.tsx)"]
+        SS["SpaceSimulation (space-simulation.tsx)"]
+    end
+
+    subgraph "Content Sections (content-sections.tsx)"
+        HS["HeroSection"]
+        VP["ValuePropsSection"]
+        TS["TechStackSection"]
+        FC["FinalCtaSection"]
+    end
+
+    subgraph "Modals & State"
+        LMP["LandingModalProvider"]
+        LM["Modal (legal, etc.)"]
+        I18N["useTranslations ('landing')"]
+    end
+
+    SH -->|Trigger Open| LMP
+    SF -->|Trigger Open| LMP
+    LMP -->|Render| LM
+    HS -->|Link| Creator["/agents/new"]
+    HS -->|Copy| QSC["QuickStartCopy"]
+    
+    I18N -.-> HS
+    I18N -.-> VP
+    I18N -.-> TS

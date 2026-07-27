@@ -1,0 +1,28 @@
+graph TD
+    subgraph "Logic Space"
+        START["Start Session"]
+        ANS["Process Answer"]
+        GEN["Generate Bundle"]
+        HINT["Generate Hint"]
+    end
+
+    subgraph "Code Entity Space (src/creator/)"
+        AP_START["agentProtocol.ts: getAgentStart()"]
+        AP_ANS["agentProtocol.ts: processAgentAnswer()"]
+        AP_GEN["agentProtocol.ts: generateAgentBundle()"]
+        AP_HINT["agentProtocol.ts: buildHint()"]
+        
+        T_START["domain.ts: AgentStartResponse"]
+        T_ANS["domain.ts: AgentAnswerResponse"]
+        T_GEN["domain.ts: AgentGenerateResponse"]
+    end
+
+    START --> AP_START
+    AP_START -.-> T_START
+    
+    ANS --> AP_ANS
+    AP_ANS --> AP_HINT
+    AP_ANS -.-> T_ANS
+    
+    GEN --> AP_GEN
+    AP_GEN -.-> T_GEN

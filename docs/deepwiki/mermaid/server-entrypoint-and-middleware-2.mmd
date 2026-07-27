@@ -1,0 +1,18 @@
+graph LR
+    subgraph "Public API Surface"
+        "/api/health" --> "deepHealthCheck()"
+        "/api/health/live" --> "Liveness Status"
+        "/api/health/ready" --> "Readiness Check"
+        "/api/openapi.json" --> "openApiSpec"
+    end
+
+    subgraph "Protected API Surface"
+        "/api/metrics" --> "MetricsState"
+        "MetricsState" --> "METRICS_SECRET Validation"
+    end
+
+    subgraph "Code Entities"
+        "deepHealthCheck()" --- "src/health.ts"
+        "MetricsState" --- "src/routes/metrics.ts"
+        "openApiSpec" --- "src/routes/openapi.ts"
+    end

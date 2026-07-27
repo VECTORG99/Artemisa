@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant U as User
+    participant F as Next.js Frontend
+    participant B as Express Backend
+
+    U->>F: Interacts with Creator UI
+    F->>F: Validates locally (TypeScript)
+    F->>B: POST /creator/evaluate (JSON)
+    Note over F,B: Security Headers: X-Frame-Options, CSP
+    B-->>F: Returns Decision Tree / Recommendations
+    F->>U: Renders Glass UI Components
