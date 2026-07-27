@@ -1,11 +1,13 @@
+name: artemisa
+
 services:
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile.backend
+      context: ..
+      dockerfile: docker/Dockerfile.backend
     ports:
       - '3001:3001'
-    env_file: .env
+    env_file: ../.env
     environment:
       - NODE_ENV=production
     restart: unless-stopped
@@ -38,8 +40,8 @@ services:
 
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
       args:
         NEXT_PUBLIC_API_URL: http://localhost:3001
     ports:
@@ -65,8 +67,8 @@ services:
 
   agent-creator:
     build:
-      context: .
-      dockerfile: Dockerfile.agent-creator
+      context: ..
+      dockerfile: docker/Dockerfile.agent-creator
     ports:
       - '5173:5173'
     environment:

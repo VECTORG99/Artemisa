@@ -18,7 +18,7 @@
    ```
 2. Verifica `NEXT_PUBLIC_API_URL` en el frontend:
    - **Local dev:** `http://localhost:3001`
-   - **Docker Compose:** `http://backend:3001` (set in `docker-compose.yml`)
+   - **Docker Compose:** `http://backend:3001` (set in `docker/docker-compose.yml`)
    - **Producción:** la URL de tu backend desplegado
 3. `NEXT_PUBLIC_API_URL` se bakea en el bundle en build time. Si la cambias, necesitas un rebuild:
    ```bash

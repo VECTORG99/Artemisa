@@ -7,7 +7,7 @@ Audience: AI agents changing this repository. Keep this file as the entrypoint; 
 1. `AGENTS.md` — execution rules, workflow, protected branches.
 2. `CONTEXT.md` — required before architecture, routes, generation contract, auth, deployment, or frontend/backend integration changes.
 3. `docs/CONVENTIONS.md` — required before code changes; source, tests, docs, Git/PR style.
-4. `CONTRIBUTING.md` — AI contributor recipes and PR quality gate.
+4. `docs/CONTRIBUTING.md` — AI contributor recipes and PR quality gate.
 5. Relevant `docs/adr/*.md` — required before proposing/changing architecture decisions.
 
 ## Project Context
@@ -80,7 +80,7 @@ Run from repository root unless noted.
 ## Rules
 
 - No direct pushes to `master` or `development`; all changes go through PRs to `development` unless an explicitly authorized hotfix targets `master`.
-- Do not duplicate full docs here; extend `CONTEXT.md`, `docs/CONVENTIONS.md`, `CONTRIBUTING.md`, or ADRs when detail belongs there.
+- Do not duplicate full docs here; extend `CONTEXT.md`, `docs/CONVENTIONS.md`, `docs/CONTRIBUTING.md`, or ADRs when detail belongs there.
 - Do not create unnecessary docs or decorative README prose; agent docs stay direct, structured, path-specific.
 - Tests after changes are required; if a check cannot run, document the blocker in PR and final response.
 - Config/env/security/auth/deploy changes require matching `.env.example`/docs/tests updates and no secret output.
