@@ -5,12 +5,12 @@ Updated: 2026-07-26
 ## State
 
 - Repository uses npm workspaces (`packages/*`, `frontend`, `agent-creator`): root Express/TypeScript backend, `frontend/` Next app (landing + Creator at `/agents/new`), and `agent-creator/` Vite tool. Root `package.json` owns backend scripts/tests and hoists shared dependencies; per-app installs still work via `npm --prefix <app> run <script>` but `npm --prefix <app> ci` fails (use root `npm ci` instead, which installs all workspaces).
-- The backend only generates configuration files (#584, ADR-0008). The Runtime (ReAct engine, LLM providers, RAG, MCP, sessions, ephemeral agents CRUD, commit approvals, SQLite) was deleted; there is no execution, deployment or hosting path in this repo.
+- The backend only generates configuration files. There is no execution, deployment or hosting path in this repo.
 - Backend entrypoint: `src/server.ts` -> `src/app.ts`. Express mounts public creator catalog/workflow/tutorial/agent endpoints before auth, then `/api` metrics/health/openapi, then the protected creator routes.
 - Backend source is now: `src/creator/*` (catalog, decision tree, generator, agent protocol, sub-catalogs), `src/routes/{health,metrics,openapi,debug}.ts`, `src/middleware/*`, `src/config.ts` (server settings only), `src/errors.ts`, `src/logger.ts`, `src/health.ts`, and `src/kiro/schemas/*.json`.
 - No persistence: no database, no filesystem writes, no network calls during generation. Every request is a pure function of its body.
-- Backend runtime dependencies are `express`, `helmet`, `cors`, `compression`, `express-rate-limit`, `pino`, `dotenv`. There is no `better-sqlite3`, `ai`, `@ai-sdk/*` or `@modelcontextprotocol/sdk`.
-- Reference artifacts rescued from the deleted runtime live in `docs/reference/`: `steering-roles.json` (the 7 curated roles), `security-policy.example.json`, `hooks-implementation.ts`, `mcps.example.json`, `rag.example.json`, `prompts/`, plus `security-policy-guide.md` and `steering-roles-guide.md`. They are documentation, never loaded by the server.
+- Backend runtime dependencies are `express`, `helmet`, `cors`, `compression`, `express-rate-limit`, `pino`, `dotenv`. There are no database drivers, AI SDKs or MCP client libraries.
+- Reference artifacts in `docs/reference/` (`steering-roles.json`, `security-policy.example.json`, `hooks-implementation.ts`, `mcps.example.json`, `rag.example.json`, `prompts/`, plus `security-policy-guide.md` and `steering-roles-guide.md`) are documentation-only examples. They are never loaded by the server.
 - Auth is environment-driven in `src/middleware/auth.ts`: `AUTH_REQUIRED=false` for local development; `AUTH_REQUIRED=true` requires `ARTEMISA_API_KEYS` through `Authorization: Bearer` or `X-API-Key`, and fails closed when keys are missing.
 
 ## What Works
@@ -23,7 +23,7 @@ Updated: 2026-07-26
   - `RATE_LIMIT_CREATOR` defaults to 120/min: the Creator re-evaluates the whole tree per step, so one completed Auto-largo run costs ~35 requests.
 - Generation is deterministic: same answers plus the same `workflowVersion`/`catalogVersion` produce the same artifacts and SHA-256 hashes. Version mismatches return 409; incomplete trees, literal secrets and unsafe bundles return 422.
 - Generated artifacts follow `src/kiro/schemas/*.json`; `test/kiro-schema.test.mjs` validates the reference examples in `docs/reference/` against those schemas.
-- Removed runtime routes (`/api/agent/execute`, `/api/agents`, `/api/history`, `/api/roles`, `/api/rag/*`, `/api/tools`, `/api/memory`, `/api/pipeline`, `/api/configs`, `/api/hooks/commit-approval/*`, `/api/mcp/status`) return 404 and are absent from the OpenAPI document; `test/api_test.mjs` and `test/openapi.test.mjs` assert this.
+- Legacy execution routes return 404 and are absent from the OpenAPI document; `test/api_test.mjs` and `test/openapi.test.mjs` assert this.
 - Next creator route `frontend/src/app/agents/new/page.tsx` consumes the backend creator workflow/catalog and generates a downloadable bundle. It owns the state machine (mode select -> question flow -> review -> completion) and delegates:
   - `features/creator/lib/flow.ts` — guided navigation. The backend's `nextQuestion` only covers required questions, so the client walks `evaluation.visibleQuestions` with its own visited trail; this is what makes the 4 optional questions reachable and the back button work.
   - `features/creator/lib/session.ts` — `sessionStorage` draft, namespaced by workflow version.
@@ -49,7 +49,7 @@ Updated: 2026-07-26
 - Keep docs for agents direct, structured, and file/path-specific.
 - New code should include tests; root unit tests run with `npm run test:unit`.
 - Root backend target is TypeScript ESM (`type: module`) and uses `.js` import specifiers in source.
-- Generation must stay pure: no filesystem, network, database, LLM, MCP or shell access in `src/creator/*`.
+- Generation must stay pure: no filesystem, network, database, external service calls or shell access in `src/creator/*`.
 - Request JSON body limit is `128kb`; global request timeout defaults to `REQUEST_TIMEOUT_MS=120000`.
 - CORS default origins are `http://localhost:3000,http://localhost:5173`; override with `CORS_ALLOWED_ORIGINS`.
 
@@ -82,7 +82,7 @@ docs/reference/*                     (documentation only, not imported)
 - Generation: `POST /api/v1/creator/preview|generate` -> validate complete tree -> `generateAgentBundle()` -> artifacts + manifest with SHA-256 + `INSTALL.md`/`WHY.md`.
 - Agent protocol: `GET /api/v1/creator/agent/start` -> `POST /agent/answer` (repeat) -> `POST /agent/generate` -> bundle plus application instructions.
 - Auth boundary: everything mounted after the `/api` auth middleware requires a key when `AUTH_REQUIRED=true`; health, metrics and the public creator endpoints are mounted before it.
-- Graceful shutdown: `server.close()` drains open requests; there is no in-flight execution tracking, MCP pool or database to close.
+- Graceful shutdown: `server.close()` drains open requests; there is no in-flight execution tracking, external connections or database to close.
 
 ## Do Not Touch / High-Risk Zones
 
@@ -95,7 +95,7 @@ docs/reference/*                     (documentation only, not imported)
 
 ## Non-Goals
 
-- Do not reintroduce execution: no ReAct loop, LLM provider, MCP connection, RAG indexing or shell access in this repo (ADR-0008).
+- Do not reintroduce execution: no AI inference, external service connections or shell access in this repo.
 - Do not add a database or vector store; the Creator is stateless by design.
 - Do not write generated files to disk or to the user's repository from the backend.
 - Do not expand `AGENTS.md` into a full conventions/contributing guide here.

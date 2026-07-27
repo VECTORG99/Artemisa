@@ -82,7 +82,7 @@ Audience: AI agents changing this repository. Keep changes issue-scoped, schema-
 ## Architecture Rules / Constraints
 
 - Backend entrypoint: `src/server.ts` -> `src/app.ts`; app wiring stays thin.
-- The backend only generates configuration files (#584): no execution engine, LLM, RAG, MCP, database or filesystem writes.
+- The backend only generates configuration files: no execution engine, external APIs, database or filesystem writes.
 - Route modules own HTTP parsing/status/response shape; `src/creator/*` owns catalog, tree, recommendations and generation.
 - The Creator is stateless and deterministic: same answers + versions -> same artifacts and SHA-256 hashes.
 - Auth boundary lives in `src/middleware/auth.ts`; do not weaken fail-closed behavior when `AUTH_REQUIRED=true`.
@@ -137,7 +137,7 @@ npm --prefix frontend run build
 
 1. Reference material for generated bundles lives in `docs/reference/` (steering roles, security policy, hooks implementation, MCP/RAG examples).
 2. Keep JSON examples schema-valid: `test/kiro-schema.test.mjs` validates them against `src/kiro/schemas/*.json`.
-3. Document intent in the matching guide (`security-policy-guide.md`, `steering-roles-guide.md`) instead of adding runtime code.
+3. Document intent in the matching guide (`security-policy-guide.md`, `steering-roles-guide.md`) instead of adding execution code.
 4. Run `npm run test:unit`.
 
 ### Add Endpoint

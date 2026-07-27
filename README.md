@@ -11,7 +11,7 @@
 > [!IMPORTANT]
 > Construido para el Hackathon Kiro x Código Facilito 2026.
 > Documentación en español. Lectores LLM: leer `AGENTS.md` y `CONTEXT.md` para el contexto completo del proyecto.
-> El Runtime de Artemisa (motor ReAct, LLM, RAG, MCP, SQLite y ejecución de agentes) fue eliminado en #584 ([ADR-0008](docs/adr/0008-remove-runtime-generator-only.md)). El backend solo genera configuración: no hay ejecución, persistencia ni llamadas de red.
+> El backend solo genera configuración: no hay ejecución, persistencia ni llamadas de red.
 
 ## Qué es Artemisa
 
@@ -38,7 +38,7 @@ El Creator **no usa un LLM** para decidir la arquitectura, **no ejecuta comandos
 - `src/creator/router.ts` expone los endpoints públicos y protegidos.
 - `src/creator/catalog.ts`, `src/creator/decisionTree.ts`, `src/creator/generator.ts` y `src/creator/agentProtocol.ts` contienen la lógica pura de catálogo, árbol, generación y protocolo de agentes.
 - `src/middleware/auth.ts` protege las rutas de generación cuando `AUTH_REQUIRED=true`.
-- No hay persistencia, no hay pool de MCP, no hay ejecución de agentes.
+- No hay persistencia, no hay ejecución de agentes, no hay llamadas de red.
 
 ### Frontend
 

@@ -1,9 +1,6 @@
 # API Reference
 
-> The Runtime was removed in #584 (ADR-0008). The only API surface is the Creator.
-> All Runtime routes (`/api/agent/execute`, `/api/history`, `/api/roles`, `/api/rag/*`,
-> `/api/tools`, `/api/memory`, `/api/pipeline`, `/api/agents`, `/api/configs`,
-> `/api/hooks/*`) return 404 and are not in the OpenAPI document.
+> The only API surface is the Creator. Legacy execution routes return 404 and are not in the OpenAPI document.
 
 Base URL: `/api/v1/creator`
 

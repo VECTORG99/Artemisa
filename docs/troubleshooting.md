@@ -1,6 +1,6 @@
 # Troubleshooting
 
-> Artemisa only generates configuration files. The Runtime (ReAct, LLM, RAG, MCP, SQLite) was removed in #584. Problems related to agent execution, MCP connections, RAG indexing or session expiry are **not part of the product** and are not covered here.
+> Artemisa only generates configuration files. Problems related to executing the generated agent, connecting to external services or persisting state are **not part of the product** and are not covered here.
 
 ---
 

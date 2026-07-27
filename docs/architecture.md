@@ -1,6 +1,6 @@
 # Arquitectura de Artemisa
 
-Artemisa convierte un árbol de decisiones en un bundle de configuración reproducible (Markdown + JSON) y explica por qué fue construido así. **No ejecuta agentes**: el Runtime (motor ReAct, LLM, RAG, MCP, SQLite) se eliminó en el issue #584 — ver [ADR-0008](adr/0008-remove-runtime-generator-only.md).
+Artemisa convierte un árbol de decisiones en un bundle de configuración reproducible (Markdown + JSON) y explica por qué fue construido así. **No ejecuta agentes**: solo genera archivos de configuración.
 
 ---
 
@@ -25,7 +25,7 @@ Artemisa convierte un árbol de decisiones en un bundle de configuración reprod
 ```text
 ┌──────────────────────────────────────────────────────────────┐
 │                        server.ts                              │
-│  Express + middleware + shutdown (sin store, sin MCP pool)    │
+│  Express + middleware + shutdown (sin estado)                 │
 └───────────┬───────────────────────────────────┬──────────────┘
             │ público                            │ protegido (API key)
 ┌───────────▼───────────────┐        ┌──────────▼───────────────┐
@@ -49,7 +49,7 @@ Artemisa convierte un árbol de decisiones en un bundle de configuración reprod
               bundle JSON + manifest + SHA-256
 ```
 
-Toda la generación es una función pura del body: sin filesystem, red, base de datos, LLM, MCP ni shell.
+Toda la generación es una función pura del body: sin filesystem, red, base de datos, llamadas a servicios externos ni shell.
 
 ---
 
@@ -57,7 +57,7 @@ Toda la generación es una función pura del body: sin filesystem, red, base de 
 
 ### `server.ts`
 
-Punto de entrada. Levanta Express, advierte si falta configuración de seguridad en producción y maneja `SIGTERM`/`SIGINT` cerrando el servidor y drenando las peticiones abiertas. No hay ejecuciones en vuelo, pool MCP ni base de datos que cerrar.
+Punto de entrada. Levanta Express, advierte si falta configuración de seguridad en producción y maneja `SIGTERM`/`SIGINT` cerrando el servidor y drenando las peticiones abiertas. No hay ejecuciones en vuelo, conexiones externas ni base de datos que cerrar.
 
 ### `app.ts`
 
@@ -155,7 +155,7 @@ Esto permite volver atrás, recalcular ramas y escalar horizontalmente sin coord
 ### Invariantes del generador
 
 1. Mismo input y mismas versiones producen exactamente el mismo contenido y hashes.
-2. La generación no usa red, filesystem, LLM, MCP, base de datos ni shell.
+2. La generación no usa red, filesystem, servicios externos, base de datos ni shell.
 3. No se aceptan rutas absolutas, traversal, backslashes o duplicados.
 4. No se permiten secretos literales con patrones conocidos.
 5. El manifest lista todos los artefactos y sus SHA-256.
@@ -183,7 +183,7 @@ POST /api/v1/creator/agent/generate
 GET  /api/v1/creator/startup
 ```
 
-Las rutas del Runtime (`/api/agent/execute`, `/api/agents`, `/api/history`, `/api/roles`, `/api/rag/*`, `/api/tools`, `/api/memory`, `/api/pipeline`, `/api/configs`, `/api/hooks/commit-approval/*`, `/api/mcp/status`) devuelven 404 y no están en el documento OpenAPI.
+Las rutas de ejecución heredadas devuelven 404 y no están en el documento OpenAPI.
 
 ---
 
@@ -201,7 +201,7 @@ Los esquemas de los artefactos JSON viven en `src/kiro/schemas/*.json` y se vali
 
 ## Artefactos de Referencia
 
-`docs/reference/` conserva material del Runtime eliminado como documentación (nunca se carga en el servidor):
+`docs/reference/` contiene ejemplos y guías de referencia para los artefactos que genera el Creator (nunca se carga en el servidor):
 
 | Archivo                                                                  | Uso                                                      |
 | ------------------------------------------------------------------------ | -------------------------------------------------------- |
@@ -285,9 +285,8 @@ artemisa/
 │   ├── deployment.md               # Despliegue local, Docker y Render
 │   ├── CONVENTIONS.md              # Convenciones de equipo
 │   ├── debug-tooling.md            # Herramientas de debug (dev)
-│   ├── use_cases.md                # Casos de uso
 │   ├── adr/                        # Architecture Decision Records
-│   └── reference/                  # Artefactos del runtime eliminado
+│   └── reference/                  # Ejemplos y guías de referencia
 ├── test/                           # node:test (unit + contrato HTTP)
 ├── e2e/                            # Playwright
 ├── .env.example
