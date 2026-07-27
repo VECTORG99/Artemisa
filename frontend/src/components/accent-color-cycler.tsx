@@ -5,20 +5,15 @@ import { useEffect } from 'react';
 /**
  * Randomly assigns the brand accent (`--color-accent`) to one of the 7 RGB
  * rainbow colours. The colour stays fixed until the user hovers over a
- * **different** interactive element:
+ * **major interactive element** (a button or link):
  *
  * - On mount (page load / refresh): picks a random colour and holds it.
- * - On mouseenter of an interactive element: picks a new random colour.
- * - While the mouse stays within the same element (or moves between a
- *   parent and its children): the colour does NOT change.
- * - On mouseleave: the colour does NOT change — it holds until the next
- *   mouseenter on a different element.
- *
- * This prevents the rapid flickering that happened with `mouseover` (which
- * bubbles and fires on every child element transition). `mouseenter` does
- * not bubble and fires exactly once per element entry, so nested
- * interactive elements (a checkbox inside a label, a span inside a button)
- * don't trigger repeated colour changes.
+ * - On mouseenter of a button or link: picks a new random colour.
+ * - Moving the mouse over form controls (inputs, checkboxes, radios,
+ *   labels) does NOT change the colour — those are too dense in the
+ *   Avanzado panel and would cause constant flickering.
+ * - A 1s cooldown prevents rapid changes when swiping across multiple
+ *   buttons in quick succession.
  *
  * Respects `prefers-reduced-motion`: picks one colour on mount and never
  * changes it.
@@ -40,8 +35,11 @@ function nextIndex(current: number): number {
   return next >= current ? next + 1 : next;
 }
 
-const INTERACTIVE_SELECTOR =
-  'button, a, [role="button"], [role="checkbox"], [role="radio"], .glassCardInteractive, input, label, select, textarea';
+/** Only buttons and links — not every form control. */
+const INTERACTIVE_SELECTOR = 'button, a, [role="button"], .glassCardInteractive';
+
+/** Minimum time between colour changes (ms). */
+const COOLDOWN_MS = 1000;
 
 export function AccentColorCycler() {
   useEffect(() => {
@@ -52,17 +50,7 @@ export function AccentColorCycler() {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) return;
 
-    const applyColour = () => {
-      index = nextIndex(index);
-      root.style.setProperty('--color-accent', RAINBOW[index]);
-    };
-
-    // `mouseover` fires on every element transition (bubbles), but we only
-    // want to change the colour when the mouse enters a *different* top-level
-    // interactive element — not when moving between a parent and its child
-    // (e.g. a label and the checkbox inside it). We track the outermost
-    // interactive ancestor and skip if the new one contains or is contained
-    // by the previous one.
+    let lastChange = 0;
     let currentEl: Element | null = null;
 
     const handleMouseOver = (e: MouseEvent) => {
@@ -74,15 +62,23 @@ export function AccentColorCycler() {
       // Same element — no change.
       if (el === currentEl) return;
 
-      // Nested: moving between a parent interactive and its child interactive
-      // (e.g. label → checkbox inside it). Don't change the colour.
+      // Nested: moving between a parent and child (e.g. button > span).
       if (currentEl && (currentEl.contains(el) || el.contains(currentEl))) {
         currentEl = el;
         return;
       }
 
+      // Cooldown: don't change more than once per COOLDOWN_MS.
+      const now = Date.now();
+      if (now - lastChange < COOLDOWN_MS) {
+        currentEl = el;
+        return;
+      }
+
       currentEl = el;
-      applyColour();
+      lastChange = now;
+      index = nextIndex(index);
+      root.style.setProperty('--color-accent', RAINBOW[index]);
     };
 
     document.addEventListener('mouseover', handleMouseOver);
