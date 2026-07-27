@@ -359,6 +359,18 @@ El runtime mantiene las rutas anteriores:
 
 > El runtime legacy no hereda automáticamente un blueprint generado. La instalación y ejecución versionada de bundles es una fase posterior.
 
+### Agentes registrados efímeros
+
+Los agentes registrados desde el Creator son **efímeros por diseño**: Huascar es un generador de configuración, no un hosting de agentes. El registro permite probar el agente temporalmente.
+
+| Variable              | Default     | Descripción                                                  |
+| --------------------- | ----------- | ------------------------------------------------------------ |
+| `AGENT_TTL_MS`        | `1800000`   | Tiempo de vida del agente (30 min). Después expira con 404.  |
+| `AGENT_MAX_PER_IP`    | `5`         | Máximo de agentes registrados por IP dentro del cooldown.    |
+| `AGENT_COOLDOWN_MS`   | `3600000`   | Ventana de cooldown (1 h) tras alcanzar el máximo por IP.    |
+
+El backend ejecuta `cleanupExpiredAgents()` periódicamente para eliminar agentes expirados. Ver [`CONTEXT.md`](CONTEXT.md) para el detalle técnico.
+
 ---
 
 ## Quick start
