@@ -16,7 +16,7 @@
     "dev:agent-creator": "cd agent-creator && npm run dev",
     "start": "tsx src/server.ts",
     "test": "node test/api_test.mjs",
-    "test:unit": "node --import tsx/esm --test test/*.test.mjs",
+    "test:unit": "node --import tsx/esm --test --test-concurrency=4 test/*.test.mjs",
     "test:all": "npm run test:unit && npm test",
     "test:e2e": "cd e2e && npx playwright test",
     "eval": "node --import tsx/esm scripts/eval.mjs",
