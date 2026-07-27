@@ -1,9 +1,13 @@
+<a id="guia-para-contribuidores"></a>
+
 # Contributor Guide
 
 Welcome to Artemisa. This project accepts contributions from humans and AI agents.
 
-- **Human contributors**: read this section. For code changes, the detailed guide for AI below also applies.
+- **Human contributors**: read this section. For code changes, the detailed AI guide below also applies.
 - **AI agents**: the "AI Contributor Guide" section is your main entry point.
+
+<a id="donde-vive-la-documentacion"></a>
 
 ## Where the documentation lives
 
@@ -19,7 +23,9 @@ All project documentation lives in the repository under `docs/`:
 | `docs/CONVENTIONS.md`  | Code conventions, tests, API, and Git.                        |
 | `docs/adr/`            | Architecture Decision Records.                                |
 
-The **GitHub Wiki is intentionally disabled**: having two places for documentation creates confusion about which one is up to date. All technical and user documentation resides with the code so that it is reviewable, versionable, and searchable without leaving the repository.
+The **GitHub Wiki is intentionally disabled**: having two places for documentation creates confusion about which one is up to date. All technical and user documentation lives with the code so it is reviewable, versionable, and searchable without leaving the repository.
+
+<a id="flujo-para-humanos"></a>
 
 ## Flow for humans
 
@@ -29,6 +35,8 @@ The **GitHub Wiki is intentionally disabled**: having two places for documentati
 4. Run `npm run test:unit` and `npx tsc --noEmit`.
 5. Open a PR to `development` with `Closes #N` in the body.
 6. Wait for review. Maintainers review PRs weekly.
+
+<a id="primeros-pasos"></a>
 
 ## Getting started
 
@@ -46,7 +54,9 @@ Read `README.md` to understand the architecture and `docs/CONVENTIONS.md` for co
 
 # AI Contributor Guide
 
-Audience: AI agents changing this repository. Keep changes issue-scoped, schema-valid, tested, and routed through PRs to `development`.## Quick Reference
+Audience: AI agents changing this repository. Keep changes issue-scoped, schema-valid, tested, and routed through PRs to `development`.
+
+## Quick Reference
 
 | Scenario                                   | Read first                                                   | Change here                                      | Required check                                           |
 | ------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------ | -------------------------------------------------------- |
@@ -81,7 +91,8 @@ Audience: AI agents changing this repository. Keep changes issue-scoped, schema-
 
 - Backend entrypoint: `src/server.ts` -> `src/app.ts`; app wiring stays thin.
 - The backend only generates configuration files (#584): no execution engine, LLM, RAG, MCP, database or filesystem writes.
-- Route modules own HTTP parsing/status/response shape; `src/creator/*` owns catalog, tree, recommendations and generation.- The Creator is stateless and deterministic: same answers + versions -> same artifacts and SHA-256 hashes.
+- Route modules own HTTP parsing/status/response shape; `src/creator/*` owns catalog, tree, recommendations and generation.
+- The Creator is stateless and deterministic: same answers + versions -> same artifacts and SHA-256 hashes.
 - Auth boundary lives in `src/middleware/auth.ts`; do not weaken fail-closed behavior when `AUTH_REQUIRED=true`.
 - Generated artifacts must match `src/kiro/schemas/*.json`; reference examples in `docs/reference/` are tested by `test/kiro-schema.test.mjs`.
 - Frontends are separate install domains (`frontend/`, `agent-creator/`); do not introduce root workspaces unless an issue explicitly requires it.
@@ -100,11 +111,18 @@ npx tsc --noEmit
 
 Useful narrower checks:
 
-`2`
+```bash
+node --import tsx/esm --test test/kiro-schema.test.mjs
+node --import tsx/esm --test test/contributing.test.mjs
+node --import tsx/esm --test test/CreatorGenerator.test.mjs
+npm run test:all
+```
 
 Frontend checks are separate dependency domains; run only when that app changed:
 
-`3`
+```bash
+npm --prefix frontend run build
+```
 
 ## Recipes
 
@@ -117,10 +135,11 @@ Frontend checks are separate dependency domains; run only when that app changed:
 
 ### Add Generated Artifact
 
-1. Emit it from `src/creator/generator.ts` under the condition that requires it; keep content deterministic (no dates, no randomness).2. Keep paths relative, without `..`, backslashes or duplicates; stay under the 40 files / 256 KB preview budget.
-2. Never inline secrets: use `${ENV_VAR}` references.
-3. If the artifact is JSON with a schema, keep `src/kiro/schemas/*.json` in sync.
-4. Add coverage in `test/CreatorGenerator.test.mjs`, then run `npm run test:unit`.
+1. Emit it from `src/creator/generator.ts` under the condition that requires it; keep content deterministic (no dates, no randomness).
+2. Keep paths relative, without `..`, backslashes or duplicates; stay under the 40 files / 256 KB preview budget.
+3. Never inline secrets: use `${ENV_VAR}` references.
+4. If the artifact is JSON with a schema, keep `src/kiro/schemas/*.json` in sync.
+5. Add coverage in `test/CreatorGenerator.test.mjs`, then run `npm run test:unit`.
 
 ### Update Reference Artifacts
 
@@ -131,10 +150,11 @@ Frontend checks are separate dependency domains; run only when that app changed:
 
 ### Add Endpoint
 
-1. Add or update the owning route in `src/routes/`.2. Mount it in `src/app.ts` at the correct auth boundary.
-2. Validate params/body at the route boundary; return stable status codes and JSON shapes.
-3. Update `src/routes/openapi.ts` if public contract changes.
-4. Add route tests, then run `npm run test:unit` and `npx tsc --noEmit`.
+1. Add or update the owning route in `src/routes/`.
+2. Mount it in `src/app.ts` at the correct auth boundary.
+3. Validate params/body at the route boundary; return stable status codes and JSON shapes.
+4. Update `src/routes/openapi.ts` if public contract changes.
+5. Add route tests, then run `npm run test:unit` and `npx tsc --noEmit`.
 
 ### Add Frontend Route
 
