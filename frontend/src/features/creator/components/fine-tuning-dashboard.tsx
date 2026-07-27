@@ -528,6 +528,7 @@ function QuestionControl({ question, value, onChange, catalogItems, issues, show
           ariaLabel={question.prompt}
           maxHeightClass="max-h-72"
           showIcons={false}
+          collapsible
         />
       );
     }
@@ -554,6 +555,7 @@ function QuestionControl({ question, value, onChange, catalogItems, issues, show
           ariaLabel={question.prompt}
           maxHeightClass="max-h-72"
           allowCustom
+          collapsible
         />
       );
     }
@@ -569,6 +571,7 @@ function QuestionControl({ question, value, onChange, catalogItems, issues, show
         ariaLabel={question.prompt}
         maxHeightClass="max-h-72"
         allowCustom
+        collapsible
       />
     );
   })();

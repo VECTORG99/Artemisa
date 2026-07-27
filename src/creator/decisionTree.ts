@@ -239,7 +239,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     description: 'Concede sólo lo necesario. Producción no habilita escritura o despliegue por defecto.',
     type: 'multiselect',
     required: true,
-    maxSelections: 16,
+    maxSelections: 22,
     options: [
       option('read-repository', 'Leer repositorio', 'Analiza código y documentación.'),
       option('edit-code', 'Proponer cambios', 'Genera parches, sin aplicarlos automáticamente.'),
@@ -257,6 +257,12 @@ export const creatorQuestions: DecisionQuestion[] = [
       option('automate-workflows', 'Automatizar workflows', 'Crea y ejecuta pipelines de automatización.'),
       option('audit-compliance', 'Auditar cumplimiento', 'Verifica políticas y estándares.'),
       option('generate-reports', 'Generar reportes', 'Produce documentación y dashboards.'),
+      option('web-browsing', 'Navegar web', 'Busca información y consulta documentación online.'),
+      option('file-management', 'Gestionar archivos', 'Crea, mueve y organiza archivos del proyecto.'),
+      option('database-access', 'Acceder a base de datos', 'Consulta y modifica datos en bases de datos.'),
+      option('api-integration', 'Integrar APIs', 'Consume y orquesta servicios externos vía API.'),
+      option('shell-execution', 'Ejecutar shell', 'Ejecuta comandos de sistema con restricciones allowlisted.'),
+      option('monitoring', 'Monitorizar', 'Observa métricas, logs y alertas en tiempo real.'),
     ],
   },
   {
@@ -270,6 +276,11 @@ export const creatorQuestions: DecisionQuestion[] = [
       option('advisory', 'Asesor', 'Sólo analiza y recomienda.'),
       option('assisted', 'Asistido', 'Prepara acciones que una persona aprueba.'),
       option('autonomous', 'Autónomo acotado', 'Ejecuta únicamente operaciones allowlisted y reversibles.'),
+      option(
+        'full-autonomous',
+        'Máxima autonomía (con controles de seguridad)',
+        'Ejecuta cualquier operación permitida con auditoría, rate limiting y rollback automático.',
+      ),
     ],
   },
   {
@@ -282,7 +293,7 @@ export const creatorQuestions: DecisionQuestion[] = [
     visibleWhen: {
       operator: 'any',
       conditions: [
-        { operator: 'oneOf', questionId: 'autonomy', values: ['assisted', 'autonomous'] },
+        { operator: 'oneOf', questionId: 'autonomy', values: ['assisted', 'autonomous', 'full-autonomous'] },
         { operator: 'includes', questionId: 'capabilities', value: 'operate-production' },
         { operator: 'includes', questionId: 'capabilities', value: 'deploy' },
       ],
@@ -1113,6 +1124,7 @@ function buildRecommendations(answers: CreatorAnswers): CreatorRecommendation[] 
   }
   if (
     answers.autonomy === 'autonomous' ||
+    answers.autonomy === 'full-autonomous' ||
     (Array.isArray(answers.capabilities) &&
       answers.capabilities.some((value) => value === 'deploy' || value === 'operate-production'))
   ) {
