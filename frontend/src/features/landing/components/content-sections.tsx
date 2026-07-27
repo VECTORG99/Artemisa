@@ -47,7 +47,9 @@ export function HeroSection() {
           </span>
         </h1>
 
-        <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">{t.heroDescription}</p>
+        <p className="mx-auto mt-6 inline-block max-w-xl rounded-full border border-black/70 bg-black/50 px-4 py-2 text-base leading-relaxed text-white backdrop-blur-sm sm:text-lg">
+          {t.heroDescription}
+        </p>
 
         <div className="mt-8 max-w-lg mx-auto">
           <div className={glassCard('rounded-3xl p-5')}>
@@ -55,7 +57,7 @@ export function HeroSection() {
           </div>
         </div>
 
-        <p className="mt-4 inline-block rounded-full border border-black/70 bg-black/50 px-3 py-1 text-sm text-white shadow-sm backdrop-blur-sm">
+        <p className="mx-auto mt-4 block w-fit rounded-full border border-black/70 bg-black/50 px-3 py-1 text-sm text-white shadow-sm backdrop-blur-sm">
           ── o configura manualmente ──
         </p>
 
