@@ -4,7 +4,6 @@
     ".": {
       "entry": ["src/server.ts", "src/creator/router.ts"],
       "project": ["src/**/*.ts"],
-      "ignore": ["src/engine/migrations/**"],
       "ignoreDependencies": ["pino-pretty"]
     },
     "frontend": {
