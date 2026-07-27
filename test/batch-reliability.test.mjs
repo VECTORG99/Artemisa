@@ -28,10 +28,10 @@ describe('Batch reliability fixes (#246, #253, #255)', () => {
     assert.match(pool, /this\.lastUsed\.clear\(\)/);
   });
 
-  it('#255: Frontend has ErrorBoundary component', () => {
-    assert.ok(fs.existsSync('frontend/src/components/ErrorBoundary.tsx'));
-    const eb = fs.readFileSync('frontend/src/components/ErrorBoundary.tsx', 'utf8');
-    assert.match(eb, /getDerivedStateFromError/);
-    assert.match(eb, /componentDidCatch/);
+  it('#255: Frontend has error boundary via Next.js app/error.tsx', () => {
+    assert.ok(fs.existsSync('frontend/src/app/error.tsx'));
+    const eb = fs.readFileSync('frontend/src/app/error.tsx', 'utf8');
+    assert.match(eb, /ErrorBoundary/);
+    assert.match(eb, /reset/);
   });
 });

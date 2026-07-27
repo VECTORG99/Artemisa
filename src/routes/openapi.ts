@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 const json = { type: 'object', additionalProperties: true };
 
-export const openApiSpec = {
+const openApiSpec = {
   openapi: '3.1.0',
   info: {
     title: 'Huascar API',

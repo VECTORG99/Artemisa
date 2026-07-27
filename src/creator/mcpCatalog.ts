@@ -35,7 +35,7 @@ export interface McpCatalogItem {
   sourceUrl: string;
 }
 
-export const MCP_CATALOG_VERSION = '1.2.0';
+const MCP_CATALOG_VERSION = '1.2.0';
 
 export const mcpCatalog: McpCatalogItem[] = [
   {

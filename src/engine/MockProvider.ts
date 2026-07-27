@@ -54,7 +54,7 @@ function asScenario(value: unknown): MockScenario | null {
   return Array.isArray(steps) ? { steps: steps as MockStep[] } : null;
 }
 
-export function loadMockScenario(
+function loadMockScenario(
   name = config.llm.mockScenario,
   readFile = (path: string, encoding: BufferEncoding) => readFileSync(path, encoding),
 ): MockScenario {

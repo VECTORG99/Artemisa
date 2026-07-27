@@ -502,7 +502,7 @@ function validateQuestionAnswer(question: DecisionQuestion, value: CreatorAnswer
   return issues;
 }
 
-export function parseCreatorAnswers(input: unknown): {
+function parseCreatorAnswers(input: unknown): {
   answers: CreatorAnswers;
   issues: AnswerIssue[];
   warnings: string[];

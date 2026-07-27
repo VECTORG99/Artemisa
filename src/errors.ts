@@ -16,9 +16,9 @@ export const ErrorCodes = {
   INTERNAL_ERROR: 'INTERNAL_ERROR',
 } as const;
 
-export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
+type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 
-export class AppError extends Error {
+class AppError extends Error {
   constructor(
     readonly code: ErrorCode,
     message: string,

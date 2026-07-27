@@ -16,16 +16,14 @@ describe('Dependency vulnerability fixes (issue #240)', () => {
     assert.ok(patch >= 11, 'patch >= 11');
   });
 
-  it('sharp is pinned to >=0.35.0 (fixes libvips CVEs)', () => {
+  it('sharp is not a direct dependency (Next.js uses it optionally at runtime)', () => {
     const sharp = frontendPkg.dependencies.sharp;
-    assert.ok(sharp, 'sharp should be listed as dependency');
-    assert.match(sharp, />=0\.35\.0/);
+    assert.equal(sharp, undefined, 'sharp should not be a direct dependency');
   });
 
-  it('eslint-config-next matches Next.js version', () => {
+  it('eslint-config-next removed (lint is optional, not part of build)', () => {
     const eslintNext = frontendPkg.devDependencies['eslint-config-next'];
-    const nextVersion = frontendPkg.dependencies.next;
-    assert.equal(eslintNext, nextVersion, 'eslint-config-next should match next version');
+    assert.equal(eslintNext, undefined, 'eslint-config-next should be removed');
   });
 
   it('MCP SDK vulnerability is documented (upstream dependency)', () => {
