@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { evaluateCreator, loadCreatorDefinition, previewCreator } from '../api/creatorApi';
 import { StepContext } from './stepContextValue';
 
-const STORAGE_KEY = 'huascar_creator_answers_v1';
-const CURSOR_STORAGE_KEY = 'huascar_creator_cursor_v1';
-const NAVIGATION_STORAGE_KEY = 'huascar_creator_navigation_v1';
+const STORAGE_KEY = 'artemisa_creator_answers_v1';
+const CURSOR_STORAGE_KEY = 'artemisa_creator_cursor_v1';
+const NAVIGATION_STORAGE_KEY = 'artemisa_creator_navigation_v1';
 
 /**
  * Patterns that indicate sensitive values that should not be stored in sessionStorage (#254).
@@ -129,7 +129,7 @@ export function StepProvider({ children }) {
         initial?.nextQuestion ||
         visibleQuestions[0];
       setCurrentQuestionId(resumeQuestion?.id || null);
-      const tutorialDone = sessionStorage.getItem('huascar_creator_tutorial_done') === 'true';
+      const tutorialDone = sessionStorage.getItem('artemisa_creator_tutorial_done') === 'true';
       const resumeEditing = savedNavigation === 'questions' && Boolean(savedQuestion);
       setPhase(tutorialDone ? (initial?.progress?.complete && !resumeEditing ? 'review' : 'questions') : 'tutorial');
     } catch (cause) {
@@ -229,7 +229,7 @@ export function StepProvider({ children }) {
   };
 
   const skipTutorial = () => {
-    sessionStorage.setItem('huascar_creator_tutorial_done', 'true');
+    sessionStorage.setItem('artemisa_creator_tutorial_done', 'true');
     setPhase(evaluation?.progress?.complete ? 'review' : 'questions');
   };
 

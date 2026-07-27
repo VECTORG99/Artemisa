@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
 /**
- * Huascar frontend Service Worker (#408).
+ * Artemisa frontend Service Worker (#408).
  *
  * Minimal, dependency-free caching strategy:
  *  - Uses network-first for navigations so deploys serve fresh HTML before
@@ -15,8 +15,8 @@
  */
 importScripts('/sw-version.js');
 
-const CACHE_VERSION = self.HUASCAR_SW_VERSION || 'dev';
-const CACHE = `huascar-${CACHE_VERSION}`;
+const CACHE_VERSION = self.ARTEMISA_SW_VERSION || 'dev';
+const CACHE = `artemisa-${CACHE_VERSION}`;
 const OFFLINE_FALLBACK = '/';
 
 self.addEventListener('install', (event) => {

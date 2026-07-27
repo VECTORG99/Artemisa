@@ -11,7 +11,7 @@ export default function WelcomeStep() {
       <div className="mx-auto max-w-3xl">
         <div className="mb-10 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-emerald-400">Huascar Academy</h1>
+            <h1 className="text-xl font-bold text-emerald-400">Artemisa Academy</h1>
             <p className="text-sm text-zinc-500">Tutorial interactivo · puedes omitirlo</p>
           </div>
           <button
