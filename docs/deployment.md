@@ -104,9 +104,10 @@ Defaults per environment:
 
 ### Agent Creator (Vite)
 
-| Variable             | Required | Default                 | Description                           |
-| -------------------- | -------- | ----------------------- | ------------------------------------- |
-| `VITE_API_URL`       | No       | `http://localhost:3001` | Backend API URL for the Vite dev tool |
+| Variable       | Required | Default                 | Description                           |
+| -------------- | -------- | ----------------------- | ------------------------------------- |
+| `VITE_API_URL` | No       | `http://localhost:3001` | Backend API URL for the Vite dev tool |
+
 > The `agent-creator/` Vite app is legacy (superseded by `frontend/agents/new`, issue #390). It remains in the workspace but is not the active Creator UI.
 
 ---
@@ -116,7 +117,7 @@ Defaults per environment:
 | Service                  | Container Port | Host Port | Notes                             |
 | ------------------------ | -------------- | --------- | --------------------------------- |
 | **Backend** (Express)    | `3001`         | `3001`    | JSON API                          |
-| **Frontend** (Next.js)   | `3000`         | `3000`    | Dashboard UI                      |
+| **Frontend** (Next.js)   | `3000`         | `3000`    | Landing + Creator UI              |
 | **Agent Creator** (Vite) | `5173`         | `5173`    | Dev tool (optional in production) |
 
 All services share the `artemisa-network` bridge network.
