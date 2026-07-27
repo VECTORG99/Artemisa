@@ -11,15 +11,12 @@ import type {
   Tutorial,
   Workflow,
 } from '@huascar/types';
-import type { AgentConfig } from '@/types/agent';
-
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 export const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 const apiKey = process.env.NEXT_PUBLIC_API_KEY || '';
 
 const CREATOR_BASE = `${apiUrl}/api/v1/creator`;
-const RUNTIME_BASE = `${apiUrl}/api`;
 
 // Warn in development if API URL points to a non-local address
 if (
@@ -156,12 +153,3 @@ export const creator = {
       } satisfies PreviewRequest),
     }),
 };
-
-// ─── Runtime API (agent registration, used by the Creator) ────────────────────
-
-export function registerAgent(name: string, config: AgentConfig) {
-  return request<{ id: string; name: string; config?: unknown }>(`${RUNTIME_BASE}/agents`, {
-    method: 'POST',
-    body: JSON.stringify({ name, config }),
-  });
-}

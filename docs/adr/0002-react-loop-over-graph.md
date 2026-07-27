@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by ADR-0008 (execution engine removed from the product).
 
 ## Context
 

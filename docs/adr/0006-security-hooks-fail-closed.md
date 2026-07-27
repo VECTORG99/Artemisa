@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by ADR-0008 (hook implementation kept as reference in `docs/reference/`).
 
 ## Context
 

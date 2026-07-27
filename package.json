@@ -19,13 +19,11 @@
     "test:unit": "node --import tsx/esm --test --test-concurrency=4 test/*.test.mjs",
     "test:all": "npm run test:unit && npm test",
     "test:e2e": "cd e2e && npx playwright test",
-    "eval": "node --import tsx/esm scripts/eval.mjs",
-    "repl": "node --import tsx/esm scripts/repl.mjs",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "tsc --noEmit",
-    "clean": "rm -rf dist data/*.db",
+    "clean": "rm -rf dist",
     "docker:build": "docker compose build",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
@@ -41,7 +39,6 @@
     "dead-code:fix": "npx knip --fix --no-exit-code"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/json-schema": "^7.0.15",
@@ -55,12 +52,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@ai-sdk/anthropic": "^4.0.18",
-    "@ai-sdk/openai": "^4.0.16",
-    "@modelcontextprotocol/sdk": "^1.29.0",
     "@types/compression": "1.8.1",
-    "ai": "^7.0.32",
-    "better-sqlite3": "^13.0.1",
     "compression": "1.8.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -77,8 +69,5 @@
     "*.{ts,js,mjs,json,md}": [
       "prettier --check"
     ]
-  },
-  "allowScripts": {
-    "better-sqlite3@13.0.1": true
   }
 }

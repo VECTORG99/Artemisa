@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by ADR-0008 (no LLM provider is used anymore).
 
 ## Context
 

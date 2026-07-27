@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by ADR-0008 (runtime removed; the Creator is stateless and has no database).
 
 ## Context
 

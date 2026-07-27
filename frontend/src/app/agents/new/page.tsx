@@ -32,8 +32,7 @@ import {
 import { clearDraft, loadDraft, saveDraft } from '@/features/creator/lib/session';
 import { GlassBackButton, GlassIconButton } from '@/components/ui/glass-icon-button';
 import { glassButton, glassNotice, glassPrimaryButton } from '@/lib/glass';
-import { ApiError, creator, registerAgent } from '@/lib/api';
-import type { AgentConfig } from '@/types/agent';
+import { ApiError, creator } from '@/lib/api';
 import type {
   Catalog,
   CatalogItem,
@@ -52,39 +51,6 @@ const SpaceSimulation = dynamicImport(
 );
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-interface RegisteredAgent {
-  id: string;
-  name: string;
-  config?: unknown;
-}
-
-function parseJsonArtifact<T>(bundle: GeneratedAgentBundle, path: string): T | null {
-  const artifact = bundle.artifacts.find((item) => item.path === path);
-  if (!artifact) return null;
-  try {
-    return JSON.parse(artifact.content) as T;
-  } catch {
-    return null;
-  }
-}
-
-function buildRegistryConfig(bundle: GeneratedAgentBundle, answers: CreatorAnswers): AgentConfig {
-  const steering = parseJsonArtifact<AgentConfig['steering']>(bundle, 'huascar/steering.json');
-  const rag = parseJsonArtifact<{ knowledge_bases?: unknown[] }>(bundle, 'huascar/rag.json');
-  const mcps = parseJsonArtifact<Record<string, unknown>>(bundle, 'huascar/mcps.json');
-  const mcpNames = mcps
-    ? Object.keys(mcps.mcpServers && typeof mcps.mcpServers === 'object' ? mcps.mcpServers : mcps)
-    : [];
-  const prompt = typeof answers.objective === 'string' ? answers.objective : 'Agente generado desde el creador.';
-  return {
-    steering: steering ?? { roles: { GENERATED_AGENT: { system_prompt: prompt } } },
-    ...(rag?.knowledge_bases ? { knowledge: rag.knowledge_bases } : {}),
-    ...(mcpNames.length ? { tools: mcpNames } : {}),
-    ...(rag ? { rag: { sources: rag.knowledge_bases ?? [] } } : {}),
-    ...(mcps ? { mcps: mcpNames } : {}),
-  };
-}
 
 /**
  * Turns a failure into something the user can act on. `ApiError` carries the
@@ -191,7 +157,6 @@ export default function NewAgentPage() {
 
   const [reviewing, setReviewing] = useState(false);
   const [bundle, setBundle] = useState<GeneratedAgentBundle | null>(null);
-  const [registered, setRegistered] = useState<RegisteredAgent | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -527,7 +492,6 @@ export default function NewAgentPage() {
       setCurrentQuestionId(evaluation?.nextQuestion?.id ?? null);
       setReviewing(false);
       setBundle(null);
-      setRegistered(null);
       setReturnToReview(false);
       setError('');
     });
@@ -566,7 +530,6 @@ export default function NewAgentPage() {
     if (bundle) {
       run(() => {
         setBundle(null);
-        setRegistered(null);
         setReviewing(true);
       });
       return;
@@ -607,23 +570,6 @@ export default function NewAgentPage() {
       setError(errorMessage(err, 'No se pudo generar el agente.'));
     } finally {
       setGenerating(false);
-    }
-  }
-
-  async function registerGeneratedAgent() {
-    if (!bundle) return;
-    setError('');
-    try {
-      const name = bundle.blueprint?.identity?.name || String(answers.agent_name || 'Generated Agent');
-      setRegistered(await registerAgent(name, buildRegistryConfig(bundle, answers)));
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 429) {
-        setError(
-          'Has alcanzado el límite de pruebas efímeras para tu IP. Vuelve a intentarlo en ~1 hora; el agente se conserva para descargar.',
-        );
-        return;
-      }
-      setError(errorMessage(err, 'No se pudo registrar el agente.'));
     }
   }
 
@@ -871,12 +817,7 @@ export default function NewAgentPage() {
 
               {bundle && (
                 <StepContainer progress={100} progressLabel="Bundle generado" size="wide">
-                  <CompletionScreen
-                    bundle={bundle}
-                    onRegister={registerGeneratedAgent}
-                    registered={registered}
-                    error={error}
-                  />
+                  <CompletionScreen bundle={bundle} error={error} />
                 </StepContainer>
               )}
             </AnimatedPanel>

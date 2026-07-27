@@ -1,6 +1,6 @@
 # Arquitectura de Huascar
 
-Huascar es un motor de agentes de IA configurable que abstrae la complejidad de ReAct, MCP, RAG y seguridad en primitivas declarativas.
+Huascar convierte un árbol de decisiones en un bundle de configuración reproducible (Markdown + JSON) y explica por qué fue construido así. **No ejecuta agentes**: el Runtime (motor ReAct, LLM, RAG, MCP, SQLite) se eliminó en el issue #584 — ver [ADR-0008](adr/0008-remove-runtime-generator-only.md).
 
 ---
 
@@ -10,42 +10,46 @@ Huascar es un motor de agentes de IA configurable que abstrae la complejidad de 
 2. [Modulos del Sistema](#modulos-del-sistema)
 3. [Sistema de Configuracion](#sistema-de-configuracion)
 4. [Modelo de Seguridad](#modelo-de-seguridad)
-5. [Bucle ReAct](#bucle-react)
-6. [Integracion MCP](#integracion-mcp)
-7. [RAG (Retrieval-Augmented Generation)](#rag)
-8. [Persistencia](#persistencia)
-9. [Referencia de Variables de Entorno](#referencia-de-variables-de-entorno)
-10. [Patrones de Error](#patrones-de-error)
-11. [Estructura del Proyecto](#estructura-del-proyecto)
+5. [Pipeline del Creator](#pipeline-del-creator)
+6. [Artefactos Generados](#artefactos-generados)
+7. [Artefactos de Referencia](#artefactos-de-referencia)
+8. [Referencia de Variables de Entorno](#referencia-de-variables-de-entorno)
+9. [Patrones de Error](#patrones-de-error)
+10. [Estructura del Proyecto](#estructura-del-proyecto)
+11. [Principios Arquitectonicos](#principios-arquitectonicos)
 
 ---
 
 ## Vision General
 
+```text
+┌──────────────────────────────────────────────────────────────┐
+│                        server.ts                              │
+│  Express + middleware + shutdown (sin store, sin MCP pool)    │
+└───────────┬───────────────────────────────────┬──────────────┘
+            │ público                            │ protegido (API key)
+┌───────────▼───────────────┐        ┌──────────▼───────────────┐
+│ /api/health               │        │ /api/v1/creator/evaluate │
+│ /api/metrics              │        │ /api/v1/creator/preview  │
+│ /api/openapi.json         │        │ /api/v1/creator/generate │
+│ /api/v1/creator/catalog   │        └──────────┬───────────────┘
+│ /api/v1/creator/workflow  │                   │
+│ /api/v1/creator/tutorial  │                   │
+│ /api/v1/creator/agent/*   │                   │
+└───────────┬───────────────┘                   │
+            └───────────────┬───────────────────┘
+                            │
+              ┌─────────────▼──────────────┐
+              │        src/creator/         │
+              │  catalog → decisionTree →   │
+              │  recomendaciones →          │
+              │  generator (puro)           │
+              └─────────────┬──────────────┘
+                            │
+              bundle JSON + manifest + SHA-256
 ```
-┌─────────────────────────────────────────────────────────┐
-│                      server.ts                           │
-│  Express + Store (singleton) + shutdown lifecycle        │
-└──────────┬──────────────────────────────────────────┬────┘
-           │ POST /api/agent/execute                  │ GET /api/history
-┌──────────▼──────────────────────────────────────────┴────┐
-│                   HuascarEngine                          │
-│                                                          │
-│  ┌─────────────┐  ┌────────┐  ┌──────────────────┐      │
-│  │ config.ts   │  │ Store  │  │ RagEngine         │      │
-│  │ (env vars)  │  │ (SQL)  │  │ (lectura archivos)│      │
-│  └─────────────┘  └────────┘  └──────────────────┘      │
-│                                                          │
-│  ┌──────────────────────────────────────────────────┐    │
-│  │  ReAct Loop (max 3 iteraciones)                   │    │
-│  │  LLM (Vercel AI SDK) → USE_TOOL / FINAL parsing   │    │
-│  │  ↓                                                 │    │
-│  │  Hook de seguridad (structured (toolName, args))   │    │
-│  │  ↓                                                 │    │
-│  │  MCP Client → StdioClientTransport → Herramienta   │    │
-│  └──────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────┘
-```
+
+Toda la generación es una función pura del body: sin filesystem, red, base de datos, LLM, MCP ni shell.
 
 ---
 
@@ -53,38 +57,37 @@ Huascar es un motor de agentes de IA configurable que abstrae la complejidad de 
 
 ### `server.ts`
 
-Punto de entrada Express. Crea instancia unica de Store, configura rutas, maneja lifecycle (SIGTERM/SIGINT).
+Punto de entrada. Levanta Express, advierte si falta configuración de seguridad en producción y maneja `SIGTERM`/`SIGINT` cerrando el servidor y drenando las peticiones abiertas. No hay ejecuciones en vuelo, pool MCP ni base de datos que cerrar.
 
-- `GET /api/health` → healthcheck
-- `POST /api/agent/execute` → ejecuta tarea con rol
-- `GET /api/history` → historial de ejecuciones
+### `app.ts`
 
-### `HuascarEngine.ts`
-
-Motor principal. Orquesta el pipeline completo:
-
-1. Carga steering (rol)
-2. Conecta servidores MCP
-3. Carga fuentes RAG
-4. Ejecuta ReAct loop (real o mock)
-5. Persiste resultado en Store
-6. Desconecta MCP
+Cableado HTTP: helmet, content-type estricto, compresión, CORS, límite de 128 KB, sanitización de body, validación de path params, rate limiting (global y del Creator), timeout global, rutas públicas, frontera de auth y rutas protegidas.
 
 ### `config.ts`
 
-Modulo centralizado de configuracion. Lee `process.env` con defaults tipados. No tiene dependencias externas ni riesgo de circular imports.
+Configuración del servidor únicamente: `port`, `host`, `requestTimeoutMs`. El resto de variables se leen donde se usan: auth en `src/middleware/auth.ts`, rate limits en `src/app.ts`, métricas en `src/routes/metrics.ts`.
 
-### `RagEngine.ts`
+### `src/creator/*`
 
-Recolector de contexto. Lee archivos locales/directorios/texto inline y produce un string para inyectar en el system prompt.
+| Módulo             | Responsabilidad                                                                    |
+| ------------------ | ---------------------------------------------------------------------------------- |
+| `domain.ts`        | Contratos de catálogo, preguntas, evaluación, blueprint, artefactos y errores.     |
+| `catalog.ts`       | Taxonomía y catálogo tecnológico versionado, búsqueda y validación de categorías.  |
+| `decisionTree.ts`  | Condiciones, preguntas visibles, progreso, validación y recomendaciones.           |
+| `generator.ts`     | Blueprint, documentación, adaptadores Huascar/Kiro/portable y manifest.            |
+| `skillsCatalog.ts` | Catálogo de skills que alimenta la categoría `skill`.                              |
+| `mcpCatalog.ts`    | Catálogo de servidores MCP sugeridos que alimenta la categoría `mcp`.              |
+| `modelsCatalog.ts` | Catálogo de modelos disponibles como dato del bundle.                              |
+| `agentProtocol.ts` | Protocolo de onboarding para agentes de IA (`/agent`, `/agent/start`, `/startup`). |
+| `etag.ts`          | ETag/304 para las respuestas de catálogo y workflow.                               |
+| `router.ts`        | API REST versionada y Problem Details (`application/problem+json`).                |
 
-### `Store.ts`
+### `src/routes/*`
 
-Persistencia SQLite. WAL mode, indice en `created_at`. Singleton inyectado en `server.ts` y `HuascarEngine`.
-
-### `hooks.ts`
-
-Seguridad. Carga `security-policy.json` y valida cada tool call antes de ejecutarla.
+- `health.ts`: `/api/health`, `/health/live`, `/health/ready`. Reporta uptime, memoria y disco; no hay dependencias externas que sondear.
+- `metrics.ts`: contador de requests/errores por path, protegido por `METRICS_SECRET`.
+- `openapi.ts`: documento OpenAPI 3.1 con las rutas vigentes.
+- `debug.ts`: inspector de requests, deshabilitado en producción.
 
 ---
 
@@ -92,309 +95,44 @@ Seguridad. Carga `security-policy.json` y valida cada tool call antes de ejecuta
 
 ### Diseno
 
-`src/config.ts` es el unico punto de entrada para toda configuracion del sistema. Sigue estas reglas:
+`src/config.ts` expone sólo lo que necesita el servidor HTTP:
 
-1. Lee de `process.env` en el momento de importacion
-2. Provee defaults seguros para todo
-3. Incluye `import 'dotenv/config'` (autocontenido, portable entre entry points)
-4. Agrupado por dominio: `paths`, `server`, `react`, `llm`, `rag`, `store`, `mcp`
-5. Usa helper `envInt()` con clamping `>= 0` para valores numericos
-
-### Uso
+1. Lee de `process.env` en el momento de importación.
+2. Provee defaults seguros.
+3. Incluye `import 'dotenv/config'` (autocontenido, portable entre entry points).
+4. Usa el helper `envInt()` con clamping `>= 0`.
 
 ```ts
 import { config } from './config.js';
 
-// File paths
-config.paths.steering; // → './src/kiro/steering.json'
-config.paths.mcps; // → './src/kiro/mcps.json'
-config.paths.rag; // → './src/kiro/rag.json'
-config.paths.db; // → './data/huascar.db'
-
-// Server
 config.server.port; // → 3001
 config.server.host; // → '0.0.0.0'
-
-// ReAct loop
-config.react.maxIterations; // → 3
-config.react.toolResultMaxChars; // → 8192
-config.react.mcpTimeoutMs; // → 30000
-
-// RAG
-config.rag.maxContentChars; // → 16000
-config.rag.encoding; // → 'utf8'
-
-// Store
-config.store.historyLimit; // → 20
-
-// LLM
-config.llm.modelId; // → 'gpt-4o'
-config.llm.mockMode; // → false
-
-// MCP
-config.mcp.stderr; // → 'ignore'
-
-// Estado
-config.hasApiKey; // → !!process.env.OPENAI_API_KEY
+config.server.requestTimeoutMs; // → 120000
 ```
 
 ### Como agregar una nueva variable
 
-1. Agregar el default en `src/config.ts` dentro de la seccion correspondiente
-2. Agregar la entrada en `.env.example`
-3. Consumir via `config.*` en el codigo (nunca leer `process.env` directamente)
+1. Si es del servidor, agregar el default en `src/config.ts`; si pertenece a un middleware o ruta, leerla ahí.
+2. Documentarla en `.env.example`.
+3. Actualizar `CONTEXT.md`/`docs/deployment.md` si cambia el despliegue.
 
 ---
 
 ## Modelo de Seguridad
 
-### Arquitectura
+El backend no ejecuta comandos ni herramientas, así que la superficie de seguridad es la de una API pura:
 
-La seguridad se implementa en dos capas:
+- **Auth**: `src/middleware/auth.ts`. `AUTH_REQUIRED=true` exige `HUASCAR_API_KEYS` (`Authorization: Bearer` o `X-API-Key`), compara con HMAC de longitud fija y falla cerrado si no hay claves (500, y en producción el proceso no arranca).
+- **Frontera de rutas**: catálogo, workflow, tutorial y protocolo de agentes son públicos; `evaluate`, `preview` y `generate` quedan detrás de auth.
+- **Límites de entrada**: 128 KB por body, timeout global (`REQUEST_TIMEOUT_MS`), rate limiting global y específico del Creator, `enforceJsonContentType`, `sanitizeRequestBody` (elimina `__proto__`, `constructor`, `prototype`) y `validatePathParams`.
+- **Seguridad del bundle generado**: rutas relativas sin `..`, sin backslashes ni duplicados; máximo 40 archivos y 256 KB; rechazo de secretos literales con patrones conocidos; referencias `${GITHUB_TOKEN}` en vez de valores.
+- **Cabeceras**: helmet, CORS con allowlist explícita (`CORS_ALLOWED_ORIGINS`) y bloqueo del origen `null`.
 
-1. **Politica declarativa** (`src/kiro/security-policy.json`)
-   - `blocked_tool_patterns`: patrones de nombre de herramienta bloqueados (substring match)
-   - `blocked_args_substrings`: por herramienta, substrings en argumentos serializados que activan bloqueo
-
-2. **Hook de ejecucion** (`src/kiro/hooks.ts`)
-   - `agentHooks.before_action(toolName, args)`: validacion pre-ejecucion, recibe datos estructurados
-
-3. **Aprobación HITL de commits** (`src/routes/hooks.ts` + `src/services/approvals.ts`)
-   - `POST /api/hooks/commit-approval`: crea una solicitud de aprobación, persiste `diffContext` en memoria (`commitApprovals` Map, TTL 60s)
-   - `GET /api/hooks/commit-approval/:id`: expone el registro completo — incluye `diffContext` — para que el aprobador revise el diff real antes de decidir
-   - `POST /api/hooks/commit-approval/:id`: resuelve la solicitud (`approved: true|false`)
-   - Este es el mecanismo HITL real y activo; `agentHooks` no expone un hook de commit — cualquier gate de commit debe implementarse en el caller usando este flujo HTTP.
-
-### Flujo de validacion
-
-```
-LLM produce USE_TOOL: execute_bash + args
-  → HuascarEngine extrae toolName y args
-  → agentHooks.before_action(toolName, args)
-    → ¿toolName contiene "shell" o "sudo"? → BLOQUEAR
-    → ¿execute_bash tiene args con "rm -rf" u otros? → BLOQUEAR
-    → AUTORIZAR
-  → MCP client.callTool(args)
-```
-
-### Principios
-
-- **Fail-closed**: Si `security-policy.json` no se puede cargar, se bloquean todas las herramientas (patron `['.']`)
-- **Datos estructurados**: El hook recibe `(toolName, args)` no un string plano
-- **Parseo robusto**: Los argumentos JSON se extraen con un parser de profundidad de braces, no regex
+La política de seguridad que Huascar **genera** (`huascar/security-policy.json`) la aplica quien ejecuta el agente. Cómo hacerlo está documentado en [`reference/security-policy-guide.md`](reference/security-policy-guide.md), con la implementación de referencia en [`reference/hooks-implementation.ts`](reference/hooks-implementation.ts).
 
 ---
 
-## Bucle ReAct
-
-### Flujo
-
-```
-1. System prompt = rol.system_prompt + RAG context + MCP tools list
-2. User message = task
-3. LLM responde → parsear:
-   a. "FINAL: <respuesta>" → retornar respuesta
-   b. "USE_TOOL: <nombre> + Argumentos: {...}" → continuar
-   c. Ni FINAL ni USE_TOOL → retornar texto crudo
-4. Si USE_TOOL:
-   - Ejecutar hook de seguridad
-   - Llamar MCP client.callTool()
-   - Push resultado como user message
-   - Loop (max N iteraciones)
-5. Si max iteraciones alcanzado: LLM genera respuesta final forzada
-```
-
-### Configuracion
-
-- `REACT_MAX_ITERATIONS` (default 3): profundidad maxima del bucle
-- `TOOL_RESULT_MAX_CHARS` (default 8192): truncado de resultados de herramientas
-- `MCP_TIMEOUT_MS` (default 30000): timeout por llamada a herramienta
-
-### Mock mode
-
-Sin `OPENAI_API_KEY` o con `LLM_MOCK_MODE=true`, el motor ejecuta un ReAct simulado (mock mode) que permite desarrollo y tests reproducibles sin consumir tokens reales. El comportamiento se puede configurar usando escenarios deterministas:
-
-1. **Escenarios Integrados (Built-in)**:
-   - `happy_path` (default): Simula un análisis rápido y completa con éxito.
-   - `multi_step`: Simula 3 iteraciones secuenciales simulando pensamientos intermedios.
-   - `blocked`: Intenta ejecutar una herramienta prohibida (ej. `execute_bash` con `rm -rf`) para verificar que las políticas de seguridad (security hooks) bloquean la acción.
-   - `timeout`: Simula retraso de latencia y un posterior error de timeout.
-   - `error`: Provoca un error inmediato del proveedor LLM simulado.
-
-2. **Configuración**:
-   - Por request: Se puede pasar `"mock_scenario"` en el JSON body del endpoint `/api/agent/execute` o `/api/agents/:id/execute`.
-   - Por entorno: `MOCK_SCENARIO` define el escenario por defecto.
-   - Personalizados: Se pueden declarar en un archivo JSON externo indicando su ruta con `MOCK_SCENARIOS_PATH`. El archivo debe estructurarse con la lista de pasos (`steps`) conteniendo `type`, `text`, `tool`, `args`, `delay_ms`, etc.
-
----
-
-## Integracion MCP
-
-### `src/kiro/mcps.json`
-
-```json
-{
-  "mcpServers": {
-    "nombre-servidor": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": { "GITHUB_TOKEN": "${GITHUB_TOKEN}" }
-    }
-  }
-}
-```
-
-### Ciclo de vida
-
-1. `connectMcpServers()`: spawn subprocesos via `StdioClientTransport`, lista tools
-2. Durante ReAct: `client.callTool({ name, arguments })` con AbortController timeout
-3. `disconnectMcpServers()` en `finally` del bloque try/catch de `executeTask()`
-
-### Variables de entorno
-
-Las entradas `env` en `mcps.json` soportan sustitucion `${VAR_NAME}` via `resolveEnv()`.
-
----
-
-## RAG
-
-### `src/kiro/rag.json`
-
-```json
-{
-  "knowledge_bases": [{ "type": "local_file", "path": "./docs/CONVENTIONS.md" }]
-}
-```
-
-### Fuentes soportadas
-
-- `local_file`: lee un archivo
-- `local_directory`: lee archivos en directorio (filtro por extension)
-- `inline`: texto directo en config
-
-### Limites
-
-- `RAG_MAX_CONTENT_CHARS` (default 16000): maximo de caracteres combinados
-
-El contexto RAG se inyecta en el system prompt del LLM, antes de la seccion de herramientas MCP.
-
----
-
-## Persistencia
-
-### Store
-
-- Base de datos SQLite con WAL mode
-- Una sola tabla: `executions (id, role, task, response, created_at)`
-- Indice en `created_at DESC`
-- Path configurable via `HUASCAR_DB_PATH` o default `./data/huascar.db`
-
-### Ciclo de vida
-
-- Store es singleton, creado en `server.ts` e inyectado en `HuascarEngine`
-- `store.close()` en SIGTERM y SIGINT
-- Los fallos de escritura no afectan la respuesta al usuario (try/catch + warn)
-
----
-
-## Referencia de Variables de Entorno
-
-| Variable                | Default                           | Descripcion                                    |
-| ----------------------- | --------------------------------- | ---------------------------------------------- |
-| `PORT`                  | `3001`                            | Puerto del servidor HTTP                       |
-| `HOST`                  | `0.0.0.0`                         | Interfaz de red                                |
-| `OPENAI_API_KEY`        | —                                 | API key de OpenAI (requerida para modo real)   |
-| `MODEL_ID`              | `gpt-4o`                          | Modelo LLM por defecto                         |
-| `LLM_MOCK_MODE`         | `false`                           | Forzar modo simulado incluso con API key       |
-| `REACT_MAX_ITERATIONS`  | `3`                               | Maximo de iteraciones del bucle ReAct          |
-| `TOOL_RESULT_MAX_CHARS` | `8192`                            | Truncado de resultados de herramientas         |
-| `MCP_TIMEOUT_MS`        | `30000`                           | Timeout por llamada MCP (ms)                   |
-| `RAG_MAX_CONTENT_CHARS` | `16000`                           | Maximo de caracteres del contexto RAG          |
-| `FILE_ENCODING`         | `utf8`                            | Encoding para lectura de archivos              |
-| `HUASCAR_DB_PATH`       | `./data/huascar.db`               | Ruta a la base de datos SQLite                 |
-| `HISTORY_LIMIT_DEFAULT` | `20`                              | Limite por defecto en GET /api/history         |
-| `MCP_STDERR`            | `ignore`                          | Manejo de stderr de MCP (ignore/piped/inherit) |
-| `STEERING_CONFIG_PATH`  | `./src/kiro/steering.json`        | Ruta al archivo de roles                       |
-| `MCPS_CONFIG_PATH`      | `./src/kiro/mcps.json`            | Ruta a config de servidores MCP                |
-| `RAG_CONFIG_PATH`       | `./src/kiro/rag.json`             | Ruta a config de fuentes RAG                   |
-| `SECURITY_POLICY_PATH`  | `./src/kiro/security-policy.json` | Ruta a politica de seguridad                   |
-| `GITHUB_TOKEN`          | —                                 | Token para servidor MCP de GitHub              |
-
----
-
-## Patrones de Error
-
-### Manejo de errores
-
-| Escenario                    | Respuesta HTTP                         | Log                                |
-| ---------------------------- | -------------------------------------- | ---------------------------------- |
-| Faltan parametros            | `400 { error: "..." }`                 | —                                  |
-| Rol inexistente              | `500 { error: "..." }`                 | throw con detalle                  |
-| Tool falla (MCP timeout)     | —                                      | warn, toolResult = "Error..."      |
-| Hook bloquea accion          | `500 { error: "HOOK TRIGGERED: ..." }` | console.error                      |
-| Fallo de store.saveExecution | —                                      | console.warn (no afecta respuesta) |
-| RAG source no encontrada     | —                                      | warn, skip source                  |
-| Policy file corrupto         | —                                      | console.error, fail-closed         |
-
-### Principios
-
-- `catch (err: unknown)` en lugar de `catch (err: any)`
-- `instanceof Error` para extraer `.message`
-- `String(err)` como fallback para throws primitivos
-- Errores en store/persistencia jamas rompen la respuesta al usuario
-
----
-
-## Estructura del Proyecto
-
-```
-huascar/
-├── src/
-│   ├── config.ts                    # Config central (env vars + defaults)
-│   ├── server.ts                    # Express entry point + lifecycle
-│   ├── engine/
-│   │   ├── HuascarEngine.ts         # Motor ReAct + MCP + RAG
-│   │   ├── RagEngine.ts             # Recolector de contexto RAG
-│   │   └── Store.ts                 # Persistencia SQLite
-│   └── kiro/
-│       ├── steering.json            # Roles y system prompts
-│       ├── mcps.json                # Servidores MCP
-│       ├── rag.json                 # Fuentes RAG
-│       ├── security-policy.json     # Politica de seguridad
-│       └── hooks.ts                 # Implementacion de hooks (seguridad + HITL)
-├── agent-creator/                   # Frontend de creacion de agentes (Vite + React)
-├── docs/
-│   ├── architecture.md              # Este documento
-│   ├── CONVENTIONS.md               # Convenciones de equipo (ejemplo RAG)
-│   ├── use_cases.md                 # Casos de uso
-│   └── implementation_plan.md       # Plan de implementacion
-├── test/
-│   └── api_test.mjs                 # Tests de integracion (6 tests)
-├── .env.example                     # Documentacion de variables de entorno
-├── Dockerfile.backend               # Build multi-stage Node 20
-├── Dockerfile.agent-creator         # Build multi-stage Vite
-└── docker-compose.yml               # Orquestacion de servicios
-```
-
----
-
-## Principios Arquitectonicos
-
-1. **Config centralizada**: Nunca leer `process.env` directamente en modulos de negocio. Usar `config.ts`.
-2. **Fail-closed en seguridad**: Si la politica no puede cargarse, bloquear todo.
-3. **Datos estructurados en hooks**: Los hooks reciben objetos tipados, no strings planos.
-4. **Parseo robusto**: Los argumentos JSON se extraen con brace-depth parser, no regex.
-5. **Persistencia como side-effect**: Fallos de store no afectan la respuesta al usuario.
-6. **Sin dependencias circulares**: Los modulos importan config, no al reves.
-7. **MCP lifecycle en finally**: Los servidores MCP siempre se desconectan, incluso en error.
-
----
-
-## Creator Backend v1
-
-El Creator es un subsistema separado del runtime ReAct. Su responsabilidad es transformar respuestas declarativas en un bundle revisable; no ejecuta el agente generado.
-
-### Pipeline
+## Pipeline del Creator
 
 ```text
 HTTP answers
@@ -408,36 +146,22 @@ HTTP answers
   → bundle JSON
 ```
 
-### Módulos
-
-| Módulo                        | Responsabilidad                                                                         |
-| ----------------------------- | --------------------------------------------------------------------------------------- |
-| `src/creator/domain.ts`       | Contratos de catálogo, preguntas, evaluación, blueprint, artefactos y errores.          |
-| `src/creator/catalog.ts`      | Taxonomía y catálogo tecnológico versionado, búsqueda y validación de categorías.       |
-| `src/creator/decisionTree.ts` | Condiciones, preguntas visibles, progreso, validación y recomendaciones.                |
-| `src/creator/generator.ts`    | Compilación del blueprint, documentación, adaptadores Huascar/Kiro/portable y manifest. |
-| `src/creator/router.ts`       | API REST versionada y Problem Details.                                                  |
-
 ### Estado y versiones
 
-El backend no crea sesiones anónimas. Cada llamada a `evaluate` o `preview` recibe todas las respuestas acumuladas. El cliente puede enviar `workflowVersion` y `catalogVersion`; un mismatch responde `409` para evitar generar con reglas distintas de las que vio el usuario.
+El backend no crea sesiones. Cada llamada a `evaluate`, `preview` o `generate` recibe todas las respuestas acumuladas. El cliente puede fijar `workflowVersion` y `catalogVersion`; un mismatch responde `409` para no generar con reglas distintas de las que vio el usuario.
 
-Esta estrategia permite volver atrás, recalcular ramas y escalar horizontalmente. La persistencia se añadirá junto con login, ownership y autorización.
+Esto permite volver atrás, recalcular ramas y escalar horizontalmente sin coordinar estado. La persistencia se añadirá junto con login, ownership y autorización.
 
 ### Invariantes del generador
 
 1. Mismo input y mismas versiones producen exactamente el mismo contenido y hashes.
-2. Preview no usa red, filesystem, LLM, MCP, SQLite ni shell.
+2. La generación no usa red, filesystem, LLM, MCP, base de datos ni shell.
 3. No se aceptan rutas absolutas, traversal, backslashes o duplicados.
 4. No se permiten secretos literales con patrones conocidos.
-5. El manifest lista todos los artefactos previos y sus SHA-256.
+5. El manifest lista todos los artefactos y sus SHA-256.
 6. Kiro sólo se genera si `agent_targets` incluye `kiro`.
 7. RAG y PR review sólo se generan cuando sus ramas fueron habilitadas.
 8. Producción agrega aprobación, checklist operacional y warnings aunque el usuario no los seleccione explícitamente.
-
-### Relación con el runtime
-
-El formato `huascar/steering.json` mantiene la estructura de roles que consume `HuascarEngine`. Los demás archivos generados son previews que deben revisarse antes de sustituir la configuración runtime. No existe todavía un endpoint que instale o ejecute un blueprint; hacerlo requiere resolver autenticación, sandbox, namespaces RAG y HITL.
 
 ### Contrato HTTP
 
@@ -445,11 +169,139 @@ El formato `huascar/steering.json` mantiene la estructura de roles que consume `
 GET  /api/v1/creator/catalog
 GET  /api/v1/creator/workflow
 GET  /api/v1/creator/tutorial
+GET  /api/v1/creator/skills
+GET  /api/v1/creator/mcps
+GET  /api/v1/creator/models
 POST /api/v1/creator/evaluate
 POST /api/v1/creator/preview
 POST /api/v1/creator/generate
+GET  /api/v1/creator/agent
+GET  /api/v1/creator/agent/start
+POST /api/v1/creator/agent/answer
+POST /api/v1/creator/agent/generate
+GET  /api/v1/creator/startup
 ```
 
-Los endpoints del Creator son puros y conviven con las rutas legacy. El parser JSON global admite 128 KB, mientras que el árbol limita textos y cantidad de selecciones por campo.
+Las rutas del Runtime (`/api/agent/execute`, `/api/agents`, `/api/history`, `/api/roles`, `/api/rag/*`, `/api/tools`, `/api/memory`, `/api/pipeline`, `/api/configs`, `/api/hooks/commit-approval/*`, `/api/mcp/status`) devuelven 404 y no están en el documento OpenAPI.
 
-`huascar/security-policy.json` sólo contiene los campos que consume actualmente `hooks.ts`. Las capacidades, autonomía y aprobación quedan en `huascar/governance.json` como contrato declarativo; el runtime legacy todavía necesita un adaptador para aplicarlo y por eso el preview no afirma que esas reglas ya estén activas.
+---
+
+## Artefactos Generados
+
+Siempre: `huascar.blueprint.json`, `manifest.json`, `docs/INSTALL.md`, `docs/WHY.md`.
+
+Condicionales según respuestas: `AGENTS.md`, `skills/<agente>/SKILL.md`, `huascar/steering.json`, `huascar/security-policy.json`, `huascar/governance.json`, `huascar/mcps.json`, `huascar/rag.json`, `huascar/pr-review.json`, `.kiro/steering/<agente>.md`, `.kiro/hooks/<agente>-quality.json`, `.kiro/skills/<agente>/SKILL.md`, y las variantes para Cursor, Devin, CodeRabbit y Kilo Code.
+
+Los esquemas de los artefactos JSON viven en `src/kiro/schemas/*.json` y se validan en `test/kiro-schema.test.mjs` y `test/generated-artifacts-schema.test.mjs`.
+
+`huascar/governance.json` es un contrato declarativo de capacidades, autonomía y aprobación: describe lo que la plataforma destino debe aplicar, no algo que Huascar active.
+
+---
+
+## Artefactos de Referencia
+
+`docs/reference/` conserva material del Runtime eliminado como documentación (nunca se carga en el servidor):
+
+| Archivo                                                                  | Uso                                                      |
+| ------------------------------------------------------------------------ | -------------------------------------------------------- |
+| [`steering-roles.json`](reference/steering-roles.json)                   | Siete roles curados con system prompt y temperatura.     |
+| [`steering-roles-guide.md`](reference/steering-roles-guide.md)           | Cómo leer y adaptar esos roles.                          |
+| [`security-policy.example.json`](reference/security-policy.example.json) | Política allowlist real.                                 |
+| [`security-policy-guide.md`](reference/security-policy-guide.md)         | Cómo aplicar la política con validación de comandos.     |
+| [`hooks-implementation.ts`](reference/hooks-implementation.ts)           | Implementación de referencia de `before_action`.         |
+| [`mcps.example.json`](reference/mcps.example.json)                       | Declaración de servidores MCP con secretos por variable. |
+| [`rag.example.json`](reference/rag.example.json)                         | Fuentes de conocimiento para RAG.                        |
+| [`prompts/`](reference/prompts)                                          | Parciales de prompt compartidos.                         |
+
+---
+
+## Referencia de Variables de Entorno
+
+| Variable               | Default                                       | Descripcion                                          |
+| ---------------------- | --------------------------------------------- | ---------------------------------------------------- |
+| `PORT`                 | `3001`                                        | Puerto del servidor HTTP                             |
+| `HOST`                 | `0.0.0.0`                                     | Interfaz de red                                      |
+| `REQUEST_TIMEOUT_MS`   | `120000`                                      | Timeout por petición HTTP                            |
+| `LOG_LEVEL`            | `info`                                        | Verbosidad de pino                                   |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:3000,http://localhost:5173` | Orígenes permitidos                                  |
+| `AUTH_REQUIRED`        | `true`                                        | Exige API key en rutas protegidas (`false` en local) |
+| `HUASCAR_API_KEYS`     | —                                             | Lista de API keys separadas por coma                 |
+| `BYPASS_SECRET`        | —                                             | Override de emergencia; se redacta en logs           |
+| `METRICS_SECRET`       | —                                             | Protege `/api/metrics` (obligatorio en producción)   |
+| `RATE_LIMIT_GLOBAL`    | `100`                                         | Requests por minuto por IP                           |
+| `RATE_LIMIT_CREATOR`   | `120`                                         | Requests por minuto para `/api/v1/creator`           |
+| `RATE_LIMIT_AGENT`     | `30`                                          | Requests por minuto para el protocolo de agentes     |
+
+---
+
+## Patrones de Error
+
+### Manejo de errores
+
+| Escenario                                           | Respuesta HTTP                        |
+| --------------------------------------------------- | ------------------------------------- |
+| Body no es objeto o trae claves extra               | `400` con `issues[]`                  |
+| Content-Type inválido en mutación                   | `415`                                 |
+| Respuestas con tipo/opción inválida                 | `200` con `issues[]` en la evaluación |
+| Versión de workflow/catálogo obsoleta               | `409`                                 |
+| Árbol incompleto, secreto literal o bundle inseguro | `422`                                 |
+| Ruta inexistente                                    | `404`                                 |
+| Falta o es inválida la API key                      | `401` / `403`                         |
+| Rate limit excedido                                 | `429`                                 |
+| Error interno                                       | `500`                                 |
+
+Los errores del Creator usan `application/problem+json` con `issues[]` y rutas de campo.
+
+### Principios
+
+- `catch (err: unknown)` en lugar de `catch (err: any)`.
+- `instanceof Error` para extraer `.message`; `String(err)` como fallback.
+- Lanzar subclases de `AppError` (`src/errors.ts`) cuando el caller necesita status estable.
+- Nunca registrar secretos ni valores de API keys.
+
+---
+
+## Estructura del Proyecto
+
+```text
+huascar/
+├── src/
+│   ├── app.ts                       # Cableado HTTP
+│   ├── server.ts                    # Entry point + lifecycle
+│   ├── config.ts                    # Config del servidor
+│   ├── errors.ts                    # AppError + códigos
+│   ├── health.ts                    # Deep health check (proceso)
+│   ├── logger.ts                    # pino
+│   ├── creator/                     # Catálogo, árbol, generador, protocolo
+│   ├── middleware/                  # auth, validación, sanitize, errores
+│   ├── routes/                      # health, metrics, openapi, debug
+│   └── kiro/schemas/                # Esquemas de artefactos generados
+├── frontend/                        # Next app: landing + Creator (/agents/new)
+├── agent-creator/                   # App Vite legacy (sin desarrollo activo)
+├── packages/types/                  # Tipos compartidos (@huascar/types)
+├── docs/
+│   ├── architecture.md              # Este documento
+│   ├── deployment.md               # Despliegue local, Docker y Render
+│   ├── CONVENTIONS.md              # Convenciones de equipo
+│   ├── debug-tooling.md            # Herramientas de debug (dev)
+│   ├── use_cases.md                # Casos de uso
+│   ├── adr/                        # Architecture Decision Records
+│   └── reference/                  # Artefactos del runtime eliminado
+├── test/                           # node:test (unit + contrato HTTP)
+├── e2e/                            # Playwright
+├── .env.example
+├── Dockerfile.backend
+└── docker-compose.yml
+```
+
+---
+
+## Principios Arquitectonicos
+
+1. **Generar, no ejecutar**: el backend produce archivos; aplicarlos y correr el agente es del usuario.
+2. **Pureza**: la generación no toca red, disco, base de datos ni procesos.
+3. **Determinismo**: mismas respuestas y versiones ⇒ mismos artefactos y hashes.
+4. **Stateless**: no hay sesiones anónimas ni estado huérfano antes de tener identidad.
+5. **Fail-closed en auth**: sin claves configuradas y con auth requerida, no se sirve nada protegido.
+6. **Explicabilidad**: cada recomendación incluye motivo, evidencia, beneficios, trade-offs y alternativas.
+7. **Sin dependencias circulares**: los módulos importan config, no al revés.

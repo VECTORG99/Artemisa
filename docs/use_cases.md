@@ -8,13 +8,13 @@ Huascar permite disenar y generar configuracion de agentes de desarrollo y opera
 - Obtener bundles de configuracion reproducibles con blueprint, manifest hash y guias de instalacion.
 - Evaluar multiples caminos arquitectonicos cambiando respuestas y recalculando el arbol.
 - Generar configuracion target para Huascar, Kiro o portable.
+- Documentar por que se eligio cada pieza del stack (`docs/WHY.md` generado).
 
-## Runtime
+## Fuera de alcance
 
-- Ejecutar tareas con el motor ReAct usando steering, RAG, MCP y hooks.
-- Integrar fuentes de conocimiento locales para contexto de agentes.
-- Revisar PRs con criterios configurables.
-- Ejecutar agentes registrados con sesiones persistentes en SQLite.
+Huascar no ejecuta agentes: no hay motor ReAct, LLM, RAG, MCP ni base de datos (#584).
+La aplicacion del bundle y la ejecucion del agente ocurren en la plataforma que elija el usuario.
+Como referencia de que aplicar y como, ver `docs/reference/`.
 
 ## Público objetivo
 

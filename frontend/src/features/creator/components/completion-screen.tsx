@@ -11,7 +11,6 @@ import {
   LuFileText,
   LuLayers,
   LuListChecks,
-  LuRocket,
   LuServerCog,
   LuTriangleAlert,
 } from 'react-icons/lu';
@@ -22,8 +21,6 @@ import type { ArtifactKind, GeneratedAgentBundle, GeneratedArtifact } from '@hua
 
 interface CompletionScreenProps {
   bundle: GeneratedAgentBundle;
-  onRegister: () => void;
-  registered: { id: string; name: string } | null;
   error?: string;
 }
 
@@ -89,7 +86,7 @@ function downloadBundleJson(bundle: GeneratedAgentBundle) {
  * without it) and `applicationGuide`, which is the only place that explains
  * how to apply the bundle — Huascar never writes these files itself.
  */
-export function CompletionScreen({ bundle, onRegister, registered, error }: CompletionScreenProps) {
+export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
   const [tab, setTab] = useState<Tab>('files');
   const [activePath, setActivePath] = useState(bundle.artifacts[0]?.path ?? '');
   const [showSuccessBurst, setShowSuccessBurst] = useState(true);
@@ -415,18 +412,6 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
           <LuDownload className="h-4 w-4" aria-hidden="true" />
           Descargar bundle completo (JSON)
         </button>
-
-        {registered ? (
-          <span className={glassPill('border-white/20 px-4 py-2 text-sm text-zinc-200')}>
-            <LuCheck className="h-4 w-4" aria-hidden="true" />
-            Registrado — se eliminará en 30 minutos: {registered.name}
-          </span>
-        ) : (
-          <button type="button" onClick={onRegister} className={glassButton('px-4 py-2.5 text-sm')}>
-            <LuRocket className="h-4 w-4" aria-hidden="true" />
-            Probar temporalmente (expira en 30 min)
-          </button>
-        )}
       </div>
 
       {error && (

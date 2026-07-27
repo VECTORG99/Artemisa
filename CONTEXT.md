@@ -1,54 +1,46 @@
 # Huascar Project Context
 
-Updated: 2026-07-23
+Updated: 2026-07-26
 
 ## State
 
 - Repository uses npm workspaces (`packages/*`, `frontend`, `agent-creator`): root Express/TypeScript backend, `frontend/` Next app (landing + Creator at `/agents/new`), and `agent-creator/` Vite tool. Root `package.json` owns backend scripts/tests and hoists shared dependencies; per-app installs still work via `npm --prefix <app> run <script>` but `npm --prefix <app> ci` fails (use root `npm ci` instead, which installs all workspaces).
-- Backend entrypoint: `src/server.ts` -> `src/app.ts`. Express app mounts public creator catalog/workflow/tutorial before auth, then `/api` health/openapi/metrics, then protected API routes.
-- Persistent state uses SQLite through `better-sqlite3` in `src/engine/Store.ts`; database path defaults to `./data/huascar.db` via `HUASCAR_DB_PATH`.
-- SQLite retention cleanup is bounded by `RETENTION_EXECUTION_MAX_AGE_DAYS`, `RETENTION_EXECUTION_MAX_COUNT`, and `RETENTION_RAG_CHUNKS_MAX_PER_SOURCE`; `RETENTION_CLEANUP_ON_START=false` by default.
-- Registered agents are ephemeral by design (#492): `AGENT_TTL_MS` (default 30 min) bounds row lifetime, `AGENT_MAX_PER_IP` (default 5) plus `AGENT_COOLDOWN_MS` (default 1 h) cap per-IP registrations, and `Store.cleanupExpiredAgents()` runs on start and on a periodic interval in `src/server.ts`. Expired agents return 404 on read/execute.
-- Migrations are code-based and run at `Store` construction: `001_create_executions`, `002_create_rag_documents`, `003_add_rag_hashes`, `004_create_sessions`, `005_create_agents`, `006_create_agent_configs`, `007_create_memory_store`, `008_execution_context_and_soft_delete`, `009_add_agent_ephemeral_fields`.
-- Agent execution is centralized in `src/engine/HuascarEngine.ts`: steering role resolution, MCP tool wrapping, RAG loading/context, AI SDK provider fallback, and execution history persistence. Mock mode supports scenario-based mock executions (`happy_path`, `multi_step`, `blocked`, `timeout`, `error`) configurable via request body, env variables, or custom JSON.
-- Current default steering roles are `PR_REVIEWER`, `SCAFFOLDER`, `TESTER`, `DOCUMENTER`, `REFACTORER`, `DEBUGGER`, and `DEVOPS` in `src/kiro/steering.json`; `STEERING_CONFIG_PATH` can point at an external JSON file.
-- Auth is environment-driven in `src/middleware/auth.ts`: `AUTH_REQUIRED=false` by default; `AUTH_REQUIRED=true` requires `HUASCAR_API_KEYS` through `Authorization: Bearer` or `X-API-Key`.
+- The backend only generates configuration files (#584, ADR-0008). The Runtime (ReAct engine, LLM providers, RAG, MCP, sessions, ephemeral agents CRUD, commit approvals, SQLite) was deleted; there is no execution, deployment or hosting path in this repo.
+- Backend entrypoint: `src/server.ts` -> `src/app.ts`. Express mounts public creator catalog/workflow/tutorial/agent endpoints before auth, then `/api` metrics/health/openapi, then the protected creator routes.
+- Backend source is now: `src/creator/*` (catalog, decision tree, generator, agent protocol, sub-catalogs), `src/routes/{health,metrics,openapi,debug}.ts`, `src/middleware/*`, `src/config.ts` (server settings only), `src/errors.ts`, `src/logger.ts`, `src/health.ts`, and `src/kiro/schemas/*.json`.
+- No persistence: no database, no filesystem writes, no network calls during generation. Every request is a pure function of its body.
+- Backend runtime dependencies are `express`, `helmet`, `cors`, `compression`, `express-rate-limit`, `pino`, `dotenv`. There is no `better-sqlite3`, `ai`, `@ai-sdk/*` or `@modelcontextprotocol/sdk`.
+- Reference artifacts rescued from the deleted runtime live in `docs/reference/`: `steering-roles.json` (the 7 curated roles), `security-policy.example.json`, `hooks-implementation.ts`, `mcps.example.json`, `rag.example.json`, `prompts/`, plus `security-policy-guide.md` and `steering-roles-guide.md`. They are documentation, never loaded by the server.
+- Auth is environment-driven in `src/middleware/auth.ts`: `AUTH_REQUIRED=false` for local development; `AUTH_REQUIRED=true` requires `HUASCAR_API_KEYS` through `Authorization: Bearer` or `X-API-Key`, and fails closed when keys are missing.
 
 ## What Works
 
 - JSON API routes:
-  - `GET /api/health`, `GET /api/metrics`, `GET /api/openapi.json` are mounted before protected route auth.
-  - `POST /api/agent/execute` runs a role/task and returns JSON.
-  - `POST /api/agent/execute/stream` emits SSE events: `start`, `complete`, or `error`.
-  - `GET /api/history` returns execution history from SQLite.
-  - `GET /api/roles` reads roles from steering config and returns safe metadata (`description`, `recommended_tools`, `examples`) without `system_prompt`.
-  - `GET /api/rag/sources` and `DELETE /api/rag/sources/:source` inspect/remove indexed RAG chunks.
-  - `/api/agents` CRUD stores generated agent configs (ephemeral, TTL-bounded — see #492); `/api/agents/:id/execute` runs a registered agent and returns 404 once it has expired.
-  - `/api/v1/creator/catalog|workflow|tutorial` are public; `/evaluate|preview|generate` are protected by API auth when enabled.
+  - `GET /api/health`, `GET /api/health/live`, `GET /api/health/ready`, `GET /api/metrics`, `GET /api/openapi.json` are mounted before protected route auth. Health reports process signals only (memory, disk, uptime).
+  - `/api/v1/creator/catalog|workflow|tutorial|skills|mcps|models` are public; `/evaluate|preview|generate` are protected by API auth when enabled.
+  - `/api/v1/creator/agent`, `/agent/start`, `/agent/answer`, `/agent/generate` and `/startup` are the public AI-agent onboarding protocol.
   - The catalog's `skill` and `mcp` categories are derived from `src/creator/skillsCatalog.ts` and `src/creator/mcpCatalog.ts` rather than declared separately, because the decision tree validates `skills_selection`/`mcps_selection` against those categories. When they were separate lists the ids did not intersect, so both questions were unanswerable from any UI.
   - `RATE_LIMIT_CREATOR` defaults to 120/min: the Creator re-evaluates the whole tree per step, so one completed Auto-largo run costs ~35 requests.
-- Sessions work for direct and registered agent execution: `SessionManager` creates/touches SQLite sessions, enforces role matching and TTL, and injects recent messages into the next task.
-- SSE currently wraps the same execution path as JSON and reports lifecycle events; token/tool streaming is not implemented.
-- RAG supports `local_file`, `local_directory`, `inline`, and `web_url` sources in code; persisted vector chunks use OpenAI embeddings only when `OPENAI_API_KEY` and a `Store` exist.
-- `src/kiro/rag.json` is schema-tested as a local-file source list and currently indexes the configured docs sources, including `docs/CONVENTIONS.md`, `CONTRIBUTING.md`, and this `CONTEXT.md`.
-- MCP config exists in `src/kiro/mcps.json` for filesystem, bash, and GitHub servers; `McpConnectionPool` supplies connected tools to `HuascarEngine`.
-- Next creator route `frontend/src/app/agents/new/page.tsx` consumes backend creator workflow/catalog, generates a bundle, and registers it through `/api/agents`. It owns the state machine (mode select -> question flow -> review -> completion) and delegates:
+- Generation is deterministic: same answers plus the same `workflowVersion`/`catalogVersion` produce the same artifacts and SHA-256 hashes. Version mismatches return 409; incomplete trees, literal secrets and unsafe bundles return 422.
+- Generated artifacts follow `src/kiro/schemas/*.json`; `test/kiro-schema.test.mjs` validates the reference examples in `docs/reference/` against those schemas.
+- Removed runtime routes (`/api/agent/execute`, `/api/agents`, `/api/history`, `/api/roles`, `/api/rag/*`, `/api/tools`, `/api/memory`, `/api/pipeline`, `/api/configs`, `/api/hooks/commit-approval/*`, `/api/mcp/status`) return 404 and are absent from the OpenAPI document; `test/api_test.mjs` and `test/openapi.test.mjs` assert this.
+- Next creator route `frontend/src/app/agents/new/page.tsx` consumes the backend creator workflow/catalog and generates a downloadable bundle. It owns the state machine (mode select -> question flow -> review -> completion) and delegates:
   - `features/creator/lib/flow.ts` — guided navigation. The backend's `nextQuestion` only covers required questions, so the client walks `evaluation.visibleQuestions` with its own visited trail; this is what makes the 4 optional questions reachable and the back button work.
   - `features/creator/lib/session.ts` — `sessionStorage` draft, namespaced by workflow version.
   - `features/creator/lib/answer-labels.ts` — id -> human label formatting shared by review and presets.
   - `features/creator/components/option-picker.tsx` — the single option grid (search, chips, `maxSelections`, `custom:<slug>`) used by both the guided flow and the advanced dashboard.
+- `frontend/src/lib/api.ts` only talks to `/api/v1/creator/*`; the ephemeral "probar temporalmente" registration was removed with `/api/agents`.
 
 ## Known Limitations
 
-- Root and frontends are separate dependency/install domains; there is no root npm workspace.
-- `src/kiro/schemas/rag.schema.json` only models `knowledge_bases[]` entries with `type` and `path`, even though `RagEngine` supports more source shapes in TypeScript.
-- RAG web URL SSRF protection is a hostname blocklist, not DNS-resolution based.
-- RAG embeddings require OpenAI; without `OPENAI_API_KEY`, content can load into runtime prompt context but persisted vector search is unavailable.
-- SSE does not stream partial model tokens or tool calls.
+- No accounts, no saved blueprints, no revision history: drafts live only in the browser's `sessionStorage`.
+- Huascar does not apply the bundle. The user copies files into the target project manually and reviews them.
+- Applying a generated `security-policy.json` requires the consumer to implement enforcement; `docs/reference/security-policy-guide.md` documents how, with `hooks-implementation.ts` as the reference.
+- `custom:<slug>` answers are preserved in the blueprint but produce an "adapter pending" warning; no adapter is generated.
+- Preview is capped at 40 files and 256 KB, and HTTP bodies at 128 KB.
 - Auth middleware captures env values at module load. Test/process env changes after import do not reconfigure auth.
-- Registered agents store config as JSON text in SQLite; no separate normalized table for tools/knowledge/roles.
-- Render backend config sets `LLM_MOCK_MODE=true` in `render.yaml` and uses `/data/huascar.db`; persistence needs an attached Render Disk or external DB.
-- Next `NEXT_PUBLIC_API_URL` is build-time baked. `frontend/src/lib/api.ts` falls back to `https://huascar.onrender.com`.
+- Next `NEXT_PUBLIC_API_URL` is build-time baked. `frontend/src/lib/api.ts` falls back to `http://localhost:3001`.
+- `agent-creator/` (Vite) remains in the workspace as a legacy app; it is not the active Creator UI.
 
 ## Constraints
 
@@ -57,6 +49,7 @@ Updated: 2026-07-23
 - Keep docs for agents direct, structured, and file/path-specific.
 - New code should include tests; root unit tests run with `npm run test:unit`.
 - Root backend target is TypeScript ESM (`type: module`) and uses `.js` import specifiers in source.
+- Generation must stay pure: no filesystem, network, database, LLM, MCP or shell access in `src/creator/*`.
 - Request JSON body limit is `128kb`; global request timeout defaults to `REQUEST_TIMEOUT_MS=120000`.
 - CORS default origins are `http://localhost:3000,http://localhost:5173`; override with `CORS_ALLOWED_ORIGINS`.
 
@@ -66,67 +59,52 @@ Updated: 2026-07-23
 src/server.ts
   -> src/app.ts
      -> src/config.ts
-     -> src/engine/Store.ts
-        -> src/engine/Migrations.ts
-        -> src/engine/migrations/*.ts
-     -> src/middleware/auth.ts
-     -> src/middleware/notFound.ts
-     -> src/middleware/errorHandler.ts
-     -> src/routes/{health,metrics,openapi,history,roles,rag,hooks}.ts
-     -> src/routes/agent.ts
-        -> src/engine/SessionManager.ts
-        -> src/engine/HuascarEngine.ts
-     -> src/routes/agents.ts
-        -> src/engine/SessionManager.ts
-        -> src/engine/HuascarEngine.ts
+     -> src/middleware/{auth,sanitize,validation,notFound,errorHandler}.ts
+     -> src/routes/{health,metrics,openapi,debug}.ts
+        -> src/health.ts
      -> src/creator/router.ts
-        -> src/creator/{catalog,decisionTree,generator,domain}.ts
-
-src/engine/HuascarEngine.ts
-  -> src/kiro/hooks.ts
-  -> src/engine/RagEngine.ts
-     -> src/engine/VectorIndex.ts
-     -> src/engine/Store.ts
-  -> src/engine/McpConnectionPool.ts
-  -> src/engine/LlmProvider.ts
+        -> src/creator/{catalog,decisionTree,generator,domain,etag}.ts
+        -> src/creator/{skillsCatalog,mcpCatalog,modelsCatalog}.ts
+        -> src/creator/agentProtocol.ts
 
 frontend/src/app/agents/new/page.tsx
-  -> frontend/src/lib/api.ts
-  -> frontend/src/types/{agent,creator}.ts
+  -> frontend/src/lib/api.ts        (only /api/v1/creator/*)
+  -> frontend/src/features/creator/*
+  -> packages/types                 (@huascar/types)
+
+docs/reference/*                     (documentation only, not imported)
 ```
 
 ## Critical Paths
 
-- HTTP startup: `src/server.ts` -> `src/app.ts` -> `new Store()` -> migrations -> route mounting.
-- Direct execution: `/api/agent/execute` -> `SessionManager.getOrCreate()` -> `HuascarEngine.executeTask()` -> optional MCP/RAG -> LLM/mock -> `Store.saveExecution()` -> session assistant message.
-- Streaming execution: `/api/agent/execute/stream` -> same execution path -> SSE `start` and final `complete|error`.
-- Registered agent execution: `/api/agents/:id/execute` -> load JSON config -> registered steering role -> session key `${agent.id}:${role}` -> engine -> `recordAgentExecution()`.
-- RAG ingestion/query: `src/kiro/rag.json` -> `RagEngine.loadSources()` -> chunk/hash/embed -> `rag_documents` -> `VectorIndex.search()` -> prompt context.
-- Creator registration: Next `/agents/new` -> backend creator workflow/evaluate/generate -> `registerAgent()` -> `/api/agents` -> SQLite `agents`.
-- Auth boundary: all `/api` routes mounted after line-level auth middleware are protected only when `AUTH_REQUIRED=true`; creator public endpoints are mounted before this boundary.
+- HTTP startup: `src/server.ts` -> `src/app.ts` -> middleware -> public creator router -> health/metrics/openapi -> auth boundary -> protected creator router.
+- Evaluation: `POST /api/v1/creator/evaluate` -> `evaluateDecisionTree(answers)` -> visible questions, progress, recommendations, warnings, issues. Stateless: the client resends accumulated answers.
+- Generation: `POST /api/v1/creator/preview|generate` -> validate complete tree -> `generateAgentBundle()` -> artifacts + manifest with SHA-256 + `INSTALL.md`/`WHY.md`.
+- Agent protocol: `GET /api/v1/creator/agent/start` -> `POST /agent/answer` (repeat) -> `POST /agent/generate` -> bundle plus application instructions.
+- Auth boundary: everything mounted after the `/api` auth middleware requires a key when `AUTH_REQUIRED=true`; health, metrics and the public creator endpoints are mounted before it.
+- Graceful shutdown: `server.close()` drains open requests; there is no in-flight execution tracking, MCP pool or database to close.
 
 ## Do Not Touch / High-Risk Zones
 
-- Migration IDs/order in `src/engine/migrations/index.ts`; changing existing migrations can corrupt or skip live SQLite state.
-- `Store` schema assumptions and JSON serialization for `agents.config` and `rag_documents.embedding`.
+- Generation determinism in `src/creator/generator.ts`: no timestamps, randomness or environment reads in artifact content; hashes are part of the contract.
+- `WORKFLOW_VERSION`/`CATALOG_VERSION` in `src/creator/{decisionTree,catalog}.ts`: clients pin them and receive 409 on mismatch.
+- Secret detection and path validation in the generator (rejects absolute paths, `..`, backslashes, duplicates, literal tokens).
 - `src/middleware/auth.ts` fail-closed behavior when `AUTH_REQUIRED=true` and no keys are configured.
-- `src/kiro/schemas/*.json` and matching `src/kiro/*.json`; schema tests are intentionally strict.
-- `HuascarEngine.buildAiTools()` hook call before MCP tool execution; security hooks depend on it.
+- `src/kiro/schemas/*.json` plus the examples in `docs/reference/`; schema tests are intentionally strict.
 - Frontend API base URL behavior: `NEXT_PUBLIC_API_URL` is a build-time public env var.
-- Render SQLite path `/data/huascar.db`; persistent production data requires Render Disk or DB migration.
 
 ## Non-Goals
 
+- Do not reintroduce execution: no ReAct loop, LLM provider, MCP connection, RAG indexing or shell access in this repo (ADR-0008).
+- Do not add a database or vector store; the Creator is stateless by design.
+- Do not write generated files to disk or to the user's repository from the backend.
 - Do not expand `AGENTS.md` into a full conventions/contributing guide here.
-- Do not implement issue #14 full AGENTS expansion, issue #70 `CONVENTIONS`, or issue #79 `CONTRIBUTING` from this context task.
-- Do not introduce npm workspaces unless a future issue explicitly changes ADR-0005.
-- Do not replace SQLite or add external vector DB infrastructure without a separate architecture decision.
-- Do not add token-level streaming to SSE as part of documentation updates.
+- Do not add new Creator features to `agent-creator/` (legacy app).
 
 ## How To Update This Document
 
-- Update this file in the same PR that changes architecture, deploy topology, route shape, auth behavior, migrations, RAG sources/schema, or frontend/backend integration.
+- Update this file in the same PR that changes architecture, deploy topology, route shape, auth behavior, generation contract, or frontend/backend integration.
 - Keep entries machine-readable: short bullets, explicit paths, concrete route/env names, no narrative history.
 - Update the `Updated:` line with the edit date.
-- If RAG source schema changes, keep `src/kiro/rag.json` and `test/kiro-schema.test.mjs` valid.
-- Run at least `npm run test:unit` after editing this document or RAG config.
+- If generated artifact shapes change, keep `src/kiro/schemas/*.json`, `docs/reference/*` and `test/kiro-schema.test.mjs` valid.
+- Run at least `npm run test:unit` after editing this document.
