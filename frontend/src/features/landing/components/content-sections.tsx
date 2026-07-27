@@ -298,29 +298,9 @@ export function ContentSections() {
   );
 }
 
-// ─── On-demand modals: Casos de uso, Legal ─────────────────────────────────
-// These carry secondary information that matters for trust and depth but
-// would clutter a first-glance landing page. They only render when the
-// user explicitly clicks a nav/footer link — never part of the scroll.
-
-function UseCasesModalContent() {
-  const t = useTranslations('landing');
-  return (
-    <>
-      <span className="text-xs font-semibold uppercase tracking-wider text-white/80">{t.useCases.eyebrow}</span>
-      <h2 className="mt-2 text-3xl font-bold text-white">{t.useCases.title}</h2>
-      <p className="mt-2 max-w-xl text-sm text-white/80">{t.useCases.subtitle}</p>
-      <div className="mt-8 flex flex-col gap-4">
-        {t.useCases.cases.map((useCase) => (
-          <div key={useCase.title} className="rounded-xl p-5" style={glassStyle}>
-            <h3 className="text-base font-semibold text-white">{useCase.title}</h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-white/80">{useCase.description}</p>
-          </div>
-        ))}
-      </div>
-    </>
-  );
-}
+// ─── On-demand modal: Legal ────────────────────────────────────────────────
+// Legal information is secondary content that would clutter a first-glance
+// landing page. It only renders when the user clicks the footer link.
 
 function LegalModalContent() {
   const t = useTranslations('landing');
@@ -363,13 +343,8 @@ function LandingModals() {
   const { openModal, close } = useLandingModal();
   const t = useTranslations('landing');
   return (
-    <>
-      <Modal open={openModal === 'casos-de-uso'} onClose={close} title={t.useCases.title}>
-        <UseCasesModalContent />
-      </Modal>
-      <Modal open={openModal === 'legal'} onClose={close} title={t.legal.title}>
-        <LegalModalContent />
-      </Modal>
-    </>
+    <Modal open={openModal === 'legal'} onClose={close} title={t.legal.title}>
+      <LegalModalContent />
+    </Modal>
   );
 }

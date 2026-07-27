@@ -74,25 +74,6 @@
         "infrastructure": { "title": "Infraestructura" }
       }
     },
-    "useCases": {
-      "eyebrow": "Productividad del desarrollador",
-      "title": "Casos de uso",
-      "subtitle": "Configuraciones reproducibles para agentes especializados en tareas de desarrollo.",
-      "cases": [
-        {
-          "title": "Scaffolding de proyectos",
-          "description": "Configura un agente orientado a proponer estructuras base, módulos y componentes según las convenciones del proyecto."
-        },
-        {
-          "title": "Pruebas automáticas",
-          "description": "Configura un agente orientado a proponer pruebas unitarias y de integración según el código y los criterios definidos."
-        },
-        {
-          "title": "Revisión de Pull Requests",
-          "description": "Genera archivos para configurar revisiones de cambios, riesgos y hallazgos con evidencia, sin habilitar merges automáticos."
-        }
-      ]
-    },
     "legal": {
       "eyebrow": "Información legal",
       "title": "Licencia y uso",
@@ -109,8 +90,7 @@
       "creator": "Creador",
       "docs": "Docs",
       "team": "Equipo",
-      "technology": "Tecnología",
-      "useCases": "Casos de uso"
+      "technology": "Tecnología"
     },
     "footer": {
       "ariaLabel": "Pie de página",

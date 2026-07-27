@@ -74,25 +74,6 @@
         "infrastructure": { "title": "Infrastructure" }
       }
     },
-    "useCases": {
-      "eyebrow": "Developer productivity",
-      "title": "Use cases",
-      "subtitle": "Reproducible configurations for agents specialized in development tasks.",
-      "cases": [
-        {
-          "title": "Project scaffolding",
-          "description": "Configure an agent focused on proposing base structures, modules and components according to project conventions."
-        },
-        {
-          "title": "Automated testing",
-          "description": "Configure an agent focused on proposing unit and integration tests based on the code and defined criteria."
-        },
-        {
-          "title": "Pull Request review",
-          "description": "Generate files to configure reviews of changes, risks and evidence-backed findings, without enabling automatic merges."
-        }
-      ]
-    },
     "legal": {
       "eyebrow": "Legal information",
       "title": "License and usage",
@@ -109,8 +90,7 @@
       "creator": "Creator",
       "docs": "Docs",
       "team": "Team",
-      "technology": "Technology",
-      "useCases": "Use cases"
+      "technology": "Technology"
     },
     "footer": {
       "ariaLabel": "Footer",
