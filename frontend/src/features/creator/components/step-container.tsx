@@ -60,7 +60,7 @@ export function StepContainer({
             aria-label={progressLabel ? `Progreso: ${progressLabel}` : 'Progreso'}
           >
             <div
-              className="h-full rounded-full bg-accent shadow-[0_0_10px_rgba(245,11,11,0.45)] transition-[width] duration-500 ease-out"
+              className="h-full rounded-full bg-accent shadow-[0_0_10px_rgba(139,92,246,0.45)] transition-[width] duration-500 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
