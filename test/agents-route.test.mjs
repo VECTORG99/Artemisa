@@ -144,7 +144,7 @@ describe('registered agents route', () => {
     }
   });
 
-  it('returns 404 for an expired agent on GET and execute (#492)', async () => {
+  it('returns 410 Gone for an expired agent on GET and execute (#506)', async () => {
     const db = '/tmp/huascar_agents_route_expired_test.db';
     if (fs.existsSync(db)) fs.unlinkSync(db);
     const store = new Store(db);
@@ -161,8 +161,29 @@ describe('registered agents route', () => {
       // Insert an agent that already expired (expires_at in the past).
       const created = store.createAgent('Ghost', { steering: { roles: [{ id: 'dev', prompt: 'x' }] } }, '127.0.0.1', 1, 1000);
       const got = await request(server, 'GET', `/api/agents/${created.id}`);
-      assert.strictEqual(got.status, 404);
+      assert.strictEqual(got.status, 410);
+      assert.strictEqual(got.body.error.message, 'El agente expiró. Registra uno nuevo.');
       const executed = await request(server, 'POST', `/api/agents/${created.id}/execute`, { task: 'run' });
+      assert.strictEqual(executed.status, 410);
+      assert.strictEqual(executed.body.error.message, 'El agente expiró. Registra uno nuevo.');
+    } finally {
+      await new Promise(resolve => server.close(resolve));
+      store.close();
+      if (fs.existsSync(db)) fs.unlinkSync(db);
+    }
+  });
+
+  it('returns 404 for a non-existent agent on GET and execute (#506)', async () => {
+    const db = '/tmp/huascar_agents_route_notfound_test.db';
+    if (fs.existsSync(db)) fs.unlinkSync(db);
+    const store = new Store(db);
+    const app = express().use(express.json()).use('/api', agentsRouter(store)).use(errorHandler);
+    const server = http.createServer(app);
+    try {
+      await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+      const got = await request(server, 'GET', '/api/agents/nonexistent-id');
+      assert.strictEqual(got.status, 404);
+      const executed = await request(server, 'POST', '/api/agents/nonexistent-id/execute', { task: 'run' });
       assert.strictEqual(executed.status, 404);
     } finally {
       await new Promise(resolve => server.close(resolve));
