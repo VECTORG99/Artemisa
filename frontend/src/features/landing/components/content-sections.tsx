@@ -41,21 +41,23 @@ export function HeroSection() {
   return (
     <section className="flex h-screen snap-start snap-always flex-col items-center justify-center px-6">
       <div className="relative z-10 max-w-3xl text-center">
-        <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl xl:text-8xl">
-          <span className="bg-gradient-to-r from-white via-white/80 to-white/60 bg-clip-text text-transparent">
-            {t.heroTitle}
-          </span>
+        <h1 className="text-5xl font-bold tracking-tight text-white text-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-6xl lg:text-7xl xl:text-8xl">
+          {t.heroTitle}
         </h1>
 
-        <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">{t.heroDescription}</p>
+        <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white text-shadow-[0_2px_4px_rgba(0,0,0,0.85)] sm:text-lg">
+          {t.heroDescription}
+        </p>
 
         <div className="mt-8 max-w-lg mx-auto">
-          <div className={glassCard('p-5')}>
+          <div className={glassCard('rounded-3xl p-5')}>
             <QuickStartCopy url={STARTUP_URL} size="md" />
           </div>
         </div>
 
-        <p className="mt-4 text-sm text-white/60">── o configura manualmente ──</p>
+        <p className="mx-auto mt-4 block w-fit text-sm text-white text-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
+          ── o configura manualmente ──
+        </p>
 
         <Link
           href="/agents/new"
@@ -85,21 +87,21 @@ interface ValueProp {
 
 const valueProps: ValueProp[] = [
   {
-    title: 'Árbol de decisiones',
+    title: 'Árbol de decisiones determinista',
     description:
-      'Preguntas que se adaptan a tu contexto. Cada respuesta desbloquea lo relevante y oculta lo que no aplica.',
+      '32 preguntas stateless que se adaptan a tu contexto: desarrollo, producción o ambos. Sin un LLM decidiendo la arquitectura por ti.',
     hue: 200,
   },
   {
-    title: 'Recomendaciones explicables',
+    title: 'Recomendaciones con evidencia',
     description:
-      'Reglas deterministas con motivo, evidencia y alternativas. Sabes por qué se sugiere algo, no solo qué.',
+      'Cada sugerencia incluye motivo, trade-offs y alternativas. Sabes por qué se elige cada opción, no solo qué elegir.',
     hue: 280,
   },
   {
-    title: 'Bundle reproducible',
+    title: 'Bundle listo para aplicar',
     description:
-      'Blueprint, manifest y hashes SHA-256. El mismo input siempre genera el mismo output — verificable y auditable.',
+      'Blueprint, manifest, hashes SHA-256, INSTALL.md y WHY.md. Reproducible, auditable y seguro desde el primer commit.',
     hue: 160,
   },
 ];

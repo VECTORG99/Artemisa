@@ -11,7 +11,9 @@ describe('HeroSection', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Huascar' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Generar agente/ })).toBeInTheDocument();
-    expect(screen.getByText(/Diseña agentes de desarrollo y operación con decisiones explicables/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Diseña agentes de IA deterministas con bundles reproducibles y decisiones explicables/),
+    ).toBeInTheDocument();
   });
 });
 

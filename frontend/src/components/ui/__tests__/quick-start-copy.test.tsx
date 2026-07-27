@@ -15,21 +15,24 @@ describe('QuickStartCopy', () => {
     writeText.mockClear();
   });
 
-  it('renderiza la URL correcta', () => {
+  it('renderiza el prompt con la URL', () => {
     render(<QuickStartCopy url="https://example.com/startup" />);
-    expect(screen.getByRole('textbox')).toHaveValue('https://example.com/startup');
+    const textbox = screen.getByRole('textbox') as HTMLInputElement;
+    expect(textbox.value).toMatch(/https:\/\/example\.com\/startup/);
+    expect(textbox.value).toMatch(/Huascar/);
   });
 
-  it('muestra el título "Inicio Rapido"', () => {
+  it('muestra el título "Inicio rapido: Pega en tu chat de IA"', () => {
     render(<QuickStartCopy url="https://example.com/startup" />);
-    expect(screen.getByRole('heading', { name: /Inicio Rapido/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Inicio rapido: Pega en tu chat de IA/i })).toBeInTheDocument();
   });
 
-  it('botón de copiar llama navigator.clipboard.writeText', async () => {
+  it('botón de copiar llama navigator.clipboard.writeText con el prompt completo', async () => {
     render(<QuickStartCopy url="https://example.com/startup" />);
     const button = screen.getByRole('button', { name: /copiar/i });
     fireEvent.click(button);
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith('https://example.com/startup'));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('https://example.com/startup')));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('Huascar')));
   });
 
   it('muestra feedback "¡Copiado!" al copiar', async () => {
@@ -41,7 +44,7 @@ describe('QuickStartCopy', () => {
 
   it('es accesible (aria labels presentes)', () => {
     render(<QuickStartCopy url="https://example.com/startup" />);
-    expect(screen.getByRole('button', { name: 'Copiar URL de inicio rápido' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Copiar prompt de inicio rápido' })).toBeInTheDocument();
     expect(screen.getByRole('textbox')).toHaveAttribute('aria-readonly', 'true');
   });
 });
