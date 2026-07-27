@@ -4,7 +4,7 @@ import { mcpCatalog } from './mcpCatalog.js';
 
 export const CATALOG_VERSION = '1.0.0';
 
-export const catalogCategories: CatalogCategory[] = [
+const catalogCategories: CatalogCategory[] = [
   {
     id: 'language',
     label: 'Lenguajes y runtimes',
@@ -150,7 +150,7 @@ function makeItems(category: string, specs: ItemSpec[]): CatalogItem[] {
   }));
 }
 
-export const catalogItems: CatalogItem[] = [
+const catalogItems: CatalogItem[] = [
   ...makeItems('language', [
     [
       'typescript',

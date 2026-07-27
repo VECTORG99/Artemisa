@@ -2,7 +2,7 @@ import { DocumentChunk } from './Store.js';
 
 export type VectorSearchResult = { text: string; score: number };
 
-export function cosineSimilarity(a: number[], b: number[]): number {
+function cosineSimilarity(a: number[], b: number[]): number {
   let dot = 0,
     normA = 0,
     normB = 0;

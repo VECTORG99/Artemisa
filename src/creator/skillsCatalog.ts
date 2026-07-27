@@ -23,7 +23,7 @@ export interface SkillCatalogItem {
   sourceName: string;
 }
 
-export const SKILLS_CATALOG_VERSION = '2.0.0';
+const SKILLS_CATALOG_VERSION = '2.0.0';
 
 export const skillsCatalog: SkillCatalogItem[] = [
   // ─── Development ────────────────────────────────────────────────────────────

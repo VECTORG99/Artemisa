@@ -4,7 +4,7 @@
  */
 import { logger } from '../logger.js';
 
-export interface PipelineStep {
+interface PipelineStep {
   role: string;
   task: string;
   condition?: string;

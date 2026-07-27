@@ -22,7 +22,7 @@ export interface EvalSuite {
   cases: EvalCase[];
 }
 
-export interface EvalMetrics {
+interface EvalMetrics {
   latencyMs: number;
   iterationsUsed: number;
   toolsCalled: string[];

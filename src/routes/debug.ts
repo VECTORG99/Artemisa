@@ -7,7 +7,7 @@
  */
 import { Router, type RequestHandler } from 'express';
 
-export interface DebugRequest {
+interface DebugRequest {
   id: string;
   method: string;
   path: string;

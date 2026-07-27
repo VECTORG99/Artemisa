@@ -6,7 +6,7 @@
  */
 import { logger } from './logger.js';
 
-export interface Span {
+interface Span {
   end(): void;
   setAttribute(key: string, value: string | number | boolean): void;
   setStatus(code: 'OK' | 'ERROR', message?: string): void;

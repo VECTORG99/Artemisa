@@ -41,9 +41,3 @@ export function createHealthRouter(store: Store | null): Router {
 
   return router;
 }
-
-// Legacy export for backward compatibility during transition
-export const healthRouter = Router();
-healthRouter.get('/health', (_req, res) => {
-  res.json({ status: 'Huascar Backend Online' });
-});

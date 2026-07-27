@@ -44,8 +44,8 @@ function lazyRoute(loader: () => Promise<express.Router>): express.RequestHandle
 
 export const app = express();
 export const store: Store = createStore();
-export const metricsState = createMetricsState();
-export const debugState = createDebugState();
+const metricsState = createMetricsState();
+const debugState = createDebugState();
 
 // Security headers (XSS, clickjacking, MIME sniffing protection)
 app.use(
@@ -139,7 +139,6 @@ const creatorLimiter = rateLimit({
 });
 
 app.use(globalLimiter);
-export { executeLimiter, creatorLimiter };
 
 // Global request timeout — applies to ALL routes including creator public
 app.use((_req, res, next) => {

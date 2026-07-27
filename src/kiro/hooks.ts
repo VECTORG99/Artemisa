@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import crypto from 'crypto';
 import { logger } from '../logger.js';
 
 // --- Types ---
@@ -43,62 +42,6 @@ function loadPolicy(): SecurityPolicy {
 }
 
 const policy = loadPolicy();
-
-// --- Administrative Bypass (out-of-band only, request-scoped) ---
-
-const BYPASS_SECRET = process.env.BYPASS_SECRET;
-const BYPASS_TTL_MS = parseInt(process.env.BYPASS_TTL_MS || '60000', 10); // default 60s
-
-// Request-scoped bypass: only the specific request ID that activated it gets bypass
-const activeBypassRequests = new Map<string, ReturnType<typeof setTimeout>>();
-
-function timingSafeSecretCompare(provided: string, expected: string): boolean {
-  const a = Buffer.from(provided);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) {
-    // Compare against itself to maintain constant time, then return false
-    crypto.timingSafeEqual(a, a);
-    return false;
-  }
-  return crypto.timingSafeEqual(a, b);
-}
-
-export function activateAdminBypass(secret: string, requestId: string): boolean {
-  if (!BYPASS_SECRET || !requestId) return false;
-  if (!timingSafeSecretCompare(secret, BYPASS_SECRET)) return false;
-
-  // Scope bypass to this specific request ID
-  const existing = activeBypassRequests.get(requestId);
-  if (existing) clearTimeout(existing);
-
-  const timer = setTimeout(() => {
-    activeBypassRequests.delete(requestId);
-  }, BYPASS_TTL_MS);
-  activeBypassRequests.set(requestId, timer);
-  logger.warn({ requestId, ttlMs: BYPASS_TTL_MS }, '[SECURITY AUDIT] Admin bypass ACTIVATED');
-  return true;
-}
-
-export function deactivateAdminBypass(requestId?: string): void {
-  if (requestId) {
-    const timer = activeBypassRequests.get(requestId);
-    if (timer) clearTimeout(timer);
-    activeBypassRequests.delete(requestId);
-    logger.warn({ requestId }, '[SECURITY AUDIT] Admin bypass DEACTIVATED');
-  } else {
-    // Clear all (emergency)
-    for (const [id, timer] of activeBypassRequests) {
-      clearTimeout(timer);
-      logger.warn({ requestId: id }, '[SECURITY AUDIT] Admin bypass DEACTIVATED (emergency clear)');
-    }
-    activeBypassRequests.clear();
-  }
-}
-
-export function isAdminBypassActive(requestId?: string): boolean {
-  if (!requestId) return false;
-  return activeBypassRequests.has(requestId);
-}
 
 // --- Command Parsing & Validation ---
 
