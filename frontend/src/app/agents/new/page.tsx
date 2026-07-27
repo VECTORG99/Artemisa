@@ -853,12 +853,7 @@ export default function NewAgentPage() {
 
                 {showPresets && (
                   <StepContainer size="wide">
-                    <PresetsGallery
-                      onSelect={applyPreset}
-                      applying={generating}
-                      catalog={catalog}
-                      workflow={workflow}
-                    />
+                    <PresetsGallery onSelect={applyPreset} applying={generating} catalog={catalog} />
                   </StepContainer>
                 )}
 

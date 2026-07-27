@@ -2,7 +2,7 @@ import { CreatorError, ErrorCodes } from '../errors.js';
 export type CreatorAnswerValue = string | boolean | string[];
 export type CreatorAnswers = Record<string, CreatorAnswerValue>;
 
-export type EnvironmentScope = 'development' | 'production' | 'both';
+export type EnvironmentScope = 'development' | 'production' | 'both' | 'testing' | 'staging' | 'local';
 export type QuestionType =
   'text' | 'textarea' | 'select' | 'multiselect' | 'boolean' | 'catalog-multiselect' | 'catalog-select' | 'custom';
 

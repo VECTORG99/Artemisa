@@ -146,8 +146,8 @@ function buildBlueprint(answers: CreatorAnswers, evaluation: ReturnType<typeof e
   const knowledgeEnabled = boolAnswer(answers, 'knowledge_enabled');
   const prReviewEnabled = boolAnswer(answers, 'pr_review_enabled');
   const capabilities = listAnswer(answers, 'capabilities');
-  const production = target === 'production' || target === 'both';
-  const development = target === 'development' || target === 'both';
+  const production = target === 'production' || target === 'both' || target === 'testing' || target === 'staging';
+  const development = target === 'development' || target === 'both' || target === 'local';
 
   const skillsEnabled = boolAnswer(answers, 'skills_enabled');
   const skillsFocus = stringAnswer(answers, 'skills_focus');
@@ -283,7 +283,7 @@ function buildSystemPrompt(blueprint: AgentBlueprint): string {
     constraints.push(
       `Fuentes de conocimiento: ${blueprint.knowledge.sources.map(describeCatalogSelection).join(', ')}.`,
     );
-  if (blueprint.environments.target !== 'development')
+  if (blueprint.environments.target !== 'development' && blueprint.environments.target !== 'local')
     constraints.push('En producción prioriza mínimo privilegio, observabilidad, rollback y disponibilidad.');
   return constraints.join('\n');
 }
@@ -434,8 +434,15 @@ ${recommendations}
 }
 
 function buildInstall(blueprint: AgentBlueprint): string {
-  const production = blueprint.environments.target === 'production' || blueprint.environments.target === 'both';
-  const development = blueprint.environments.target === 'development' || blueprint.environments.target === 'both';
+  const production =
+    blueprint.environments.target === 'production' ||
+    blueprint.environments.target === 'both' ||
+    blueprint.environments.target === 'testing' ||
+    blueprint.environments.target === 'staging';
+  const development =
+    blueprint.environments.target === 'development' ||
+    blueprint.environments.target === 'both' ||
+    blueprint.environments.target === 'local';
 
   // #317: stack-specific guidance
   const stackHints: string[] = [];
