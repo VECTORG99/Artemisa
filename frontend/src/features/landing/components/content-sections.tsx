@@ -280,17 +280,17 @@ const useCases: UseCase[] = [
   {
     title: 'Scaffolding de proyectos',
     description:
-      'Genera estructuras base de proyectos, módulos y componentes siguiendo las convenciones definidas en el blueprint.',
+      'Configura un agente orientado a proponer estructuras base, módulos y componentes según las convenciones del proyecto.',
   },
   {
     title: 'Pruebas automáticas',
     description:
-      'Escribe tests unitarios y de integración a partir del código existente y del criterio de éxito definido en el árbol de decisiones.',
+      'Configura un agente orientado a proponer pruebas unitarias y de integración según el código y los criterios definidos.',
   },
   {
     title: 'Revisión de Pull Requests',
     description:
-      'Analiza cambios, detecta riesgos y explica hallazgos priorizados con evidencia, sin hacer merge por sí mismo.',
+      'Genera archivos para configurar revisiones de cambios, riesgos y hallazgos con evidencia, sin habilitar merges automáticos.',
   },
 ];
 
@@ -302,7 +302,7 @@ function UseCasesModalContent() {
       </span>
       <h2 className="mt-2 text-3xl font-bold text-white">Casos de uso</h2>
       <p className="mt-2 max-w-xl text-sm text-white/80">
-        Automatización de tareas repetitivas, definida por el propio agente que generas.
+        Configuraciones reproducibles para agentes especializados en tareas de desarrollo.
       </p>
       <div className="mt-8 flex flex-col gap-4">
         {useCases.map((useCase) => (

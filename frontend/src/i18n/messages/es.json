@@ -16,9 +16,9 @@
     "loadingCatalog": "Cargando catálogo y árbol de decisiones...",
     "evaluating": "Evaluando respuestas...",
     "generating": "Compilando bundle...",
-    "reviewTitle": "Tu agente está listo para compilarse",
+    "reviewTitle": "Tu configuración está lista para compilarse",
     "bundleGenerated": "Bundle generado",
-    "createAnother": "Crear otro agente",
+    "createAnother": "Crear otra configuración",
     "generate": "Generar configuración",
     "skip": "Saltar tutorial"
   },
