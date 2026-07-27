@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { LuRocket, LuFlaskConical, LuLayers, LuScale, LuGithub } from 'react-icons/lu';
+import type { IconType } from 'react-icons';
 import { glassStyle, useLandingModal, type LandingModalId } from './landing-modal';
 
 const REVEAL_ZONE_PX = 56;
@@ -51,10 +53,12 @@ export function StickyHeader() {
         onMouseEnter={() => setEmphasized(true)}
         onMouseLeave={() => setEmphasized(false)}
       >
-        <Link href="/agents/new" className="transition-colors hover:text-white">
+        <Link href="/agents/new" className="flex items-center gap-1.5 transition-colors hover:text-white">
+          <LuRocket className="h-3.5 w-3.5" aria-hidden="true" />
           Creador
         </Link>
-        <a href="#tecnologia" className="hidden transition-colors hover:text-white sm:inline">
+        <a href="#tecnologia" className="hidden items-center gap-1.5 transition-colors hover:text-white sm:inline-flex">
+          <LuFlaskConical className="h-3.5 w-3.5" aria-hidden="true" />
           Tecnología
         </a>
         <a
@@ -63,8 +67,9 @@ export function StickyHeader() {
             event.preventDefault();
             open('casos-de-uso');
           }}
-          className="hidden transition-colors hover:text-white sm:inline"
+          className="hidden items-center gap-1.5 transition-colors hover:text-white sm:inline-flex"
         >
+          <LuLayers className="h-3.5 w-3.5" aria-hidden="true" />
           Casos de uso
         </a>
         <a
@@ -73,8 +78,9 @@ export function StickyHeader() {
             event.preventDefault();
             open('legal');
           }}
-          className="hidden transition-colors hover:text-white sm:inline"
+          className="hidden items-center gap-1.5 transition-colors hover:text-white sm:inline-flex"
         >
+          <LuScale className="h-3.5 w-3.5" aria-hidden="true" />
           Legal
         </a>
         <a
@@ -84,6 +90,7 @@ export function StickyHeader() {
           className="flex items-center gap-1.5 rounded-full px-3 py-1 text-zinc-300 transition-colors hover:text-white"
           style={glassStyle}
         >
+          <LuGithub className="h-3.5 w-3.5" aria-hidden="true" />
           GitHub
         </a>
       </nav>
@@ -96,14 +103,15 @@ interface FooterLink {
   href?: string;
   external?: boolean;
   modal?: LandingModalId;
+  icon: IconType;
 }
 
 const footerLinks: FooterLink[] = [
-  { label: 'Creador', href: '/agents/new' },
-  { label: 'Tecnología', href: '#tecnologia' },
-  { label: 'Casos de uso', modal: 'casos-de-uso' },
-  { label: 'Legal', modal: 'legal' },
-  { label: 'GitHub', href: 'https://github.com/VECTORG99/Huascar', external: true },
+  { label: 'Creador', href: '/agents/new', icon: LuRocket },
+  { label: 'Tecnología', href: '#tecnologia', icon: LuFlaskConical },
+  { label: 'Casos de uso', modal: 'casos-de-uso', icon: LuLayers },
+  { label: 'Legal', modal: 'legal', icon: LuScale },
+  { label: 'GitHub', href: 'https://github.com/VECTORG99/Huascar', external: true, icon: LuGithub },
 ];
 
 /**
@@ -154,32 +162,46 @@ export function StickyFooter() {
         onMouseLeave={() => setEmphasized(false)}
       >
         <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-zinc-400">
-          {footerLinks.map((link) => (
-            <li key={link.label}>
-              {link.modal ? (
-                <button type="button" onClick={() => open(link.modal!)} className="transition-colors hover:text-white">
-                  {link.label}
-                </button>
-              ) : link.external ? (
-                <a
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transition-colors hover:text-white"
-                >
-                  {link.label}
-                </a>
-              ) : link.href!.startsWith('#') ? (
-                <a href={link.href} className="transition-colors hover:text-white">
-                  {link.label}
-                </a>
-              ) : (
-                <Link href={link.href!} className="transition-colors hover:text-white">
-                  {link.label}
-                </Link>
-              )}
-            </li>
-          ))}
+          {footerLinks.map((link) => {
+            const Icon = link.icon;
+            return (
+              <li key={link.label}>
+                {link.modal ? (
+                  <button
+                    type="button"
+                    onClick={() => open(link.modal!)}
+                    className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    {link.label}
+                  </button>
+                ) : link.external ? (
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    {link.label}
+                  </a>
+                ) : link.href!.startsWith('#') ? (
+                  <a href={link.href} className="inline-flex items-center gap-1.5 transition-colors hover:text-white">
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    href={link.href!}
+                    className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    {link.label}
+                  </Link>
+                )}
+              </li>
+            );
+          })}
         </ul>
         <p className="mt-3 border-t border-white/[0.06] pt-3 text-[11px] text-zinc-600">
           © {new Date().getFullYear()} Huascar y sus contribuidores · MPL-2.0
