@@ -3,11 +3,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 describe('Issue #267: Deep health endpoint', () => {
-
   it('health router uses deepHealthCheck from src/health.ts', () => {
     const router = fs.readFileSync('src/routes/health.ts', 'utf8');
     assert.match(router, /import.*deepHealthCheck.*from.*health/);
-    assert.match(router, /deepHealthCheck\(store\)/);
+    assert.match(router, /deepHealthCheck\(\)/);
   });
 
   it('GET /api/health returns 503 when unhealthy', () => {
@@ -27,16 +26,17 @@ describe('Issue #267: Deep health endpoint', () => {
     assert.match(router, /ready/);
   });
 
-  it('app.ts uses createHealthRouter with store', () => {
+  it('app.ts mounts the health router', () => {
     const app = fs.readFileSync('src/app.ts', 'utf8');
-    assert.match(app, /createHealthRouter\(store\)/);
+    assert.match(app, /createHealthRouter\(\)/);
   });
 
-  it('deepHealthCheck checks database, memory, and disk', () => {
+  it('deepHealthCheck reports memory and disk, no database (#584)', () => {
     const health = fs.readFileSync('src/health.ts', 'utf8');
-    assert.match(health, /database/);
     assert.match(health, /memory/);
     assert.match(health, /disk/);
     assert.match(health, /unhealthy|degraded|healthy/);
+    assert.doesNotMatch(health, /database:/);
+    assert.doesNotMatch(health, /Store/);
   });
 });

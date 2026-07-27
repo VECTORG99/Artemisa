@@ -15,6 +15,7 @@ import {
   getStartupDocument,
   processAgentAnswer,
 } from './agentProtocol.js';
+import { listDocumentationFiles } from './docs-catalog.js';
 
 interface CreatorRequestBody {
   answers?: unknown;
@@ -215,6 +216,21 @@ creatorPublicRouter.post('/agent/generate', (req, res, next) => {
   } catch (error: unknown) {
     next(error);
   }
+});
+
+/**
+ * GET /api/v1/creator/docs — Returns a catalog of official documentation
+ * files with metadata (title, description, category, size). Allows AI agents
+ * to discover and consume the project's documentation programmatically.
+ * Deterministic: same repo state, same output.
+ */
+creatorPublicRouter.get('/docs', (_req, res) => {
+  const docs = listDocumentationFiles();
+  res.json({
+    version: '1.0.0',
+    count: docs.length,
+    documents: docs,
+  });
 });
 
 creatorPublicRouter.get('/startup', (req, res) => {

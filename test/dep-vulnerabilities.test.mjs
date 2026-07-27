@@ -26,12 +26,14 @@ describe('Dependency vulnerability fixes (issue #240)', () => {
     assert.equal(eslintNext, undefined, 'eslint-config-next should be removed');
   });
 
-  it('MCP SDK vulnerability is documented (upstream dependency)', () => {
+  it('runtime dependencies are gone with the runtime (#584)', () => {
     const rootPkg = JSON.parse(fs.readFileSync(path.resolve('package.json'), 'utf8'));
-    const mcpSdk = rootPkg.dependencies['@modelcontextprotocol/sdk'];
-    // The @hono/node-server vulnerability requires upstream MCP SDK update
-    // We monitor via npm audit in CI
-    assert.ok(mcpSdk, 'MCP SDK should be present');
+    const removed = ['@modelcontextprotocol/sdk', 'ai', '@ai-sdk/openai', '@ai-sdk/anthropic', 'openai', '@anthropic-ai/sdk', 'better-sqlite3'];
+    for (const dep of removed) {
+      assert.equal(rootPkg.dependencies[dep], undefined, `${dep} should not be a backend dependency`);
+      assert.equal(rootPkg.devDependencies[dep], undefined, `${dep} should not be a backend devDependency`);
+    }
+    assert.equal(rootPkg.devDependencies['@types/better-sqlite3'], undefined, 'sqlite types should be removed');
   });
 
   it('next version is pinned (not a range) for reproducibility', () => {

@@ -7,17 +7,14 @@ import {
   SiEslint,
   SiExpress,
   SiGithubactions,
-  SiModelcontextprotocol,
   SiNextdotjs,
   SiNodedotjs,
   SiNpm,
   SiPrettier,
   SiReact,
   SiRender,
-  SiSqlite,
   SiTailwindcss,
   SiTypescript,
-  SiVercel,
   SiVite,
   SiVitest,
 } from 'react-icons/si';
@@ -26,6 +23,7 @@ import { useTranslations } from '@/i18n';
 import { glassButton, glassCard } from '@/lib/glass';
 import { apiUrl } from '@/lib/api';
 import { QuickStartCopy } from '@/components/ui/quick-start-copy';
+import { useSectionFadeIn } from '../hooks/use-section-fade-in';
 
 // ─── Hero ───────────────────────────────────────────────────────────────────
 // Minimal by design: one headline, one subheadline, one call to action.
@@ -86,6 +84,7 @@ interface ValueProp {
   title: string;
   description: string;
   hue: number;
+  icon: string;
 }
 
 const valueProps: ValueProp[] = [
@@ -94,48 +93,53 @@ const valueProps: ValueProp[] = [
     description:
       '32 preguntas stateless que se adaptan a tu contexto: desarrollo, producción o ambos. Sin un LLM decidiendo la arquitectura por ti.',
     hue: 200,
+    icon: '/images/arbol.svg',
   },
   {
     title: 'Recomendaciones con evidencia',
     description:
       'Cada sugerencia incluye motivo, trade-offs y alternativas. Sabes por qué se elige cada opción, no solo qué elegir.',
     hue: 280,
+    icon: '/images/recomendaciones.svg',
   },
   {
     title: 'Bundle listo para aplicar',
     description:
       'Blueprint, manifest, hashes SHA-256, INSTALL.md y WHY.md. Reproducible, auditable y seguro desde el primer commit.',
     hue: 160,
+    icon: '/images/bundle.svg',
   },
 ];
 
-function PlanetIcon({ hue }: { hue: number }) {
+function GlassIcon({ src, alt }: { src: string; alt: string; hue: number }) {
   return (
-    <div className="relative mx-auto h-14 w-14 shrink-0">
-      <div className="absolute inset-0 rounded-full border" style={{ borderColor: `hsla(${hue}, 80%, 60%, 0.25)` }} />
-      <div
-        className="absolute inset-2 rounded-full"
-        style={{
-          background: `radial-gradient(circle at 35% 35%, hsla(${hue}, 70%, 60%, 0.6), hsla(${hue}, 60%, 30%, 0.8))`,
-          boxShadow: `0 0 16px hsla(${hue}, 100%, 60%, 0.4), inset 0 0 8px rgba(0,0,0,0.4)`,
-        }}
+    <div className="relative mx-auto h-40 w-40 shrink-0">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt}
+        width={512}
+        height={512}
+        className="h-full w-full object-contain"
+        style={{ mixBlendMode: 'screen' }}
       />
     </div>
   );
 }
 
 function ValuePropsSection() {
+  const ref = useSectionFadeIn<HTMLDivElement>();
   return (
     <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
       <h2 className="sr-only">Características principales</h2>
-      <div className="relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
+      <div ref={ref} className="section-content relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
         {valueProps.map((prop) => (
           <div
             key={prop.title}
             className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
             style={glassStyle}
           >
-            <PlanetIcon hue={prop.hue} />
+            <GlassIcon src={prop.icon} alt={prop.title} hue={prop.hue} />
             <h3 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
               {prop.title}
             </h3>
@@ -165,9 +169,6 @@ const techGroups: { title: string; items: TechItem[] }[] = [
       { label: 'Node.js', url: 'https://nodejs.org', Icon: SiNodedotjs },
       { label: 'TypeScript', url: 'https://www.typescriptlang.org', Icon: SiTypescript },
       { label: 'Express', url: 'https://expressjs.com', Icon: SiExpress },
-      { label: 'SQLite (better-sqlite3)', url: 'https://www.sqlite.org', Icon: SiSqlite },
-      { label: 'Vercel AI SDK', url: 'https://sdk.vercel.ai', Icon: SiVercel },
-      { label: 'Model Context Protocol', url: 'https://modelcontextprotocol.io', Icon: SiModelcontextprotocol },
     ],
   },
   {
@@ -203,9 +204,14 @@ const techGroups: { title: string; items: TechItem[] }[] = [
 ];
 
 function TechStackSection() {
+  const ref = useSectionFadeIn<HTMLDivElement>();
   return (
     <section id="tecnologia" className="flex h-screen snap-start snap-always items-center justify-center px-6">
-      <div className="relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10" style={glassStyle}>
+      <div
+        ref={ref}
+        className="section-content relative z-10 w-full max-w-3xl rounded-3xl p-8 text-center sm:p-10"
+        style={glassStyle}
+      >
         <span className="text-xs font-semibold uppercase tracking-wider text-white/80">Stack real del proyecto</span>
         <h2 className="mt-2 text-3xl font-bold text-white">Tecnología que usamos</h2>
         <p className="mx-auto mt-2 max-w-xl text-sm text-white/80">
@@ -247,10 +253,15 @@ function TechStackSection() {
 
 function FinalCtaSection() {
   const t = useTranslations('landing');
+  const ref = useSectionFadeIn<HTMLDivElement>();
 
   return (
     <section className="flex h-screen snap-start snap-always items-center justify-center px-6">
-      <div className="relative z-10 w-full max-w-2xl rounded-3xl p-10 text-center" style={glassStyle}>
+      <div
+        ref={ref}
+        className="section-content relative z-10 w-full max-w-2xl rounded-3xl p-10 text-center"
+        style={glassStyle}
+      >
         <h2 className="text-3xl font-bold text-white">{t.ctaTitle}</h2>
         <p className="mt-3 max-w-md mx-auto text-white/80">{t.ctaDescription}</p>
         <Link
@@ -290,17 +301,17 @@ const useCases: UseCase[] = [
   {
     title: 'Scaffolding de proyectos',
     description:
-      'Genera estructuras base de proyectos, módulos y componentes siguiendo las convenciones definidas en el blueprint.',
+      'Configura un agente orientado a proponer estructuras base, módulos y componentes según las convenciones del proyecto.',
   },
   {
     title: 'Pruebas automáticas',
     description:
-      'Escribe tests unitarios y de integración a partir del código existente y del criterio de éxito definido en el árbol de decisiones.',
+      'Configura un agente orientado a proponer pruebas unitarias y de integración según el código y los criterios definidos.',
   },
   {
     title: 'Revisión de Pull Requests',
     description:
-      'Analiza cambios, detecta riesgos y explica hallazgos priorizados con evidencia, sin hacer merge por sí mismo.',
+      'Genera archivos para configurar revisiones de cambios, riesgos y hallazgos con evidencia, sin habilitar merges automáticos.',
   },
 ];
 
@@ -312,7 +323,7 @@ function UseCasesModalContent() {
       </span>
       <h2 className="mt-2 text-3xl font-bold text-white">Casos de uso</h2>
       <p className="mt-2 max-w-xl text-sm text-white/80">
-        Automatización de tareas repetitivas, definida por el propio agente que generas.
+        Configuraciones reproducibles para agentes especializados en tareas de desarrollo.
       </p>
       <div className="mt-8 flex flex-col gap-4">
         {useCases.map((useCase) => (
@@ -329,7 +340,7 @@ function UseCasesModalContent() {
 function LegalModalContent() {
   return (
     <>
-      <span className="text-xs font-semibold uppercase tracking-wider text-white/60">Información legal</span>
+      <span className="text-xs font-semibold uppercase tracking-wider text-white/70">Información legal</span>
       <h2 className="mt-2 text-3xl font-bold text-white">Licencia y uso</h2>
       <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-white/80">
         <p>
@@ -348,11 +359,10 @@ function LegalModalContent() {
         </p>
         <p>
           El creador no ejecuta código, no realiza llamadas de red ni usa credenciales durante la generación de
-          configuración: es una compilación pura, determinista y auditable. La ejecución de agentes vía{' '}
-          <code className="rounded bg-white/[0.06] px-1.5 py-0.5 text-xs text-white/80">/api/agent/execute</code> es un
-          componente separado, sujeto a los controles de autenticación y autorización del backend.
+          configuración: es una compilación pura, determinista y auditable. Huascar sólo genera archivos de
+          configuración; aplicarlos y ejecutar el agente queda siempre del lado del usuario.
         </p>
-        <p className="text-white/60">
+        <p className="text-white/70">
           Código fuente completo, historial de cambios, autores y reporte de issues disponibles en{' '}
           <a
             href="https://github.com/VECTORG99/Huascar"

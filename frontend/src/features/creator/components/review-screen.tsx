@@ -194,7 +194,7 @@ export function ReviewScreen({
               Generando…
             </>
           ) : (
-            'Generar agente'
+            'Generar configuración'
           )}
         </button>
         <p className="text-[11px] text-zinc-600">

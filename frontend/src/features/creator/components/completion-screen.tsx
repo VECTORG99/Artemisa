@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import JSZip from 'jszip';
 import {
   LuBraces,
   LuCheck,
@@ -11,7 +12,7 @@ import {
   LuFileText,
   LuLayers,
   LuListChecks,
-  LuRocket,
+  LuPackage,
   LuServerCog,
   LuTriangleAlert,
 } from 'react-icons/lu';
@@ -22,12 +23,10 @@ import type { ArtifactKind, GeneratedAgentBundle, GeneratedArtifact } from '@hua
 
 interface CompletionScreenProps {
   bundle: GeneratedAgentBundle;
-  onRegister: () => void;
-  registered: { id: string; name: string } | null;
   error?: string;
 }
 
-type Tab = 'files' | 'platforms' | 'apply' | 'manifest';
+type Tab = 'apply' | 'files' | 'platforms' | 'manifest';
 type PlatformKey = 'cursor' | 'devin-desktop' | 'coderabbit' | 'kilo-code' | 'kiro' | 'portable';
 
 const KIND_ICONS: Record<ArtifactKind, React.ComponentType<{ className?: string }>> = {
@@ -83,18 +82,45 @@ function downloadBundleJson(bundle: GeneratedAgentBundle) {
 }
 
 /**
+ * Downloads every artifact as a single .zip preserving the relative paths
+ * declared by the generator (e.g. `huascar/steering.json`, `docs/INSTALL.md`).
+ * The manifest and blueprint are included at the root so the user can verify
+ * integrity after extraction.
+ */
+async function downloadBundleZip(bundle: GeneratedAgentBundle) {
+  const zip = new JSZip();
+  for (const artifact of bundle.artifacts) {
+    zip.file(artifact.path, artifact.content);
+  }
+  zip.file('manifest.json', JSON.stringify(bundle.manifest, null, 2));
+  zip.file('huascar.blueprint.json', JSON.stringify(bundle.blueprint, null, 2));
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${bundle.blueprint?.identity?.name?.toLowerCase().replace(/\s+/g, '-') ?? 'huascar-agent'}.zip`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
  * Post-generation screen. Beyond browsing the artifacts it surfaces the two
  * parts of the response that were previously discarded: the per-file SHA-256
  * from the manifest (the bundle's reproducibility claim is unverifiable
  * without it) and `applicationGuide`, which is the only place that explains
  * how to apply the bundle — Huascar never writes these files itself.
+ *
+ * The default tab is "Cómo aplicarlo" (#567): the bundle is the only product
+ * output, so the first thing the user should see is what to do with it.
  */
-export function CompletionScreen({ bundle, onRegister, registered, error }: CompletionScreenProps) {
-  const [tab, setTab] = useState<Tab>('files');
+export function CompletionScreen({ bundle, error }: CompletionScreenProps) {
+  const [tab, setTab] = useState<Tab>('apply');
   const [activePath, setActivePath] = useState(bundle.artifacts[0]?.path ?? '');
   const [showSuccessBurst, setShowSuccessBurst] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
   const [copyError, setCopyError] = useState('');
+  const [zipping, setZipping] = useState(false);
+  const [zipError, setZipError] = useState('');
 
   const activeArtifact = bundle.artifacts.find((artifact) => artifact.path === activePath);
 
@@ -141,6 +167,18 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
     } catch {
       // Clipboard access is denied over plain HTTP and in some browsers.
       setCopyError('El navegador bloqueó el portapapeles. Usa «Descargar» para obtener el archivo.');
+    }
+  }
+
+  async function handleDownloadZip() {
+    setZipError('');
+    setZipping(true);
+    try {
+      await downloadBundleZip(bundle);
+    } catch {
+      setZipError('No se pudo generar el ZIP. Descarga los archivos individualmente o el bundle JSON.');
+    } finally {
+      setZipping(false);
     }
   }
 
@@ -242,8 +280,8 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
           {bundle.blueprint?.identity?.name ?? 'Agente generado'}
         </h2>
         <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-zinc-400">
-          {bundle.artifacts.length} artefactos listos para revisar. Huascar no escribe nada en tu proyecto: copia los
-          archivos tú mismo después de leerlos.
+          {bundle.artifacts.length} artefactos listos. Huascar no escribe nada en tu proyecto: revisa, descarga y copia
+          los archivos tú mismo.
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           <span className={glassPill('py-0.5 text-[11px] text-zinc-400')}>Generador {bundle.generatorVersion}</span>
@@ -251,6 +289,45 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
             Destinos: {bundle.manifest.targets.join(', ') || '—'}
           </span>
         </div>
+      </div>
+
+      {/* ¿Qué sigue? — bloque fijo bajo el encabezado (#567).
+          El bundle es el único output del producto, por lo que el siguiente
+          paso debe estar siempre visible, no escondido detrás de una pestaña. */}
+      <div className={glassCard('flex flex-col gap-3 rounded-2xl p-5')}>
+        <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">¿Qué sigue?</span>
+        <ol className="flex flex-col gap-2.5">
+          <li className="flex gap-3 text-sm leading-relaxed text-zinc-300">
+            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent-deep/20 text-xs tabular-nums text-zinc-200">
+              1
+            </span>
+            <span>
+              <strong className="font-medium text-zinc-100">Revisa los archivos</strong> en la pestaña «Archivos». Lee
+              el blueprint, el steering y la política de seguridad antes de copiar nada.
+            </span>
+          </li>
+          <li className="flex gap-3 text-sm leading-relaxed text-zinc-300">
+            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent-deep/20 text-xs tabular-nums text-zinc-200">
+              2
+            </span>
+            <span>
+              <strong className="font-medium text-zinc-100">Descarga el ZIP</strong> y cópialo en la raíz de tu
+              proyecto, respetando las rutas relativas de cada archivo.
+            </span>
+          </li>
+          <li className="flex gap-3 text-sm leading-relaxed text-zinc-300">
+            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent-deep/20 text-xs tabular-nums text-zinc-200">
+              3
+            </span>
+            <span>
+              <strong className="font-medium text-zinc-100">
+                Valida con{' '}
+                <code className="rounded bg-white/[0.06] px-1.5 py-0.5 text-xs text-white/80">docs/INSTALL.md</code>
+              </strong>{' '}
+              y confirma los hashes SHA-256 en «Manifest y hashes» para verificar que nada cambió.
+            </span>
+          </li>
+        </ol>
       </div>
 
       {bundle.warnings.length > 0 && (
@@ -267,11 +344,37 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
         </div>
       )}
 
+      {/* Botón de descarga ZIP destacado antes de las pestañas (#567):
+          es la acción principal de la pantalla final. */}
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <button
+          type="button"
+          onClick={handleDownloadZip}
+          disabled={zipping}
+          aria-busy={zipping}
+          className={glassPrimaryButton('text-sm')}
+        >
+          <LuPackage className="h-4 w-4" aria-hidden="true" />
+          {zipping ? 'Generando ZIP…' : 'Descargar todo (.zip)'}
+        </button>
+        <button type="button" onClick={() => downloadBundleJson(bundle)} className={glassButton('text-sm')}>
+          <LuDownload className="h-4 w-4" aria-hidden="true" />
+          Descargar bundle (JSON)
+        </button>
+      </div>
+
+      {zipError && (
+        <p className={glassNotice('warn')}>
+          <LuTriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>{zipError}</span>
+        </p>
+      )}
+
       <nav className="flex flex-wrap items-center justify-center gap-2" aria-label="Vistas del bundle">
         {[
+          { id: 'apply' as Tab, label: 'Cómo aplicarlo', Icon: LuListChecks },
           { id: 'files' as Tab, label: 'Archivos', Icon: LuFileCode2 },
           { id: 'platforms' as Tab, label: 'Plataformas', Icon: LuLayers },
-          { id: 'apply' as Tab, label: 'Cómo aplicarlo', Icon: LuListChecks },
           { id: 'manifest' as Tab, label: 'Manifest y hashes', Icon: LuBraces },
         ].map((item) => (
           <button
@@ -409,25 +512,6 @@ export function CompletionScreen({ bundle, onRegister, registered, error }: Comp
           <span>{copyError}</span>
         </p>
       )}
-
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        <button type="button" onClick={() => downloadBundleJson(bundle)} className={glassPrimaryButton('text-sm')}>
-          <LuDownload className="h-4 w-4" aria-hidden="true" />
-          Descargar bundle completo (JSON)
-        </button>
-
-        {registered ? (
-          <span className={glassPill('border-white/20 px-4 py-2 text-sm text-zinc-200')}>
-            <LuCheck className="h-4 w-4" aria-hidden="true" />
-            Registrado — se eliminará en 30 minutos: {registered.name}
-          </span>
-        ) : (
-          <button type="button" onClick={onRegister} className={glassButton('px-4 py-2.5 text-sm')}>
-            <LuRocket className="h-4 w-4" aria-hidden="true" />
-            Probar temporalmente (expira en 30 min)
-          </button>
-        )}
-      </div>
 
       {error && (
         <div className={glassNotice('danger')} role="alert">
