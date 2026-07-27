@@ -100,7 +100,7 @@ export default function DevelopersPage() {
 
               {/* Info */}
               <h2 className="text-lg font-semibold text-white">{dev.name}</h2>
-              <p className="mt-1 text-sm text-zinc-400">{dev.role}</p>
+              <p className="mt-1 w-full grow text-sm text-zinc-400">{dev.role}</p>
 
               {/* Links */}
               <div className="mt-5 flex items-center gap-4">
@@ -109,7 +109,7 @@ export default function DevelopersPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`GitHub de ${dev.name}`}
-                  className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-white/20 hover:text-white"
+                  className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/10 bg-white/[0.03] px-3 text-xs text-zinc-300 transition-colors hover:border-white/20 hover:text-white"
                 >
                   <LuGithub className="h-3.5 w-3.5" aria-hidden="true" />
                   {dev.githubUsername}
@@ -119,7 +119,7 @@ export default function DevelopersPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`LinkedIn de ${dev.name}`}
-                  className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-blue-400/30 hover:text-blue-300"
+                  className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/10 bg-white/[0.03] px-3 text-xs text-zinc-300 transition-colors hover:border-blue-400/30 hover:text-blue-300"
                 >
                   <LuLinkedin className="h-3.5 w-3.5" aria-hidden="true" />
                   LinkedIn
