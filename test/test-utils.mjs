@@ -21,6 +21,22 @@ export function withCleanEnv(fn) {
   };
 }
 
+/**
+ * Start an Express app on an ephemeral port, run `fn(baseUrl)` and always close
+ * the server afterwards. Keeps router tests free of hardcoded ports.
+ */
+export async function withServer(app, fn) {
+  const server = await new Promise((resolve, reject) => {
+    const s = app.listen(0, '127.0.0.1', () => resolve(s));
+    s.on('error', reject);
+  });
+  try {
+    await fn(`http://127.0.0.1:${server.address().port}`);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+}
+
 export function serialTest(name, fn) {
   return { name, fn, serial: true };
 }

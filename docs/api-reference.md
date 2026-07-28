@@ -105,6 +105,16 @@ Returns a catalog of official documentation files with metadata (title, descript
 
 ---
 
+### `GET /docs/content?path=<doc>`
+
+Serves one document from the `GET /docs` catalog as `text/markdown`. Only catalog paths are served; anything else answers `403 CREATOR_INPUT_ERROR`, and a catalog path missing on disk answers `404`.
+
+**Auth:** None
+
+**Response:** `200 text/markdown`
+
+---
+
 ### `POST /evaluate`
 
 Recalculates the decision tree from accumulated answers. Returns the next visible question, progress, recommendations, warnings and issues.

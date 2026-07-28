@@ -21,6 +21,10 @@ services:
         value: 'true'
       - key: CORS_ALLOWED_ORIGINS
         value: https://artemisa-ai.netlify.app
+      - key: PUBLIC_BASE_URL
+        value: ${APP_URL}
+      - key: TRUST_PROXY
+        value: '1'
       - key: ARTEMISA_API_KEYS
         type: SECRET
       - key: BYPASS_SECRET

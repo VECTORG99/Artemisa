@@ -5,6 +5,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
 import { config } from './config.js';
+import { ApiError, ErrorCodes } from './errors.js';
 import { creatorProtectedRouter, creatorPublicRouter } from './creator/router.js';
 import { requireAuth } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -18,6 +19,15 @@ import { createDebugState, debugMiddleware, debugRouter } from './routes/debug.j
 import { logger } from './logger.js';
 
 export const app = express();
+
+// Rate limiting keys on req.ip, which is the proxy address unless Express is
+// told how many proxy hops to trust — one client would otherwise consume the
+// global limit for every user behind the same proxy. Off by default: enabling
+// it without a proxy in front lets clients spoof X-Forwarded-For.
+const trustProxy = (process.env.TRUST_PROXY || '').trim();
+if (trustProxy && trustProxy !== 'false') {
+  app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy === 'true' ? true : trustProxy);
+}
 const metricsState = createMetricsState();
 const debugState = createDebugState();
 
@@ -56,14 +66,14 @@ app.use(
       // Block 'null' origin explicitly (file://, sandboxed iframes)
       if (origin === 'null') {
         logger.warn({ origin }, '[CORS] Blocked null origin request');
-        callback(new Error('null origin not allowed'));
+        callback(new ApiError(ErrorCodes.API_CORS_FORBIDDEN, 'Origin not allowed by CORS', 403));
         return;
       }
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         logger.warn({ origin }, '[CORS] Blocked request from origin');
-        callback(new Error(`Origin ${origin} not allowed by CORS`));
+        callback(new ApiError(ErrorCodes.API_CORS_FORBIDDEN, 'Origin not allowed by CORS', 403));
       }
     },
     credentials: true,
@@ -106,8 +116,12 @@ const creatorLimiter = rateLimit({
 app.use(globalLimiter);
 
 // Global request timeout — applies to ALL routes including creator public
-app.use((_req, res, next) => {
+app.use((req, res, next) => {
   const timer = setTimeout(() => {
+    logger.error(
+      { method: req.method, path: req.path, timeoutMs: config.server.requestTimeoutMs, headersSent: res.headersSent },
+      'request timed out',
+    );
     if (!res.headersSent) res.status(503).json({ error: 'Request timeout' });
   }, config.server.requestTimeoutMs);
   const done = () => clearTimeout(timer);

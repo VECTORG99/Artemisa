@@ -38,6 +38,21 @@ function sha256(content: string): string {
   return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
 }
 
+/**
+ * Collapse a free-text answer to a single line. Values interpolated into a
+ * line-oriented format (a YAML comment, a front-matter scalar) would otherwise
+ * let an answer containing a newline inject arbitrary keys into the artifact.
+ */
+export function singleLine(value: string): string {
+  return value.replace(/[\u0000-\u001f\u007f]+/g, ' ').trim();
+}
+
+/** Render lines as a markdown bullet list. */
+function bulletList(lines: string[]): string {
+  return lines.map((line) => `- ${line}`).join('\n');
+}
+}
+
 export function slugify(value: string): string {
   const slug = value
     .normalize('NFKD')
@@ -139,7 +154,7 @@ function buildBlueprint(answers: CreatorAnswers, evaluation: ReturnType<typeof e
     throw new CreatorInputError('El árbol de decisiones está incompleto.', issues, 422);
   }
 
-  const name = stringAnswer(answers, 'agent_name').trim();
+  const name = singleLine(stringAnswer(answers, 'agent_name'));
   const target = stringAnswer(answers, 'environment') as AgentBlueprint['environments']['target'];
   const technologies = listAnswer(answers, 'technologies');
   const targets = listAnswer(answers, 'agent_targets');
@@ -347,13 +362,11 @@ function buildWhy(blueprint: AgentBlueprint): string {
 
   addSection(
     'Problema y éxito',
-    [
+    bulletList([
       `Objetivo: ${blueprint.purpose.objective}`,
       `Criterio de éxito: ${blueprint.purpose.successCriteria}`,
       `Tipo: ${blueprint.purpose.type}`,
-    ]
-      .map((l) => `- ${l}`)
-      .join('\n'),
+    ]),
   );
 
   const contextLines: string[] = [
@@ -367,7 +380,7 @@ function buildWhy(blueprint: AgentBlueprint): string {
   if (blueprint.devops.ciCd.length > 0) {
     contextLines.push(`CI/CD: ${blueprint.devops.ciCd.map(describeCatalogSelection).join(', ')}`);
   }
-  addSection('Contexto técnico', contextLines.map((l) => `- ${l}`).join('\n'));
+  addSection('Contexto técnico', bulletList(contextLines));
 
   if (blueprint.environments.developmentSetup) {
     addSection('Entorno de desarrollo', `- Setup: ${blueprint.environments.developmentSetup}`);
@@ -390,13 +403,11 @@ function buildWhy(blueprint: AgentBlueprint): string {
   if (blueprint.devops.compliance.length > 0) {
     addSection(
       'Decisiones de seguridad',
-      [
+      bulletList([
         `Controles: ${blueprint.devops.compliance.map(describeCatalogSelection).join(', ')}`,
         `Autonomía: ${blueprint.agent.autonomy}`,
         `Aprobación humana: ${blueprint.agent.requireHumanApproval ? 'requerida' : 'no requerida'}`,
-      ]
-        .map((l) => `- ${l}`)
-        .join('\n'),
+      ]),
     );
   }
 
@@ -415,7 +426,7 @@ function buildWhy(blueprint: AgentBlueprint): string {
     integrations.push(`MCPs: ${blueprint.integrations.mcps.map((m) => m.name).join(', ')}`);
   }
   if (integrations.length > 0) {
-    addSection('Knowledge e integraciones', integrations.map((l) => `- ${l}`).join('\n'));
+    addSection('Knowledge e integraciones', bulletList(integrations));
   }
 
   if (blueprint.recommendations.length > 0) {
@@ -424,23 +435,18 @@ function buildWhy(blueprint: AgentBlueprint): string {
 
     const benefits = [...new Set(blueprint.recommendations.flatMap((r) => r.benefits))];
     if (benefits.length > 0) {
-      addSection('Beneficios', benefits.map((b) => `- ${b}`).join('\n'));
+      addSection('Beneficios', bulletList(benefits));
     }
 
     const tradeoffs = [...new Set(blueprint.recommendations.flatMap((r) => r.tradeoffs))];
     if (tradeoffs.length > 0) {
-      addSection('Trade-offs', tradeoffs.map((t) => `- ${t}`).join('\n'));
+      addSection('Trade-offs', bulletList(tradeoffs));
     }
   } else {
     addSection('Recomendaciones explicables', '- No se activaron recomendaciones adicionales.');
   }
 
-  addSection(
-    'Done when',
-    buildAgentDoneWhen(blueprint)
-      .map((l) => `- ${l}`)
-      .join('\n'),
-  );
+  addSection('Done when', bulletList(buildAgentDoneWhen(blueprint)));
 
   return `# Por qué se generó este agente\n\n${sections.join('\n')}`;
 }
@@ -579,16 +585,10 @@ function buildAgentsMd(blueprint: AgentBlueprint): string {
   const stack = blueprint.project.technologies.map(describeCatalogSelection).join(', ') || 'No especificado';
   const testingLines =
     blueprint.testing.tools.length > 0
-      ? blueprint.testing.tools
-          .map(describeCatalogSelection)
-          .map((t) => `- ${t}`)
-          .join('\n')
+      ? bulletList(blueprint.testing.tools.map(describeCatalogSelection))
       : '- Sin herramientas de testing específicas. Usar los comandos de test del stack.';
   const knowledgeLines = blueprint.knowledge.enabled
-    ? blueprint.knowledge.sources
-        .map(describeCatalogSelection)
-        .map((s) => `- ${s}`)
-        .join('\n')
+    ? bulletList(blueprint.knowledge.sources.map(describeCatalogSelection))
     : '- No se configuraron fuentes de conocimiento adicionales.';
   const mcpLines =
     blueprint.integrations.mcps.length > 0
@@ -596,12 +596,8 @@ function buildAgentsMd(blueprint: AgentBlueprint): string {
       : '- No se habilitaron integraciones MCP.';
   const commands = buildAllowedCommandLines(blueprint);
   const capabilities = buildAgentCapabilityLines(blueprint).join('\n');
-  const constraints = buildAgentConstraintLines(blueprint)
-    .map((l) => `- ${l}`)
-    .join('\n');
-  const done = buildAgentDoneWhen(blueprint)
-    .map((l) => `- ${l}`)
-    .join('\n');
+  const constraints = bulletList(buildAgentConstraintLines(blueprint));
+  const done = bulletList(buildAgentDoneWhen(blueprint));
 
   return `# ${blueprint.identity.name}
 
@@ -667,6 +663,45 @@ description: ${JSON.stringify(blueprint.identity.description.replace(/\n/g, ' ')
 `;
 }
 
+/** File globs per language id (technology ids are used verbatim, minus a `custom:` prefix). */
+const LANGUAGE_FILE_PATTERNS: Record<string, string[]> = {
+  typescript: ['src/**/*.{ts,tsx}', 'test/**/*.{ts,tsx}'],
+  javascript: ['src/**/*.{js,jsx}', 'test/**/*.{js,jsx}'],
+  python: ['src/**/*.py', 'tests/**/*.py'],
+  go: ['**/*.go'],
+  java: ['src/**/*.java'],
+  kotlin: ['src/**/*.{kt,kts}'],
+  rust: ['src/**/*.rs'],
+  csharp: ['src/**/*.cs'],
+  ruby: ['src/**/*.rb', 'spec/**/*.rb'],
+  php: ['src/**/*.php'],
+  swift: ['Sources/**/*.swift'],
+  elixir: ['lib/**/*.ex', 'test/**/*.exs'],
+};
+
+/** Steering globs also cover the C/C++ stacks, which have no Kiro hook patterns. */
+const STACK_GLOB_PATTERNS: Record<string, string[]> = {
+  ...LANGUAGE_FILE_PATTERNS,
+  cpp: ['src/**/*.cpp'],
+  c: ['src/**/*.c'],
+};
+
+/** Globs for the selected technologies, deduplicated and in selection order. */
+function collectLanguagePatterns(
+  technologies: string[],
+  patternsByLanguage: Record<string, string[]>,
+  fallback: string[],
+): string[] {
+  const patterns: string[] = [];
+  for (const tech of technologies) {
+    const lang = tech.replace(/^custom:/, '');
+    for (const pattern of patternsByLanguage[lang] ?? []) {
+      if (!patterns.includes(pattern)) patterns.push(pattern);
+    }
+  }
+  return patterns.length > 0 ? patterns : fallback;
+}
+
 function buildKiroHook(blueprint: AgentBlueprint): Record<string, unknown> {
   return {
     enabled: true,
@@ -682,59 +717,11 @@ function buildKiroHook(blueprint: AgentBlueprint): Record<string, unknown> {
 }
 
 function inferKiroHookPatterns(technologies: string[]): string[] {
-  const langPatterns: Record<string, string[]> = {
-    typescript: ['src/**/*.{ts,tsx}', 'test/**/*.{ts,tsx}'],
-    javascript: ['src/**/*.{js,jsx}', 'test/**/*.{js,jsx}'],
-    python: ['src/**/*.py', 'tests/**/*.py'],
-    go: ['**/*.go'],
-    java: ['src/**/*.java'],
-    kotlin: ['src/**/*.{kt,kts}'],
-    rust: ['src/**/*.rs'],
-    csharp: ['src/**/*.cs'],
-    ruby: ['src/**/*.rb', 'spec/**/*.rb'],
-    php: ['src/**/*.php'],
-    swift: ['Sources/**/*.swift'],
-    elixir: ['lib/**/*.ex', 'test/**/*.exs'],
-  };
-  const patterns: string[] = [];
-  for (const tech of technologies) {
-    const lang = tech.replace(/^custom:/, '');
-    if (langPatterns[lang]) {
-      for (const p of langPatterns[lang]) {
-        if (!patterns.includes(p)) patterns.push(p);
-      }
-    }
-  }
-  return patterns.length > 0 ? patterns : ['src/**/*'];
+  return collectLanguagePatterns(technologies, LANGUAGE_FILE_PATTERNS, ['src/**/*']);
 }
 
 function inferStackGlobs(technologies: string[]): string[] {
-  const patterns: string[] = [];
-  const langPatterns: Record<string, string[]> = {
-    typescript: ['src/**/*.{ts,tsx}', 'test/**/*.{ts,tsx}'],
-    javascript: ['src/**/*.{js,jsx}', 'test/**/*.{js,jsx}'],
-    python: ['src/**/*.py', 'tests/**/*.py'],
-    go: ['**/*.go'],
-    java: ['src/**/*.java'],
-    kotlin: ['src/**/*.{kt,kts}'],
-    rust: ['src/**/*.rs'],
-    csharp: ['src/**/*.cs'],
-    ruby: ['src/**/*.rb', 'spec/**/*.rb'],
-    php: ['src/**/*.php'],
-    swift: ['Sources/**/*.swift'],
-    elixir: ['lib/**/*.ex', 'test/**/*.exs'],
-    cpp: ['src/**/*.cpp'],
-    c: ['src/**/*.c'],
-  };
-  for (const tech of technologies) {
-    const lang = tech.replace(/^custom:/, '');
-    if (langPatterns[lang]) {
-      for (const p of langPatterns[lang]!) {
-        if (!patterns.includes(p)) patterns.push(p);
-      }
-    }
-  }
-  return patterns.length > 0 ? patterns : ['src/**/*', 'test/**/*'];
+  return collectLanguagePatterns(technologies, STACK_GLOB_PATTERNS, ['src/**/*', 'test/**/*']);
 }
 
 function buildAllowedCommandLines(blueprint: AgentBlueprint): string[] {
@@ -823,40 +810,7 @@ function buildAgentDoneWhen(blueprint: AgentBlueprint): string[] {
  * (blueprint.json, docs/INSTALL.md, docs/WHY.md) instead of duplicating them.
  */
 function buildPromptMd(blueprint: AgentBlueprint): string {
-  const context = buildAgentContextLines(blueprint)
-    .map((l) => `- ${l}`)
-    .join('\n');
-  const capabilities = buildAgentCapabilityLines(blueprint).join('\n');
-  const constraints = buildAgentConstraintLines(blueprint)
-    .map((l) => `- ${l}`)
-    .join('\n');
-  const commands = buildAllowedCommandLines(blueprint);
-  const done = buildAgentDoneWhen(blueprint)
-    .map((l) => `- ${l}`)
-    .join('\n');
-
-  return `# ${blueprint.identity.name}
-
-## Context
-
-${context}
-
-## Capabilities
-
-${capabilities}
-
-## Constraints
-
-${constraints}
-
-## Allowed commands
-
-${commands.length > 0 ? commands.join('\n') : '- Ninguno'}
-
-## Done when
-
-${done}
-
+  return `${buildAiFirstRuleContent(blueprint)}
 ## Notas
 
 - Usa este prompt junto a blueprint.json, docs/INSTALL.md, docs/WHY.md y los artefactos target seleccionados.
@@ -865,31 +819,21 @@ ${done}
 }
 
 function buildAiFirstRuleContent(blueprint: AgentBlueprint): string {
-  const context = buildAgentContextLines(blueprint)
-    .map((l) => `- ${l}`)
-    .join('\n');
-  const capabilities = buildAgentCapabilityLines(blueprint).join('\n');
-  const constraints = buildAgentConstraintLines(blueprint)
-    .map((l) => `- ${l}`)
-    .join('\n');
   const commands = buildAllowedCommandLines(blueprint);
-  const done = buildAgentDoneWhen(blueprint)
-    .map((l) => `- ${l}`)
-    .join('\n');
 
   return `# ${blueprint.identity.name}
 
 ## Context
 
-${context}
+${bulletList(buildAgentContextLines(blueprint))}
 
 ## Capabilities
 
-${capabilities}
+${buildAgentCapabilityLines(blueprint).join('\n')}
 
 ## Constraints
 
-${constraints}
+${bulletList(buildAgentConstraintLines(blueprint))}
 
 ## Allowed commands
 
@@ -897,7 +841,7 @@ ${commands.length > 0 ? commands.join('\n') : '- Ninguno'}
 
 ## Done when
 
-${done}
+${bulletList(buildAgentDoneWhen(blueprint))}
 `;
 }
 
