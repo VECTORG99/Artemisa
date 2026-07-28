@@ -4,6 +4,26 @@ All notable changes to this project are documented here.
 
 ### Documentation
 
+- Add 'Flujo del Creator' heading above flow diagram _(readme)_
+
+- Add 'Flujo del Creator' heading above flow diagram _(readme)_
+
+- Move landing screenshot above creator flow _(readme)_
+
+- Move landing screenshot above creator flow _(readme)_
+
+- Add 'Landing page' heading above screenshot _(readme)_
+
+- Add 'Landing page' heading above screenshot _(readme)_
+
+## [v1.5.5] - 2026-07-28
+
+### Chores
+
+- V1.5.5 _(release)_
+
+### Documentation
+
 - Add descriptive caption to landing screenshot _(readme)_
 
 - Update to latest screenshot _(readme)_
