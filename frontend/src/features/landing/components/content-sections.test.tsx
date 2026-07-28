@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { render, screen } from '@/test/utils';
 
-import { ContentSections, HeroSection } from './content-sections';
+import { ContentSections, HeroSection, valueGlassStyle } from './content-sections';
 import { LandingModalProvider } from './landing-modal';
 
 describe('HeroSection', () => {
@@ -45,5 +47,50 @@ describe('ContentSections', () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Iniciar creador →' })).toBeInTheDocument();
+  });
+});
+
+// The liquid glass on the value cards only renders if two conditions hold in
+// Chromium: the card carries its own backdrop-filter, and no ancestor is a
+// backdrop root (another backdrop-filter surface, or `will-change: opacity`).
+// Both regressions are invisible to a snapshot, hence these structural tests.
+describe('value proposition liquid glass', () => {
+  it('gives every value card its own backdrop blur', () => {
+    render(
+      <LandingModalProvider>
+        <ContentSections />
+      </LandingModalProvider>,
+    );
+
+    expect(screen.getAllByTestId('value-prop-card')).toHaveLength(3);
+    expect(valueGlassStyle.backdropFilter).toMatch(/blur\(24px\)/);
+    expect(valueGlassStyle.WebkitBackdropFilter).toMatch(/blur\(24px\)/);
+  });
+
+  it('does not nest the cards inside another backdrop-filter surface', () => {
+    render(
+      <LandingModalProvider>
+        <ContentSections />
+      </LandingModalProvider>,
+    );
+
+    // jsdom strips backdrop-filter from inline styles, so the guard checks the
+    // rendered ancestors do not declare any of the glass style objects.
+    for (const card of screen.getAllByTestId('value-prop-card')) {
+      let ancestor = card.parentElement;
+      while (ancestor) {
+        expect(ancestor.getAttribute('style') ?? '').not.toMatch(/backdrop-filter|rgba\(255, 255, 255, 0\.06\)/);
+        ancestor = ancestor.parentElement;
+      }
+    }
+  });
+
+  it('keeps opacity out of the fade-in wrapper will-change', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+    const rule = /\.section-content\s*\{([^}]*)\}/.exec(css);
+
+    expect(rule).not.toBeNull();
+    expect(rule?.[1]).toMatch(/will-change:\s*transform;/);
+    expect(rule?.[1]).not.toMatch(/will-change:[^;]*opacity/);
   });
 });

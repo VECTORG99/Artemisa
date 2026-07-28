@@ -207,12 +207,19 @@
 
   /* Section content fade-in on scroll into viewport.
      Applied via IntersectionObserver in content-sections.tsx.
-     Uses will-change and translate3d for GPU compositing — performs
-     identically with or without hardware acceleration. */
+     Uses translate3d for GPU compositing — performs identically with or
+     without hardware acceleration.
+
+     `will-change` lists transform only, never opacity: in Chromium an
+     ancestor with `will-change: opacity` becomes a backdrop root, which
+     silently disables `backdrop-filter` on every descendant, so the glass
+     cards inside a section lose their blur and flatten into the starfield.
+     Verified in Chromium: transform, transitions and `will-change: transform`
+     keep the blur; adding opacity to `will-change` removes it. */
   .section-content {
     opacity: 0;
     transform: translate3d(0, 30px, 0);
-    will-change: opacity, transform;
+    will-change: transform;
     transition:
       opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s,
       transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
