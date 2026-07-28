@@ -9,7 +9,7 @@
 </p>
 
 > [!IMPORTANT]
-> Construido para el Hackathon Kiro x Código Facilito 2026.
+> Construido para el Hackathon Kiro x Código Facilito 2026. El proyecto se desarrolló íntegramente con **Kiro** como IDE agentic.
 > Documentación en español. Lectores LLM: leer `AGENTS.md` y `CONTEXT.md` para el contexto completo del proyecto.
 > El backend solo genera configuración: no hay ejecución, persistencia ni llamadas de red.
 
