@@ -106,14 +106,15 @@ describe('Creator public routes (src/creator/router.ts)', () => {
     });
   });
 
-  it('returns 404 problem+json for a missing documentation file', async () => {
+  it('returns 403 for a documentation file not in the catalog', async () => {
     await withServer(createApp(), async (baseUrl) => {
       const res = await fetch(`${baseUrl}/api/v1/creator/docs/content?path=docs/does-not-exist.md`);
       const body = await res.json();
 
-      assert.equal(res.status, 404);
-      assert.match(res.headers.get('content-type'), /application\/problem\+json/);
-      assert.equal(body.detail, 'docs/does-not-exist.md');
+      assert.equal(res.status, 403);
+      assert.equal(body.type, 'about:blank');
+      assert.match(body.title, /documento no permitida/);
+      assert.equal(body.issues[0].path, 'path');
     });
   });
 

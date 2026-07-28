@@ -16,7 +16,6 @@ import { createHealthRouter } from './routes/health.js';
 import { createMetricsState, metricsMiddleware, metricsRouter } from './routes/metrics.js';
 import { openApiRouter } from './routes/openapi.js';
 import { createDebugState, debugMiddleware, debugRouter } from './routes/debug.js';
-import { ApiError, ErrorCodes } from './errors.js';
 import { logger } from './logger.js';
 
 export const app = express();
