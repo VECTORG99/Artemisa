@@ -111,12 +111,37 @@ describe('docs/deployment.md documents the production check', () => {
 
 describe('Vercel git deployments are disabled from the repo (issue #710)', () => {
   // Vercel reads vercel.json from the project's Root Directory, which may be
-  // the repo root or frontend/; both files keep the check off either way.
-  for (const file of ['vercel.json', 'frontend/vercel.json']) {
+  // the repo root, frontend/ or agent-creator/; every candidate keeps the
+  // check off, and a new vercel.json without the flag fails here (issue #728).
+  const configs = ['vercel.json', 'frontend/vercel.json', 'agent-creator/vercel.json'];
+
+  it('covers every vercel.json in the repository', () => {
+    const found = [];
+    const walk = (dir, prefix = '') => {
+      for (const entry of fs.readdirSync(path.join(ROOT, dir === '' ? '.' : dir), { withFileTypes: true })) {
+        if (entry.name === 'node_modules' || entry.name === '.git' || entry.name.startsWith('.next')) continue;
+        const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
+        if (entry.isDirectory()) walk(relative, relative);
+        else if (entry.name === 'vercel.json') found.push(relative);
+      }
+    };
+    walk('');
+    assert.deepEqual(found.sort(), [...configs].sort());
+  });
+
+  for (const file of configs) {
     it(`${file} disables automatic git deployments`, () => {
       const config = JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8'));
       assert.equal(config.git.deploymentEnabled, false);
       assert.equal(config.$schema, 'https://openapi.vercel.sh/vercel.json');
     });
   }
+
+  it('keeps the agent-creator build configuration intact', () => {
+    const config = JSON.parse(fs.readFileSync(path.join(ROOT, 'agent-creator/vercel.json'), 'utf8'));
+    assert.equal(config.framework, 'vite');
+    assert.equal(config.buildCommand, 'npm run build');
+    assert.equal(config.outputDirectory, 'dist');
+    assert.deepEqual(config.rewrites, [{ source: '/(.*)', destination: '/index.html' }]);
+  });
 });
