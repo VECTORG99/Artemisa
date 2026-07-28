@@ -9,7 +9,7 @@
 </p>
 
 > [!IMPORTANT]
-> Built for the Kiro x Código Facilito 2026 Hackathon.
+> Built for the Kiro x Código Facilito 2026 Hackathon. The entire project was developed using **Kiro** as the agentic IDE.
 > Documentation in Spanish. LLM readers: read `AGENTS.md` and `CONTEXT.md` for the full project context.
 > The backend only generates configuration: no execution, persistence, or network calls.
 
