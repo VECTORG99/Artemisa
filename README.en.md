@@ -30,11 +30,11 @@ Artemisa is a **stateless and deterministic** generator of configuration bundles
 
 The Creator **does not use an LLM** to decide the architecture, **does not execute commands**, **does not write files in the user's project**, **does not use a database**, and **does not require LLM provider keys**.
 
-![Creator Flow — from problem to reproducible configuration bundle](docs/images/creator-flow.svg)
-
 ### Landing page
 
 ![Artemisa landing page — hero with space simulation, floating nav and CTA to Creator](/docs/images/screenshot-creator.png)
+
+![Creator Flow — from problem to reproducible configuration bundle](docs/images/creator-flow.svg)
 
 <a id="como-funciona"></a>
 
