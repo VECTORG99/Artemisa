@@ -12,7 +12,7 @@ const inter = Inter({
   variable: '--font-inter',
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://artemisa.vercel.app';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://artemisa-ai.netlify.app';
 
 export const metadata: Metadata = {
   title: 'Artemisa — Generador de Configuración de Agentes',

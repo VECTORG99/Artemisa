@@ -141,8 +141,8 @@ The `.do/app.yaml` at the project root deploys the **backend only** as a Docker 
 1. Connect your GitHub repo (`VECTORG99/Artemisa`) to DigitalOcean App Platform.
 2. App Platform auto-detects `.do/app.yaml` and configures the service.
 3. Set `ARTEMISA_API_KEYS`, `BYPASS_SECRET` and `METRICS_SECRET` manually in the DigitalOcean dashboard (App → Settings → Environment Variables).
-4. Copy the `ARTEMISA_API_KEYS` value to your Vercel project as `NEXT_PUBLIC_API_KEY`. The frontend uses this key when calling protected Creator routes (`/evaluate`, `/preview`, `/generate`).
-5. In Vercel, set `NEXT_PUBLIC_API_URL` to the deployed DigitalOcean service URL (e.g. `https://artemisa-backend-xxxxx.ondigitalocean.app`).
+4. Copy the `ARTEMISA_API_KEYS` value to your frontend hosting (Netlify) as `NEXT_PUBLIC_API_KEY`. The frontend uses this key when calling protected Creator routes (`/evaluate`, `/preview`, `/generate`).
+5. In your frontend hosting, set `NEXT_PUBLIC_API_URL` to the deployed DigitalOcean service URL (e.g. `https://artemisa-backend-xxxxx.ondigitalocean.app`).
 6. Deploy. Subsequent pushes to `master` trigger automatic deploys.
 
 > No persistent disk is required: the Creator is stateless and writes nothing to the filesystem. No `OPENAI_API_KEY` or other LLM credentials are needed.

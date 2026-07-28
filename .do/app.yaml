@@ -20,7 +20,7 @@ services:
       - key: AUTH_REQUIRED
         value: 'true'
       - key: CORS_ALLOWED_ORIGINS
-        value: https://artemisa.vercel.app
+        value: https://artemisa-ai.netlify.app
       - key: ARTEMISA_API_KEYS
         type: SECRET
       - key: BYPASS_SECRET

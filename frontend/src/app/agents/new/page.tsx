@@ -778,7 +778,7 @@ export default function NewAgentPage() {
           <div className="mt-6 w-full max-w-xs">
             <p className="mb-2 text-xs text-zinc-500">{t.desktopTool.copyLabel}</p>
             <QuickStartCopy
-              url={typeof window !== 'undefined' ? window.location.href : 'https://artemisa.vercel.app/agents/new'}
+              url={typeof window !== 'undefined' ? window.location.href : 'https://artemisa-ai.netlify.app/agents/new'}
               size="sm"
             />
           </div>
