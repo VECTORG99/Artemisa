@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { IconType } from 'react-icons';
+import type { CSSProperties } from 'react';
 import {
   SiDocker,
   SiEslint,
@@ -77,31 +78,124 @@ export function HeroSection() {
   );
 }
 
+// ─── Shared RGB palette ─────────────────────────────────────────────────────
+
+const RGB_PALETTE = [
+  'rgb(255, 80, 80)',
+  'rgb(255, 220, 80)',
+  'rgb(120, 255, 100)',
+  'rgb(80, 220, 255)',
+  'rgb(120, 100, 255)',
+  'rgb(255, 100, 220)',
+];
+
+function withAlpha(rgb: string, alpha: number) {
+  return rgb.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`);
+}
+
+// ─── Compatibility highlights ───────────────────────────────────────────────
+// Hard data from the compatibility catalog surfaced directly on the landing
+// page, right below the hero and above the value propositions. Uses one
+// palette colour per stat card.
+
+function CompatibilityStatsSection() {
+  const t = useTranslations('landing');
+  const ref = useSectionFadeIn<HTMLDivElement>();
+
+  const stats = t.compatibility.stats;
+
+  return (
+    <section className="flex min-h-screen sm:h-screen snap-start snap-always items-center justify-center px-6">
+      <div
+        ref={ref}
+        className={glassPanel(
+          'section-content relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl p-8 text-center sm:p-12',
+        )}
+      >
+        <span className="text-xs font-semibold uppercase tracking-wider text-white/80">{t.compatibility.eyebrow}</span>
+        <h2 className="mt-2 text-3xl font-bold text-white sm:text-4xl">{t.compatibility.title}</h2>
+        <p className="mx-auto mt-2 max-w-2xl text-sm text-white/80 sm:text-base">{t.compatibility.subtitle}</p>
+
+        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+          {stats.map((stat, index) => {
+            const color = RGB_PALETTE[index % RGB_PALETTE.length];
+            return (
+              <div
+                key={stat.label}
+                className={glassCard(
+                  'group relative overflow-hidden rounded-2xl p-4 text-center transition-all duration-300 hover:-translate-y-1 sm:p-5',
+                )}
+                style={{
+                  borderColor: withAlpha(color, 0.25),
+                  boxShadow: `0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 ${withAlpha(color, 0.15)}`,
+                }}
+              >
+                <div className="absolute inset-x-0 top-0 h-0.5" style={{ background: color }} />
+                <p className="text-3xl font-bold sm:text-4xl" style={{ color }}>
+                  {stat.value}
+                </p>
+                <p className="mt-1 text-xs text-white/80 sm:text-sm">{stat.label}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Value propositions ─────────────────────────────────────────────────────
 // Three, not four — consolidated onto a single screen instead of one
 // full-viewport scroll-snap section per item.
 
 interface ValuePropMeta {
-  hue: number;
   icon: IconType;
 }
 
-const VALUE_PROPS: ValuePropMeta[] = [
-  { hue: 205, icon: LuGitBranch },
-  { hue: 280, icon: LuScale },
-  { hue: 160, icon: LuLayers },
-];
+const VALUE_PROPS: ValuePropMeta[] = [{ icon: LuGitBranch }, { icon: LuScale }, { icon: LuLayers }];
 
-function ValueIconBox({ icon: Icon, hue }: { icon: IconType; hue: number }) {
+/**
+ * Liquid glass for the value cards: deeper blur and a slightly stronger tint
+ * than the shared `glassStyle`, plus an inset top highlight so the card edge
+ * catches light instead of dissolving into the starfield.
+ *
+ * Single layer by design: in Chromium an element with `backdrop-filter`
+ * becomes a backdrop root, so a glass card nested inside another glass
+ * surface only samples that surface (empty) and renders with no blur at all.
+ * The cards therefore sit directly on the section grid, never inside an
+ * outer glass panel.
+ *
+ * Exported for tests: jsdom drops `backdrop-filter` from inline styles, so
+ * the blur can only be asserted on this object.
+ */
+export const valueGlassStyle: CSSProperties = {
+  ...glassStyle,
+  position: 'relative',
+  WebkitBackdropFilter: 'blur(24px) saturate(150%)',
+  backdropFilter: 'blur(24px) saturate(150%)',
+  background: 'rgba(255,255,255,0.06)',
+  border: '1px solid rgba(255,255,255,0.14)',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
+};
+
+/**
+ * Tint only — no `backdrop-filter`. The icon box lives inside a glass card,
+ * where an extra blur layer would be inert (see `valueGlassStyle`), so the
+ * depth comes from the tint and the inset highlight instead.
+ */
+const valueIconStyle: CSSProperties = {
+  background: 'rgba(255,255,255,0.08)',
+  border: '1px solid rgba(255,255,255,0.16)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
+};
+
+function ValueIconBox({ icon: Icon }: { icon: IconType }) {
   return (
     <div
-      className="mx-auto flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl"
-      style={{
-        background: `hsla(${hue}, 70%, 45%, 0.12)`,
-        border: `1px solid hsla(${hue}, 70%, 60%, 0.35)`,
-      }}
+      className="mx-auto flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl text-white"
+      style={valueIconStyle}
     >
-      <Icon className="h-8 w-8" style={{ color: `hsla(${hue}, 80%, 70%, 1)` }} aria-hidden="true" />
+      <Icon className="h-8 w-8" aria-hidden="true" />
     </div>
   );
 }
@@ -119,14 +213,17 @@ function ValuePropsSection() {
           return (
             <div
               key={copy.title}
-              className={glassCard(
-                'group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1',
-              )}
+              data-testid="value-prop-card"
+              className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
+              style={valueGlassStyle}
             >
-              <ValueIconBox icon={prop.icon} hue={prop.hue} />
-              <h3 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
-                {copy.title}
-              </h3>
+              {/* Specular sheen — the highlight that sells the liquid glass. */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.10] via-transparent to-transparent"
+              />
+              <ValueIconBox icon={prop.icon} />
+              <h3 className="relative mt-4 text-lg font-bold text-white">{copy.title}</h3>
               <p className="relative mt-2 text-sm leading-relaxed text-white/90">{copy.description}</p>
             </div>
           );
@@ -290,6 +387,7 @@ function FinalCtaSection() {
 export function ContentSections() {
   return (
     <>
+      <CompatibilityStatsSection />
       <ValuePropsSection />
       <TechStackSection />
       <FinalCtaSection />
@@ -339,36 +437,11 @@ function LegalModalContent() {
   );
 }
 
-function CompatibilityModalContent() {
-  const t = useTranslations('landing');
-  return (
-    <>
-      <span className="text-xs font-semibold uppercase tracking-wider text-white/80">{t.compatibility.eyebrow}</span>
-      <h2 className="mt-2 text-3xl font-bold text-white">{t.compatibility.title}</h2>
-      <p className="mt-2 max-w-xl text-sm text-white/80">{t.compatibility.subtitle}</p>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        {t.compatibility.stats.map((stat) => (
-          <div key={stat.label} className={glassCard('rounded-xl p-5 text-center')}>
-            <p className="text-3xl font-bold text-white">{stat.value}</p>
-            <p className="mt-1 text-sm text-white/80">{stat.label}</p>
-          </div>
-        ))}
-      </div>
-      <p className="mt-8 text-center text-xs font-medium uppercase tracking-wider text-white/70">
-        {t.compatibility.trust}
-      </p>
-    </>
-  );
-}
-
 function LandingModals() {
   const { openModal, close } = useLandingModal();
   const t = useTranslations('landing');
   return (
     <>
-      <Modal open={openModal === 'compatibilidad'} onClose={close} title={t.compatibility.title}>
-        <CompatibilityModalContent />
-      </Modal>
       <Modal open={openModal === 'legal'} onClose={close} title={t.legal.title}>
         <LegalModalContent />
       </Modal>

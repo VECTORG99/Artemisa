@@ -98,16 +98,14 @@
         { "label": "Git providers", "value": "5" },
         { "label": "Cloud options", "value": "8" },
         { "label": "Autonomy levels", "value": "4" }
-      ],
-      "trust": "Deterministic SHA-256 bundles · No persistence · MPL-2.0"
+      ]
     },
     "nav": {
       "ariaLabel": "Main navigation",
       "creator": "Creator",
       "docs": "Docs",
       "team": "Team",
-      "technology": "Technology",
-      "compatibility": "Compatibility"
+      "technology": "Technology"
     },
     "footer": {
       "ariaLabel": "Footer",

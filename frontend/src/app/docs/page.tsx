@@ -4,18 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import {
-  LuArrowLeft,
-  LuFileText,
-  LuBookOpen,
-  LuScale,
-  LuLayers,
-  LuServer,
-  LuChevronRight,
-  LuMenu,
-  LuX,
-} from 'react-icons/lu';
+import remarkGithubBlockquoteAlert from 'remark-github-blockquote-alert';
+import rehypeRaw from 'rehype-raw';
+import { LuArrowLeft, LuFileText, LuBookOpen, LuScale, LuServer, LuChevronRight, LuMenu, LuX } from 'react-icons/lu';
 import { useLocale, useTranslations, type Locale } from '@/i18n';
+import { apiUrl } from '@/lib/api';
 
 interface DocLink {
   path: string;
@@ -29,13 +22,14 @@ interface DocSection {
   docs: DocLink[];
 }
 
-const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/VECTORG99/Artemisa/development';
+function buildDocUrl(docPath: string): string {
+  return `${apiUrl}/api/v1/creator/docs/content?path=${encodeURIComponent(docPath)}`;
+}
 
 const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   project: LuFileText,
   architecture: LuServer,
   guides: LuBookOpen,
-  adrs: LuLayers,
   reference: LuScale,
 };
 
@@ -73,12 +67,12 @@ export default function DocsPage() {
       setContent('');
       setSidebarOpen(false);
       try {
-        let res = await fetch(`${GITHUB_RAW_BASE}/${localizedPath}`);
+        let res = await fetch(buildDocUrl(localizedPath));
         // If the English translation is missing, fall back to the original Spanish doc.
         if (!res.ok && locale === 'en' && localizedPath.endsWith('.en.md')) {
           const fallbackPath = path;
           setActivePath(fallbackPath);
-          res = await fetch(`${GITHUB_RAW_BASE}/${fallbackPath}`);
+          res = await fetch(buildDocUrl(fallbackPath));
         }
         if (!res.ok) throw new Error(t.fetchError.replace('{status}', String(res.status)));
         const text = await res.text();
@@ -221,7 +215,12 @@ export default function DocsPage() {
 
             {content && !loading && (
               <article className="text-[15px] leading-relaxed text-zinc-300 [&_h1]:mb-4 [&_h1]:mt-8 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:text-white [&_h2]:mb-3 [&_h2]:mt-8 [&_h2]:border-b [&_h2]:border-white/[0.06] [&_h2]:pb-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-white [&_h3]:mb-2 [&_h3]:mt-5 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-white [&_h4]:mb-1 [&_h4]:mt-4 [&_h4]:text-base [&_h4]:font-semibold [&_h4]:text-zinc-200 [&_p]:mt-3 [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:mt-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mt-1.5 [&_a]:text-red-400 [&_a]:underline [&_a]:decoration-red-400/30 hover:[&_a]:decoration-red-400 [&_code]:rounded [&_code]:bg-zinc-800/80 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-sm [&_code]:text-zinc-200 [&_pre]:mt-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:border [&_pre]:border-white/[0.08] [&_pre]:bg-zinc-900 [&_pre]:p-5 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-sm [&_table]:mt-4 [&_table]:w-full [&_table]:text-sm [&_th]:border [&_th]:border-white/10 [&_th]:bg-zinc-800/50 [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-medium [&_th]:text-zinc-200 [&_td]:border [&_td]:border-white/10 [&_td]:px-4 [&_td]:py-2.5 [&_blockquote]:mt-3 [&_blockquote]:border-l-2 [&_blockquote]:border-red-500/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-zinc-400 [&_hr]:my-8 [&_hr]:border-white/[0.06] [&_strong]:text-zinc-100 [&_img]:mt-4 [&_img]:rounded-xl [&_img]:border [&_img]:border-white/[0.08]">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm, [remarkGithubBlockquoteAlert, { tagName: 'blockquote' }]]}
+                  rehypePlugins={[rehypeRaw]}
+                >
+                  {content}
+                </ReactMarkdown>
               </article>
             )}
 
