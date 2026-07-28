@@ -45,7 +45,8 @@ import { QuickStartCopy } from '@/components/ui/quick-start-copy';
 import { glassButton, glassNotice, glassPrimaryButton, glassStyle } from '@/lib/glass';
 import { ApiError, apiUrl, creator } from '@/lib/api';
 import { useAnimationPreference } from '@/features/landing/hooks/use-animation-preference';
-import { useTranslations } from '@/i18n';
+import { useLocale, useTranslations } from '@/i18n';
+import { localizeQuestion, localizeWorkflow } from '@/features/creator/lib/localize-workflow';
 import type {
   Catalog,
   CatalogItem,
@@ -139,6 +140,9 @@ export default function NewAgentPage() {
   const reviewNs = useTranslations('review');
   const completionNs = useTranslations('completion');
   const t = useTranslations('creator');
+  // The decision tree comes from the backend in Spanish only, so the active
+  // locale is needed to translate prompts, descriptions and sections (#737).
+  const { locale } = useLocale();
 
   const handleError = useCallback(
     (err: unknown, fallback: string): string => {
@@ -254,8 +258,13 @@ export default function NewAgentPage() {
 
   const question = useMemo<DecisionQuestion | null>(() => {
     if (!evaluation || !currentQuestionId) return null;
-    return evaluation.visibleQuestions.find((item) => item.id === currentQuestionId) ?? null;
-  }, [evaluation, currentQuestionId]);
+    const found = evaluation.visibleQuestions.find((item) => item.id === currentQuestionId) ?? null;
+    // The workflow contract is Spanish-only; the UI translates it here (#737).
+    return found ? localizeQuestion(found, locale) : null;
+  }, [evaluation, currentQuestionId, locale]);
+
+  /** Workflow with prompts, descriptions and sections in the active locale. */
+  const localizedWorkflow = useMemo(() => localizeWorkflow(workflow, locale), [workflow, locale]);
 
   const value = question ? (answers[question.id] ?? defaultAnswer(question)) : '';
 
@@ -677,7 +686,12 @@ export default function NewAgentPage() {
           ? t.errors.rejectedAnswers
               .replace('{count}', String(evaluated.issues.length))
               .replace('{issues}', evaluated.issues.map((issue) => issue.message).join(' '))
-          : t.errors.firstMissing.replace('{prompt}', evaluated.nextQuestion?.prompt ?? t.errors.unknownQuestion),
+          : t.errors.firstMissing.replace(
+              '{prompt}',
+              evaluated.nextQuestion
+                ? localizeQuestion(evaluated.nextQuestion, locale).prompt
+                : t.errors.unknownQuestion,
+            ),
       );
     } catch (err) {
       setError(handleError(err, t.errors.cannotEvaluateConfig));
@@ -869,7 +883,7 @@ export default function NewAgentPage() {
                       error={error}
                       issues={evaluation?.issues ?? []}
                       catalog={catalog}
-                      workflow={workflow}
+                      workflow={localizedWorkflow}
                     />
                   </div>
                 )}
@@ -901,7 +915,7 @@ export default function NewAgentPage() {
                   <StepContainer progress={100} progressLabel={reviewNs.progressLabel} size="wide">
                     <ReviewScreen
                       answers={answers}
-                      workflow={workflow}
+                      workflow={localizedWorkflow}
                       catalog={catalog}
                       recommendations={evaluation.recommendations}
                       warnings={evaluation.warnings}
