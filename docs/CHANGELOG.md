@@ -2,9 +2,29 @@
 
 All notable changes to this project are documented here.
 
+### Documentation
+
+- Add descriptive caption to landing screenshot _(readme)_
+
+- Update to latest screenshot _(readme)_
+
+- Update screenshot _(readme)_
+
+- Add screenshot to ES/EN README _(readme)_
+
+### Other
+
+- Landing screenshot + sprint 2 _(other)_
+
+## [v1.5.4] - 2026-07-28
+
 ### Bug Fixes
 
 - Force remount DynamicQuestion on question change _(creator)_
+
+### Chores
+
+- V1.5.4 _(release)_
 
 ## [v1.5.3] - 2026-07-28
 
