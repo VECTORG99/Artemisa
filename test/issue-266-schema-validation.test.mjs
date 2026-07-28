@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 describe('Issue #266: Schema validation + __proto__ sanitization', () => {
-
   it('sanitize middleware exists and is imported in app.ts', () => {
     const app = fs.readFileSync('src/app.ts', 'utf8');
     assert.match(app, /import.*sanitizeRequestBody.*from.*middleware\/sanitize/);

@@ -121,4 +121,6 @@ Ver [`docs/deployment.md`](docs/deployment.md) para desplegar el backend en Digi
 
 ## Licencia
 
-MPL-2.0
+MPL-2.0 — texto íntegro y sin modificar en [`LICENSE`](LICENSE).
+
+El aviso de copyright y la referencia a autores/contributors viven en [`NOTICE`](NOTICE): `LICENSE` debe quedar byte a byte igual al texto canónico para que GitHub detecte la licencia.

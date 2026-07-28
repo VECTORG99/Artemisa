@@ -18,9 +18,10 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Type check
         run: npx tsc --noEmit
+      # Blocking since #729: with continue-on-error the repo drifted to 29
+      # unformatted files and every PR touching them carried format noise.
       - name: Format check
         run: npx prettier --check .
-        continue-on-error: true
 
   test:
     runs-on: ubuntu-latest
@@ -43,6 +44,26 @@ jobs:
       - name: Integration tests
         if: matrix.shard == 1
         run: npm test
+
+  frontend-test:
+    # The frontend is its own TypeScript project (own tsconfig, own Vitest
+    # suite). The root `tsc --noEmit` in `lint` only covers the backend, so
+    # without this job neither the Next.js types nor the 140+ Vitest tests
+    # under frontend/src ever run in CI (issue #709).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # Workspace install from the root: frontend is an npm workspace, so its
+      # dependencies come from the root lockfile and the shared npm cache.
+      - run: npm ci --ignore-scripts
+      - name: Frontend type check
+        run: npm --prefix frontend run typecheck
+      - name: Frontend unit tests (Vitest)
+        run: npm --prefix frontend run test
 
   security:
     runs-on: ubuntu-latest

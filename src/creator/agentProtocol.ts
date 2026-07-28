@@ -10,25 +10,9 @@ import {
 } from './domain.js';
 import { getCreatorCatalog } from './catalog.js';
 import { evaluateDecisionTree } from './decisionTree.js';
-import { generateAgentBundle as generateBundle } from './generator.js';
+import { generateAgentBundle as generateBundle, describeTargetApplication } from './generator.js';
 
 const PROTOCOL_VERSION = '1.0.0';
-
-const APPLICATION_INSTRUCTIONS: Record<string, string> = {
-  kiro: 'Copia el contenido bajo .kiro/ respetando la estructura de subdirectorios.',
-  portable: 'Copia AGENTS.md a la raíz del repositorio.',
-  cursor: 'Crea .cursor/rules/ en la raíz y copia cada archivo .mdc allí.',
-  'devin-desktop': 'Crea .windsurf/rules/ en la raíz y copia los archivos .md.',
-  coderabbit: 'Copia .coderabbit.yaml a la raíz del repositorio.',
-  'kilo-code': 'Crea .kilocode/rules/ y copia los archivos de modos.',
-  'agents-md': 'Copia AGENTS.md a la raíz del repositorio.',
-};
-
-function instructionFor(target: string): string {
-  return (
-    APPLICATION_INSTRUCTIONS[target] ?? `Aplica los artefactos según las rutas indicadas en el manifest para ${target}.`
-  );
-}
 
 function extractAnswers(body: unknown): unknown {
   if (body === undefined || body === null) return undefined;
@@ -207,7 +191,7 @@ export function generateAgentBundle(body: unknown): AgentGenerateResponse {
   const bundle = generateBundle(answers);
   const instructions: Record<string, string> = {};
   for (const target of bundle.manifest.targets) {
-    instructions[target] = instructionFor(target);
+    instructions[target] = describeTargetApplication(target, bundle.blueprint);
   }
   return {
     ...bundle,

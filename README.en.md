@@ -145,4 +145,6 @@ See [`docs/deployment.md`](docs/deployment.md) to deploy the backend on Render a
 
 ## License
 
-MPL-2.0
+MPL-2.0 — full, unmodified text in [`LICENSE`](LICENSE).
+
+The copyright notice and the pointer to authors/contributors live in [`NOTICE`](NOTICE): `LICENSE` must stay byte-identical to the canonical text so GitHub can detect the license.

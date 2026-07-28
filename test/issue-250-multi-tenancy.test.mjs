@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 describe('Issue #250: Multi-tenancy isolation', () => {
-
   it('auth middleware derives tenant ID from API key', () => {
     const auth = fs.readFileSync('src/middleware/auth.ts', 'utf8');
     assert.match(auth, /deriveTenantId/);

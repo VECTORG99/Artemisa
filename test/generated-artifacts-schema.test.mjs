@@ -76,7 +76,9 @@ describe('Generated artifacts validate against multi-format contract (#488)', ()
     assert.ok(cursorRules.content.includes('git:'), 'review-pr capability should allowlist git');
 
     const withRunTests = generateAgentBundle({ ...developmentAnswers, capabilities: ['read-repository', 'run-tests'] });
-    const windsurf = withRunTests.artifacts.find((a) => a.path === `.windsurf/rules/${withRunTests.blueprint.identity.slug}.md`);
+    const windsurf = withRunTests.artifacts.find(
+      (a) => a.path === `.windsurf/rules/${withRunTests.blueprint.identity.slug}.md`,
+    );
     assert.ok(windsurf.content.includes('npm:'), 'run-tests + TypeScript should allowlist npm');
   });
 

@@ -143,7 +143,11 @@ function highlightYaml(content: string): ReactNode[] {
         </span>,
       );
       nodes.push(colon);
-      nodes.push(<span key={nextTokenKey()} className="text-emerald-300">{rest}</span>);
+      nodes.push(
+        <span key={nextTokenKey()} className="text-emerald-300">
+          {rest}
+        </span>,
+      );
     } else {
       nodes.push(line);
     }

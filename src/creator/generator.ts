@@ -1255,6 +1255,56 @@ function buildTargetArtifacts(target: string, blueprint: AgentBlueprint): Genera
   }
 }
 
+/** Joins a list in Spanish: "a", "a y b", "a, b y c". */
+function listEs(items: string[]): string {
+  if (items.length <= 1) return items[0] ?? '';
+  return `${items.slice(0, -1).join(', ')} y ${items[items.length - 1]}`;
+}
+
+/**
+ * Turns the paths a target actually generates into an application instruction.
+ *
+ * Issue #720: the instructions used to be a hand-written string per target, so
+ * they drifted from the generated artifacts — `portable` pointed at an
+ * `AGENTS.md` it never generates, and `cursor`, `devin-desktop` and
+ * `kilo-code` omitted their root rule file. Deriving the text from the paths
+ * makes drift impossible.
+ */
+function describeArtifactPaths(paths: string[]): string {
+  const sorted = [...paths].sort();
+  const rootFiles = sorted.filter((path) => !path.includes('/'));
+  const byDirectory = new Map<string, string[]>();
+  for (const path of sorted) {
+    const cut = path.lastIndexOf('/');
+    if (cut === -1) continue;
+    const directory = `${path.slice(0, cut)}/`;
+    const files = byDirectory.get(directory) ?? [];
+    files.push(path.slice(cut + 1));
+    byDirectory.set(directory, files);
+  }
+
+  const sentences: string[] = [];
+  for (const [directory, files] of [...byDirectory.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+    sentences.push(`Crea ${directory} en la raíz del proyecto y copia allí ${listEs(files)}.`);
+  }
+  if (rootFiles.length > 0) {
+    sentences.push(`Copia ${listEs(rootFiles)} a la raíz del repositorio.`);
+  }
+  return sentences.join(' ');
+}
+
+/**
+ * Instruction describing exactly which files a target produces and where they
+ * go. Pure: same blueprint and target always yield the same text.
+ */
+export function describeTargetApplication(target: string, blueprint: AgentBlueprint): string {
+  const paths = buildTargetArtifacts(target, blueprint).map((artifact) => artifact.path);
+  if (paths.length === 0) {
+    return `Aplica los artefactos según las rutas indicadas en el manifest para ${target}.`;
+  }
+  return describeArtifactPaths(paths);
+}
+
 function buildApplicationGuide(blueprint: AgentBlueprint): GeneratedAgentBundle['applicationGuide'] {
   const production = blueprint.environments.target === 'production' || blueprint.environments.target === 'both';
   const steps = [

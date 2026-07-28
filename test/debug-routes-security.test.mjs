@@ -57,7 +57,7 @@ describe('Debug routes security hardening (issue #241)', () => {
       { id: 'new', timestamp: now },
       { id: 'old', timestamp: now - 200 },
     ];
-    const filtered = requests.filter(r => r.timestamp > now - TTL);
+    const filtered = requests.filter((r) => r.timestamp > now - TTL);
     assert.equal(filtered.length, 1);
     assert.equal(filtered[0].id, 'new');
   });

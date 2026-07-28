@@ -149,7 +149,81 @@ The `.do/app.yaml` at the project root deploys the **backend only** as a Docker 
 
 ---
 
-## 7. Local Development
+## 7. Frontend Deploy (Netlify) — Verifying Production Matches `master`
+
+The production landing lives on Netlify (`https://artemisa-ai.netlify.app`). Netlify is configured from its dashboard (there is no `netlify.toml`), so a stale or unconnected branch is invisible from the repo. Issue #710 was exactly that: `v1.5.0` was released and production kept serving a pre-#705 bundle.
+
+### The build marker
+
+`frontend/scripts/write-sw-version.mjs` runs on `prebuild` and writes `public/sw-version.js` with the deployed commit, taken from the first available host variable:
+
+`COMMIT_REF` (Netlify) → `VERCEL_GIT_COMMIT_SHA` → `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA` → `GITHUB_SHA` → `COMMIT_SHA` → `<pkgVersion>-<timestamp>` (local fallback).
+
+So the live commit is one request away:
+
+```bash
+curl -s "https://artemisa-ai.netlify.app/sw-version.js?cachebust=$RANDOM"
+# self.ARTEMISA_SW_VERSION = "3ac4ab4...";
+```
+
+A marker like `0.1.0-1785202857704` (version + timestamp) means the build ran **without** a commit variable — the deploy cannot be verified and the host settings need fixing.
+
+### Automated check
+
+```bash
+git fetch origin
+node scripts/verify-prod-deploy.mjs                        # vs origin/master
+node scripts/verify-prod-deploy.mjs --ref origin/development
+node scripts/verify-prod-deploy.mjs --url https://staging.example.com
+```
+
+Exit code `0` means production matches the ref; `1` means mismatch, unreachable, or a non-commit marker.
+
+### Content spot-check
+
+The marker proves which commit is live; a content check proves the bundle actually contains a specific change. Pick a `data-testid` or style string added by the commit under review:
+
+```bash
+HTML=$(curl -s "https://artemisa-ai.netlify.app/?cachebust=$RANDOM")
+echo "$HTML" | grep -c 'value-prop-card'   # > 0 once #705 is live
+echo "$HTML" | grep -o 'blur(9px)' | wc -l # the single glass layer of the value cards
+```
+
+Always pass a cache-buster: Netlify's CDN and the service worker both cache the HTML.
+
+### When production is behind
+
+1. Check the deploy list in Netlify (Site → Deploys): a build can be queued, failed, or locked to a published deploy.
+2. Confirm the site's production branch is `master` (Site configuration → Build & deploy → Branches).
+3. Confirm `NEXT_PUBLIC_API_URL` (and `NEXT_PUBLIC_API_KEY` if auth is on) are set in Netlify; `NEXT_PUBLIC_*` values are baked at build time, so changing them requires a **rebuild**, not a redeploy of the cached build.
+4. Trigger a rebuild without cache: Deploys → Trigger deploy → _Clear cache and deploy site_, or with the CLI:
+
+```bash
+npx netlify-cli deploy --build --prod --dir frontend/.next
+```
+
+5. Re-run `node scripts/verify-prod-deploy.mjs` and the content spot-check.
+
+### Preview providers
+
+A Vercel project was still connected to the repository while production lives on Netlify. Its build rate limit reported `Deployment rate limited — retry in 24 hours` as a failed **deployment check** on PRs (for example #705), which is noise unrelated to the code.
+
+Vercel's Git deployments are therefore disabled from the repository itself:
+
+```json
+// vercel.json (also frontend/vercel.json and agent-creator/vercel.json)
+{
+  "git": { "deploymentEnabled": false }
+}
+```
+
+`git.deploymentEnabled: false` turns off automatic deployments for every branch, so no Vercel check is posted on pull requests. The flag lives in all three `vercel.json` of the repo (root, `frontend/` and `agent-creator/`) because Vercel reads it from the project's **Root Directory**, which may be any of them depending on how the project was created. Existing deployments are untouched and re-enabling is a one-line change.
+
+To remove the integration entirely instead, disconnect it in the Vercel project (Project → Settings → Git → Disconnect). Only checks produced by `.github/workflows/*` gate merges.
+
+---
+
+## 8. Local Development
 
 ```bash
 # Install all dependencies (root + frontend via workspaces)
@@ -167,7 +241,7 @@ cd frontend && npm run dev  # Frontend (Next.js, port 3000)
 
 ---
 
-## 8. Production Considerations
+## 9. Production Considerations
 
 ### Secrets Management
 

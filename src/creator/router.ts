@@ -101,16 +101,33 @@ const agentLimiter = rateLimit({
   keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
 });
 
-function deriveBaseUrl(req: express.Request): string {
+/** Hosts where plain HTTP is legitimate (local development). */
+function isLocalHost(host: string): boolean {
+  const hostname = host.split(':')[0]?.toLowerCase() ?? '';
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname === '0.0.0.0';
+}
+
+/**
+ * Base URL advertised to agents in `/agent` and `/startup`.
+ *
+ * Behind a TLS-terminating proxy (DigitalOcean App Platform) `req.protocol` is
+ * `http`, so the onboarding prompt used to hand agents `http://` URLs that
+ * answer 301 to `https://` — an insecure first hop and a redirect for every
+ * step (issue #719). `X-Forwarded-Proto` wins whenever the proxy sends it, and
+ * any non-local host defaults to `https`; only local hosts keep `req.protocol`.
+ */
+export function deriveBaseUrl(req: express.Request): string {
   const forwardedHost = req.get('X-Forwarded-Host');
-  if (forwardedHost) {
-    const proto = req.get('X-Forwarded-Proto') || 'https';
-    return `${proto}://${forwardedHost}/api/v1/creator`;
+  if (!forwardedHost) {
+    const origin = req.get('Origin');
+    if (origin) return `${origin}/api/v1/creator`;
   }
-  const origin = req.get('Origin');
-  if (origin) return `${origin}/api/v1/creator`;
-  const host = req.get('host') || 'localhost';
-  return `${req.protocol}://${host}/api/v1/creator`;
+  const host = forwardedHost || req.get('host') || 'localhost';
+  // The header can carry a proxy chain ("https, http"); the client-facing
+  // protocol is the first entry.
+  const forwardedProto = (req.get('X-Forwarded-Proto') || '').split(',')[0]?.trim().toLowerCase();
+  const proto = forwardedProto || (isLocalHost(host) ? req.protocol : 'https');
+  return `${proto}://${host}/api/v1/creator`;
 }
 
 creatorPublicRouter.use(versionHeaders);
