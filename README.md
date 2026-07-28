@@ -32,6 +32,8 @@ El Creator **no usa un LLM** para decidir la arquitectura, **no ejecuta comandos
 
 ![Landing page de Artemisa — hero con simulación espacial, navegación flotante y CTA al Creator](/docs/images/screenshot-creator.png)
 
+### Flujo del Creator
+
 ![Flujo del Creator — de problema a bundle de configuración reproducible](docs/images/creator-flow.svg)
 
 ## Cómo funciona

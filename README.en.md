@@ -34,6 +34,8 @@ The Creator **does not use an LLM** to decide the architecture, **does not execu
 
 ![Artemisa landing page — hero with space simulation, floating nav and CTA to Creator](/docs/images/screenshot-creator.png)
 
+### Creator Flow
+
 ![Creator Flow — from problem to reproducible configuration bundle](docs/images/creator-flow.svg)
 
 <a id="como-funciona"></a>
