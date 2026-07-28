@@ -2,9 +2,19 @@
 
 All notable changes to this project are documented here.
 
+### Chores
+
+- Update all URLs from Vercel to Netlify (artemisa-ai.netlify.app)
+
+## [v1.4.1] - 2026-07-28
+
 ### Bug Fixes
 
 - Make husky CI-safe for Netlify/DO builds
+
+### Chores
+
+- V1.4.1 _(release)_
 
 ## [v1.4.0] - 2026-07-27
 
