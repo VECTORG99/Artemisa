@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { CATALOG_VERSION, getCreatorCatalog } from './catalog.js';
@@ -201,13 +203,18 @@ creatorPublicRouter.get('/agent/start', (_req, res) => {
   res.json(getAgentStart());
 });
 
-creatorPublicRouter.post('/agent/answer', (req, res) => {
-  const result = processAgentAnswer(req.body);
-  if (result.issues.length > 0 && result.next_question === undefined) {
-    res.status(400).json(result);
-    return;
+creatorPublicRouter.post('/agent/answer', (req, res, next) => {
+  try {
+    const body = parseBody(req.body);
+    const result = processAgentAnswer(body);
+    if (result.issues.length > 0 && result.next_question === undefined) {
+      res.status(400).json(result);
+      return;
+    }
+    res.json(result);
+  } catch (error: unknown) {
+    next(error);
   }
-  res.json(result);
 });
 
 creatorPublicRouter.post('/agent/generate', (req, res, next) => {
@@ -230,6 +237,49 @@ creatorPublicRouter.get('/docs', (_req, res) => {
     version: '1.0.0',
     count: docs.length,
     documents: docs,
+  });
+});
+
+/**
+ * GET /api/v1/creator/docs/content — Serve a single documentation file as
+ * plain markdown. The path must be a relative .md file inside the repo root.
+ * Supports offline/self-hosted deployments and avoids hardcoded GitHub URLs.
+ */
+creatorPublicRouter.get('/docs/content', (req, res, next) => {
+  const docPath = req.query.path;
+  if (typeof docPath !== 'string' || !docPath.endsWith('.md')) {
+    return next(
+      new CreatorInputError('Ruta de documento inválida.', [
+        { path: 'path', message: 'Se requiere un path relativo terminado en .md.' },
+      ]),
+    );
+  }
+  if (docPath.includes('..') || path.isAbsolute(docPath)) {
+    return next(
+      new CreatorInputError('Ruta de documento no permitida.', [
+        { path: 'path', message: 'Solo se permiten rutas relativas dentro del repositorio.' },
+      ]),
+    );
+  }
+
+  const filePath = path.resolve(process.cwd(), docPath);
+  fs.readFile(filePath, 'utf8', (err, content) => {
+    if (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+        res.status(404).type('application/problem+json').json({
+          type: 'about:blank',
+          title: 'Documento no encontrado',
+          status: 404,
+          detail: docPath,
+        });
+        return;
+      }
+      next(err);
+      return;
+    }
+    res.set('Content-Type', 'text/markdown; charset=utf-8');
+    res.set('Cache-Control', 'public, max-age=300');
+    res.send(content);
   });
 });
 
