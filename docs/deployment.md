@@ -181,15 +181,25 @@ Exit code `0` means production matches the ref; `1` means mismatch, unreachable,
 
 ### Content spot-check
 
-The marker proves which commit is live; a content check proves the bundle actually contains a specific change. Pick a `data-testid` or style string added by the commit under review:
+The marker proves which commit is live; it is the authoritative check. A content check is complementary and only proves that a specific string reached the served HTML.
+
+Pick a string that is in the **server-rendered** output. The landing's content sections are client components, so their `data-testid` attributes (`value-prop-card`, `tech-chip`, …) never appear in the initial HTML — grepping them returns `0` even on a correct deployment. Inline styles hoisted into the document do appear:
 
 ```bash
 HTML=$(curl -s "https://artemisa-ai.netlify.app/?cachebust=$RANDOM")
-echo "$HTML" | grep -c 'value-prop-card'   # > 0 once #705 is live
-echo "$HTML" | grep -o 'blur(9px)' | wc -l # the single glass layer of the value cards
+echo "$HTML" | grep -o 'blur(9px)' | wc -l   # 2 — the single glass layer of the nav and footer
+echo "$HTML" | grep -c 'artemisa'            # > 0 — sanity check that the page rendered
 ```
 
-Always pass a cache-buster: Netlify's CDN and the service worker both cache the HTML.
+To compare against what the current tree produces, build and serve it locally and diff the same greps:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:3001 npm --prefix frontend run build
+npm --prefix frontend run start -- --port 3000
+curl -s http://localhost:3000/ | grep -o 'blur(9px)' | wc -l
+```
+
+Always pass a cache-buster against production: Netlify's CDN and the service worker both cache the HTML.
 
 ### When production is behind
 
