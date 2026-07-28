@@ -20,6 +20,14 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./
+# Documentation files surfaced by /api/v1/creator/docs and /api/v1/creator/docs/content
+COPY --from=builder /app/README.md ./
+COPY --from=builder /app/README.en.md ./
+COPY --from=builder /app/AGENTS.md ./
+COPY --from=builder /app/AGENTS.en.md ./
+COPY --from=builder /app/CONTEXT.md ./
+COPY --from=builder /app/CONTEXT.en.md ./
+COPY --from=builder /app/docs ./docs
 USER artemisa
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \

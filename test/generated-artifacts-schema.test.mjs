@@ -62,11 +62,11 @@ describe('Generated artifacts validate against multi-format contract (#488)', ()
     assert.ok(modes, '.kilocodemodes should be generated');
     const parsed = JSON.parse(modes.content);
     assert.equal(parsed.version, '1.0.0');
-    assert.ok(Array.isArray(parsed.modes) && parsed.modes.length > 0);
-    for (const mode of parsed.modes) {
+    assert.ok(Array.isArray(parsed.customModes) && parsed.customModes.length > 0);
+    for (const mode of parsed.customModes) {
+      assert.ok(typeof mode.slug === 'string');
       assert.ok(typeof mode.name === 'string');
-      assert.ok(typeof mode.filePattern === 'string');
-      assert.ok(Array.isArray(mode.allowedCommands));
+      assert.ok(Array.isArray(mode.groups));
     }
   });
 

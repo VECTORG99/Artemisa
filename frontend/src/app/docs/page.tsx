@@ -8,6 +8,7 @@ import remarkGithubBlockquoteAlert from 'remark-github-blockquote-alert';
 import rehypeRaw from 'rehype-raw';
 import { LuArrowLeft, LuFileText, LuBookOpen, LuScale, LuServer, LuChevronRight, LuMenu, LuX } from 'react-icons/lu';
 import { useLocale, useTranslations, type Locale } from '@/i18n';
+import { apiUrl } from '@/lib/api';
 
 interface DocLink {
   path: string;
@@ -21,7 +22,9 @@ interface DocSection {
   docs: DocLink[];
 }
 
-const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/VECTORG99/Artemisa/development';
+function buildDocUrl(docPath: string): string {
+  return `${apiUrl}/api/v1/creator/docs/content?path=${encodeURIComponent(docPath)}`;
+}
 
 const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   project: LuFileText,
@@ -64,12 +67,12 @@ export default function DocsPage() {
       setContent('');
       setSidebarOpen(false);
       try {
-        let res = await fetch(`${GITHUB_RAW_BASE}/${localizedPath}`);
+        let res = await fetch(buildDocUrl(localizedPath));
         // If the English translation is missing, fall back to the original Spanish doc.
         if (!res.ok && locale === 'en' && localizedPath.endsWith('.en.md')) {
           const fallbackPath = path;
           setActivePath(fallbackPath);
-          res = await fetch(`${GITHUB_RAW_BASE}/${fallbackPath}`);
+          res = await fetch(buildDocUrl(fallbackPath));
         }
         if (!res.ok) throw new Error(t.fetchError.replace('{status}', String(res.status)));
         const text = await res.text();

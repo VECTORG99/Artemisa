@@ -37,10 +37,18 @@ coverage/
 __tests__/
 __mocks__/
 
-# Documentation (not needed in production image)
-docs/
+# Documentation served by the backend via /api/v1/creator/docs
 *.md
 !README.md
+!README.en.md
+!AGENTS.md
+!AGENTS.en.md
+!CONTEXT.md
+!CONTEXT.en.md
+!docs/**/*.md
+# Docs images are served as public static assets by the frontend
+!docs/images/
+!docs/images/**
 
 # Build artifacts (rebuilt in container)
 dist

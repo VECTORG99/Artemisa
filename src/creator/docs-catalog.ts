@@ -31,7 +31,6 @@ const KNOWN_DOCS: Record<string, { title: string; description: string }> = {
   'docs/troubleshooting.md': { title: 'Troubleshooting', description: 'Solución de problemas del Creator.' },
   'docs/apply-bundle.md': { title: 'Aplicar un Bundle', description: 'Cómo aplicar y validar un bundle generado.' },
   'docs/api-reference.md': { title: 'API Reference', description: 'Referencia completa de la API del Creator.' },
-  'docs/use_cases.md': { title: 'Casos de Uso', description: 'Casos de uso del producto.' },
   'docs/debug-tooling.md': { title: 'Debug Tooling', description: 'Herramientas de debug disponibles en dev.' },
   'docs/CONVENTIONS.md': { title: 'Convenciones', description: 'Convenciones de código, tests y docs.' },
   'docs/adr/0007-npm-workspaces-for-shared-types-package.md': {
@@ -68,7 +67,9 @@ export function listDocumentationFiles(repoRoot: string = process.cwd()): DocEnt
     const dir = root ? path.resolve(repoRoot, root) : repoRoot;
     if (!fs.existsSync(dir)) continue;
 
-    const files = fs.readdirSync(dir).filter((file) => file.endsWith('.md') && !file.startsWith('template'));
+    const files = fs
+      .readdirSync(dir)
+      .filter((file) => file.endsWith('.md') && !file.startsWith('template') && !file.endsWith('.en.md'));
 
     for (const file of files) {
       const fullPath = root ? `${root}/${file}` : file;

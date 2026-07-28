@@ -28,6 +28,9 @@ COPY package.json package-lock.json ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY packages/types ./packages/types
 COPY frontend ./frontend
+# Copy documentation images into the public folder so relative <img> paths
+# in rendered markdown resolve correctly at /docs/images/*
+COPY docs/images ./frontend/public/docs/images
 RUN npm run build --workspace=@artemisa/types
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
