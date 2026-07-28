@@ -1,5 +1,7 @@
 import { devices, expect, test } from '@playwright/test';
 
+import { waitForCreatorReady } from './helpers';
+
 test('landing page loads', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: /artemisa/i })).toBeVisible();
@@ -7,8 +9,9 @@ test('landing page loads', async ({ page }) => {
 
 test('creator route shows the mode selector', async ({ page }) => {
   await page.goto('/agents/new');
-  // The Creator opens on mode select; it has no "Agent Creator" heading.
-  await expect(page.getByRole('heading', { name: /¿Cómo quieres configurar tu agente\?/ })).toBeVisible();
+  // The Creator opens on mode select; it has no "Agent Creator" heading. The
+  // helper absorbs the initial catalog/workflow fetch (issue #725).
+  await waitForCreatorReady(page);
 });
 
 // #385: the Creator is blocked on touch-only devices (phones/tablets) with a

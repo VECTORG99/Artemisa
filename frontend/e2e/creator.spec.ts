@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { waitForCreatorReady } from './helpers';
+
 /**
  * End-to-end coverage of the Creator's four entry modes against a live
  * backend. These exercise the parts that unit tests cannot: the real workflow
@@ -12,9 +14,10 @@ import { expect, test, type Page } from '@playwright/test';
 test.beforeEach(async ({ page }) => {
   // A leftover draft from a previous test would resume mid-flow.
   await page.goto('/agents/new');
+  await waitForCreatorReady(page);
   await page.evaluate(() => window.sessionStorage.clear());
   await page.goto('/agents/new');
-  await expect(page.getByRole('heading', { name: /¿Cómo quieres configurar tu agente\?/ })).toBeVisible();
+  await waitForCreatorReady(page);
 });
 
 async function currentPrompt(page: Page): Promise<string> {
@@ -258,7 +261,9 @@ test('advanced mode reaches review from a preset baseline', async ({ page }) => 
   await expect(page.getByRole('heading', { name: /Confirma antes de generar/ })).toBeVisible({ timeout: 15000 });
 
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('heading', { name: /¿Cómo quieres configurar tu agente\?/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /¿Cómo quieres configurar tu agente\?/ })).toBeVisible({
+    timeout: 15_000,
+  });
   await page.getByRole('button', { name: /Avanzado/ }).click();
 
   const generate = page.getByRole('button', { name: /Revisar y generar/ });
