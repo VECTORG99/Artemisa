@@ -16,6 +16,23 @@ export const glassStyle: React.CSSProperties = {
   boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
 };
 
+/**
+ * Same surface as `glassStyle` but without `backdrop-filter`, for elements
+ * that live *inside* another glass surface.
+ *
+ * In Chromium an element with `backdrop-filter` becomes a backdrop root, so a
+ * nested glass element only samples its glass ancestor (which is empty) and
+ * the blur never rasterises — measured in #704 as a 0.01/255 mean pixel
+ * difference between blur on and off. Declaring it anyway is dead CSS that
+ * suggests an effect that does not exist (#711), so nested surfaces keep the
+ * tint, border and shadow only.
+ */
+export const glassNestedStyle: React.CSSProperties = {
+  background: glassStyle.background,
+  border: glassStyle.border,
+  boxShadow: glassStyle.boxShadow,
+};
+
 export type LandingModalId = 'legal';
 
 interface LandingModalContextValue {
