@@ -31,7 +31,7 @@
     "docker:up": "docker compose -f docker/docker-compose.yml up -d",
     "docker:down": "docker compose -f docker/docker-compose.yml down",
     "docker:logs": "docker compose -f docker/docker-compose.yml logs -f",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "dev:all": "npm run dev & npm run dev:frontend & npm run dev:agent-creator",
     "install:all": "npm install && cd frontend && npm install && cd ../agent-creator && npm install",
     "build:all": "npm run build && cd frontend && npm run build && cd ../agent-creator && npm run build",
