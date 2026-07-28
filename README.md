@@ -28,6 +28,18 @@ Artemisa es un generador **stateless y determinista** de bundles de configuraci�
 
 El Creator **no usa un LLM** para decidir la arquitectura, **no ejecuta comandos**, **no escribe archivos en el proyecto del usuario**, **no usa base de datos** y **no requiere claves de proveedores de LLM**.
 
+### Integración con Kiro
+
+Artemisa genera artefactos nativos para **[Kiro](https://aws.amazon.com/kiro/)**, la IDE agentic de AWS:
+
+| Artefacto                           | Propósito                                             |
+| ----------------------------------- | ----------------------------------------------------- |
+| `.kiro/steering/<agente>.md`        | Identidad, rol y constraints operacionales del agente |
+| `.kiro/hooks/<agente>-quality.json` | Quality gates automáticos previos a finalizar tareas  |
+| `.kiro/skills/<agente>/SKILL.md`    | Procedimientos reutilizables específicos del agente   |
+
+Cuando seleccionás **Kiro** como target en el árbol de decisiones, el bundle incluye estos archivos dentro de `.kiro/`. Los esquemas que validan estos artefactos están en `src/kiro/schemas/*.json` y se verifican en cada release.
+
 ### Landing page
 
 ![Landing page de Artemisa — hero con simulación espacial, navegación flotante y CTA al Creator](/docs/images/screenshot-creator.png)
