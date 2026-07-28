@@ -195,7 +195,7 @@
       "noActiveQuestions": "This section does not apply with the current answers.",
       "generateButton": "Review and generate",
       "treeComplete": "Tree complete — review will open.",
-      "missingRequired": "{count} required answer(s) missing.",
+      "missingRequired": "Required answers still missing: {count}.",
       "requiredCounter": "{answered} of {required} required",
       "orphanSection": {
         "label": "Other",
@@ -508,7 +508,37 @@
         "docs": [
           { "path": "README.md", "label": "README" },
           { "path": "AGENTS.md", "label": "AGENTS.md" },
-          { "path": "CONTEXT.md", "label": "CONTEXT.md" }
+          { "path": "CONTEXT.md", "label": "CONTEXT.md" },
+          { "path": "docs/CONTRIBUTING.md", "label": "CONTRIBUTING.md" },
+          { "path": "docs/CHANGELOG.md", "label": "CHANGELOG.md" }
+        ]
+      },
+      {
+        "id": "architecture",
+        "title": "Architecture & Deploy",
+        "docs": [
+          { "path": "docs/architecture.md", "label": "Architecture" },
+          { "path": "docs/api-reference.md", "label": "API Reference" },
+          { "path": "docs/deployment.md", "label": "Deployment" },
+          { "path": "docs/self-hosting.md", "label": "Self-Hosting" }
+        ]
+      },
+      {
+        "id": "guides",
+        "title": "Guides",
+        "docs": [
+          { "path": "docs/troubleshooting.md", "label": "Troubleshooting" },
+          { "path": "docs/apply-bundle.md", "label": "Apply a Bundle" },
+          { "path": "docs/CONVENTIONS.md", "label": "Conventions" }
+        ]
+      },
+      {
+        "id": "reference",
+        "title": "Reference",
+        "docs": [
+          { "path": "docs/reference/README.md", "label": "Generated Artifacts" },
+          { "path": "docs/reference/security-policy-guide.md", "label": "Security Policy" },
+          { "path": "docs/reference/steering-roles-guide.md", "label": "Steering Roles" }
         ]
       }
     ]

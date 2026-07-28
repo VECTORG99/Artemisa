@@ -195,7 +195,7 @@
       "noActiveQuestions": "Esta sección no aplica con las respuestas actuales.",
       "generateButton": "Revisar y generar",
       "treeComplete": "Árbol completo — se abrirá la revisión.",
-      "missingRequired": "Faltan {count} respuesta(s) obligatoria(s).",
+      "missingRequired": "Respuestas obligatorias pendientes: {count}.",
       "requiredCounter": "{answered} de {required} obligatorias",
       "orphanSection": {
         "label": "Otros",
