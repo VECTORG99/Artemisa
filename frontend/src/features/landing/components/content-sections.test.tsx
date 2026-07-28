@@ -63,8 +63,8 @@ describe('value proposition liquid glass', () => {
     );
 
     expect(screen.getAllByTestId('value-prop-card')).toHaveLength(3);
-    expect(valueGlassStyle.backdropFilter).toMatch(/blur\(24px\)/);
-    expect(valueGlassStyle.WebkitBackdropFilter).toMatch(/blur\(24px\)/);
+    expect(valueGlassStyle.backdropFilter).toMatch(/blur\(9px\)/);
+    expect(valueGlassStyle.WebkitBackdropFilter).toMatch(/blur\(9px\)/);
   });
 
   it('does not nest the cards inside another backdrop-filter surface', () => {
