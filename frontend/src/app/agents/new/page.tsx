@@ -901,6 +901,7 @@ export default function NewAgentPage() {
                       </div>
                     )}
                     <DynamicQuestion
+                      key={question.id}
                       question={question}
                       options={options}
                       value={value}
