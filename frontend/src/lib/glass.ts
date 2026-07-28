@@ -48,6 +48,19 @@ export function glassCard(className?: string) {
   );
 }
 
+/**
+ * Card nested inside another glass surface: same tint, border and shadow as
+ * `glassCard` but no `backdrop-blur`.
+ *
+ * A `backdrop-filter` element is a backdrop root in Chromium, so a glass card
+ * inside a glass panel samples that (empty) panel instead of the scene and the
+ * blur never rasterises (#704, #711). Use this helper whenever an ancestor
+ * already provides the blur.
+ */
+export function glassNestedCard(className?: string) {
+  return cn('bg-white/[0.012]', 'border border-white/[0.07]', 'shadow-[0_4px_24px_rgba(0,0,0,0.2)]', className);
+}
+
 // Interactive cards with hover states
 export function glassCardInteractive(className?: string) {
   return cn(

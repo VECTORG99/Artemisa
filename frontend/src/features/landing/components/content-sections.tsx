@@ -20,9 +20,9 @@ import {
   SiVitest,
 } from 'react-icons/si';
 import { LuGitBranch, LuLayers, LuScale } from 'react-icons/lu';
-import { glassStyle, Modal, useLandingModal } from './landing-modal';
+import { glassNestedStyle, glassStyle, Modal, useLandingModal } from './landing-modal';
 import { useTranslations } from '@/i18n';
-import { glassButton, glassCard, glassPanel } from '@/lib/glass';
+import { glassButton, glassCard, glassNestedCard, glassPanel } from '@/lib/glass';
 import { apiUrl } from '@/lib/api';
 import { QuickStartCopy } from '@/components/ui/quick-start-copy';
 import { useSectionFadeIn } from '../hooks/use-section-fade-in';
@@ -122,7 +122,7 @@ function CompatibilityStatsSection() {
             return (
               <div
                 key={stat.label}
-                className={glassCard(
+                className={glassNestedCard(
                   'group relative overflow-hidden rounded-2xl p-4 text-center transition-all duration-300 hover:-translate-y-1 sm:p-5',
                 )}
                 style={{
@@ -300,6 +300,19 @@ const TECH_GROUPS: TechGroupMeta[] = [
   },
 ];
 
+/**
+ * Tech chips live inside the section's `glassPanel`, so a `backdrop-filter`
+ * here would be inert (the panel is already the backdrop root, see #711).
+ * The chip reads as glass through its tint and border only.
+ *
+ * Exported for tests: jsdom drops `backdrop-filter` from inline styles, so the
+ * absence of the nested blur can only be asserted on this object.
+ */
+export const techChipStyle: CSSProperties = {
+  background: 'rgba(255,255,255,0.03)',
+  border: '1px solid rgba(255,255,255,0.08)',
+};
+
 function TechStackSection() {
   const t = useTranslations('landing');
   const ref = useSectionFadeIn<HTMLDivElement>();
@@ -328,11 +341,10 @@ function TechStackSection() {
                         href={item.url}
                         target="_blank"
                         rel="noopener noreferrer"
+                        data-testid="tech-chip"
                         className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs transition-colors"
                         style={{
-                          backdropFilter: 'blur(6px)',
-                          background: 'rgba(255,255,255,0.03)',
-                          border: '1px solid rgba(255,255,255,0.08)',
+                          ...techChipStyle,
                           color: item.color,
                         }}
                       >
@@ -369,7 +381,7 @@ function FinalCtaSection() {
         <Link
           href="/agents/new"
           className="mt-8 inline-flex items-center gap-2 rounded-full px-7 py-3 font-medium text-white transition-colors hover:text-white"
-          style={glassStyle}
+          style={glassNestedStyle}
         >
           {t.ctaButton}
         </Link>
