@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -51,6 +51,11 @@ export default function DocsPage() {
   );
 
   const [activePath, setActivePath] = useState<string | null>(null);
+  // Logical (Spanish) path of the open doc. Kept apart from `activePath`, which
+  // is the file actually fetched: when an English translation is missing the
+  // fetch falls back to the Spanish file, and comparing the localized path
+  // against it left the sidebar entry unhighlighted (#735).
+  const [activeDoc, setActiveDoc] = useState<string | null>(null);
   const [activeLabel, setActiveLabel] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -61,6 +66,7 @@ export default function DocsPage() {
     async (path: string, label: string) => {
       const localizedPath = localizeDocPath(path, locale);
       setActivePath(localizedPath);
+      setActiveDoc(path);
       setActiveLabel(label);
       setLoading(true);
       setError('');
@@ -86,10 +92,17 @@ export default function DocsPage() {
     [locale, t],
   );
 
-  // Load README by default
+  // Loads the README on mount and, when the locale changes, reloads whichever
+  // doc is open in the new language instead of jumping back to the README
+  // (#735). `activeDoc` is read through a ref so the effect only reacts to the
+  // locale/messages change, never to its own state updates.
+  const activeDocRef = useRef<string | null>(null);
+  activeDocRef.current = activeDoc;
   useEffect(() => {
-    const readme = t.sections[0]?.docs[0];
-    if (readme) fetchDoc(readme.path, readme.label);
+    const allDocs = t.sections.flatMap((section) => section.docs);
+    const current = activeDocRef.current ? (allDocs.find((doc) => doc.path === activeDocRef.current) ?? null) : null;
+    const target = current ?? allDocs[0];
+    if (target) fetchDoc(target.path, target.label);
   }, [fetchDoc, t]);
 
   const sidebar = (
@@ -103,24 +116,26 @@ export default function DocsPage() {
               {section.title}
             </h2>
             <ul className="mt-1.5 flex flex-col">
-              {section.docs.map((doc) => (
-                <li key={doc.path}>
-                  <button
-                    type="button"
-                    onClick={() => fetchDoc(doc.path, doc.label)}
-                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm transition-colors ${
-                      activePath === localizeDocPath(doc.path, locale)
-                        ? 'bg-white/[0.08] font-medium text-white'
-                        : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200'
-                    }`}
-                  >
-                    {activePath === localizeDocPath(doc.path, locale) && (
-                      <LuChevronRight className="h-3 w-3 shrink-0 text-red-400" aria-hidden="true" />
-                    )}
-                    <span className={activePath === localizeDocPath(doc.path, locale) ? '' : 'pl-5'}>{doc.label}</span>
-                  </button>
-                </li>
-              ))}
+              {section.docs.map((doc) => {
+                const isActive = activeDoc === doc.path;
+                return (
+                  <li key={doc.path}>
+                    <button
+                      type="button"
+                      onClick={() => fetchDoc(doc.path, doc.label)}
+                      aria-current={isActive ? 'true' : undefined}
+                      className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm transition-colors ${
+                        isActive
+                          ? 'bg-white/[0.08] font-medium text-white'
+                          : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200'
+                      }`}
+                    >
+                      {isActive && <LuChevronRight className="h-3 w-3 shrink-0 text-red-400" aria-hidden="true" />}
+                      <span className={isActive ? '' : 'pl-5'}>{doc.label}</span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         );
