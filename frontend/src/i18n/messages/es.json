@@ -517,14 +517,6 @@
         ]
       },
       {
-        "id": "adrs",
-        "title": "ADRs",
-        "docs": [
-          { "path": "docs/adr/0007-npm-workspaces-for-shared-types-package.md", "label": "ADR-0007: Workspaces" },
-          { "path": "docs/adr/0008-remove-runtime-generator-only.md", "label": "ADR-0008: Remove Runtime" }
-        ]
-      },
-      {
         "id": "reference",
         "title": "Referencia",
         "docs": [

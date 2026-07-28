@@ -6,17 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkGithubBlockquoteAlert from 'remark-github-blockquote-alert';
 import rehypeRaw from 'rehype-raw';
-import {
-  LuArrowLeft,
-  LuFileText,
-  LuBookOpen,
-  LuScale,
-  LuLayers,
-  LuServer,
-  LuChevronRight,
-  LuMenu,
-  LuX,
-} from 'react-icons/lu';
+import { LuArrowLeft, LuFileText, LuBookOpen, LuScale, LuServer, LuChevronRight, LuMenu, LuX } from 'react-icons/lu';
 import { useLocale, useTranslations, type Locale } from '@/i18n';
 
 interface DocLink {
@@ -37,7 +27,6 @@ const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   project: LuFileText,
   architecture: LuServer,
   guides: LuBookOpen,
-  adrs: LuLayers,
   reference: LuScale,
 };
 
