@@ -4,7 +4,83 @@ All notable changes to this project are documented here.
 
 ### Bug Fixes
 
+- Separa los artefactos comunes del grupo Portátil _(creator)_
+
+- Separa los artefactos comunes del grupo Portátil _(creator)_
+
+- Application_instructions derivadas de los artefactos reales _(creator)_
+
+- Deriva application_instructions de los artefactos generados _(creator)_
+
+- El prompt de onboarding usa https para hosts públicos _(creator)_
+
+- El prompt de onboarding anuncia https para hosts públicos _(creator)_
+
+- Elimina las capas glass anidadas inertes _(landing)_
+
+- Elimina las capas glass anidadas inertes _(landing)_
+
+### CI/CD
+
+- Ejecuta Vitest y typecheck del frontend en CI
+
+- Ejecuta los tests de Vitest y el typecheck del frontend en CI
+
+### Chores
+
+- Formatea el repo y hace bloqueante el Format check _(ci)_
+
+- Formatea el repo y hace bloqueante el Format check _(ci)_
+
+- Desactiva Vercel también en agent-creator/vercel.json _(deploy)_
+
+- Desactiva Vercel también en agent-creator/vercel.json _(deploy)_
+
+- Desactiva los despliegues automáticos de Vercel _(deploy)_
+
+- Desactiva los despliegues automáticos de Vercel _(deploy)_
+
+- Desactiva los despliegues de Vercel desde el repo _(deploy)_
+
+- Desactiva los despliegues automáticos de Vercel _(deploy)_
+
+- Desactiva los despliegues automáticos de Vercel _(deploy)_
+
+- Desactiva los despliegues automáticos de Vercel _(deploy)_
+
+- LICENSE canónico MPL-2.0 + NOTICE _(license)_
+
+- Desactiva los despliegues automáticos de Vercel _(deploy)_
+
+- Restaura el texto canónico de MPL-2.0 y mueve el aviso a NOTICE _(license)_
+
+### Documentation
+
+- Verificación de que producción coincide con master _(deploy)_
+
+- Documenta y automatiza la verificación de prod vs master _(deploy)_
+
+### Testing
+
+- Evita la carrera con la carga inicial del Creator _(e2e)_
+
+- Evita la carrera con la carga inicial del Creator _(e2e)_
+
+- Aisla el almacenamiento web entre tests _(frontend)_
+
+- Ejecuta la suite de Playwright en CI Extended _(e2e)_
+
+- Ejecuta la suite de Playwright en CI Extended _(e2e)_
+
+## [v1.5.1] - 2026-07-28
+
+### Bug Fixes
+
 - Value prop cards usan el glass transparente compartido _(landing)_
+
+### Chores
+
+- V1.5.1 _(release)_
 
 ## [v1.5.0] - 2026-07-28
 
