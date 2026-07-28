@@ -1,6 +1,10 @@
 # Dependencies
 node_modules/
 
+# Package manager lockfiles — project uses npm
+pnpm-lock.yaml
+pnpm-workspace.yaml
+
 # Build output
 dist/
 .next/

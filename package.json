@@ -114,6 +114,10 @@
   },
   "overrides": {
     "postcss": "^8.5.23",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "glob": "^11.0.0",
+    "@eslint/eslintrc": {
+      "minimatch": "^10.2.6"
+    }
   }
 }
