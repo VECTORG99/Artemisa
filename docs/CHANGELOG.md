@@ -2,7 +2,43 @@
 
 All notable changes to this project are documented here.
 
+### Bug Fixes
+
+- Restore liquid glass blur on value prop cards _(landing)_
+
+- Alinear formatos de CodeRabbit, Kilo Code y Windsurf con docs oficiales _(generator)_
+
+- Imágenes docs, docs en inglés y catálogo limpio _(docker,frontend)_
+
+- Resolver errores del smoke test #699 _(docker,health,docs,api)_
+
+- Eliminar sección ADRs de la documentación web _(docs)_
+
+- Eliminar compatibilidad del header y del landing _(landing)_
+
+- Potenciar blur del glass en value props _(landing)_
+
+- Renderizar HTML y alertas GitHub en la vista de documentación _(docs)_
+
+- Posicionar botón de idioma abajo a la derecha en todas las vistas _(ui)_
+
+- Aplicar glassStyle existente al componente de value props _(landing)_
+
+- Eliminar sección de compatibilidad del landing principal _(landing)_
+
+- Ajustar glass estándar en value props y eliminar trust line _(landing)_
+
+### Features
+
+- Restaurar sección de compatibilidad solo en el landing _(landing)_
+
+- Mostrar métricas de compatibilidad y aplicar liquid glass a value props _(landing)_
+
+## [v1.4.2] - 2026-07-28
+
 ### Chores
+
+- V1.4.2 _(release)_
 
 - Update all URLs from Vercel to Netlify (artemisa-ai.netlify.app)
 
