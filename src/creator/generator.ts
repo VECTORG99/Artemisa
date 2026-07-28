@@ -51,7 +51,6 @@ export function singleLine(value: string): string {
 function bulletList(lines: string[]): string {
   return lines.map((line) => `- ${line}`).join('\n');
 }
-}
 
 export function slugify(value: string): string {
   const slug = value
