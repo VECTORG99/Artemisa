@@ -4,7 +4,21 @@ All notable changes to this project are documented here.
 
 ### Bug Fixes
 
+- Remove extra brace in generator.ts
+
+### Other
+
+- Merge development → master (error fixes, security hardening, refactor) _(other)_
+
+## [v1.5.9] - 2026-07-28
+
+### Bug Fixes
+
 - Skip real del Release (job-level) + correcciones del README _(ci)_
+
+### Chores
+
+- V1.5.9 [skip ci] _(release)_
 
 ## [v1.5.8] - 2026-07-28
 
