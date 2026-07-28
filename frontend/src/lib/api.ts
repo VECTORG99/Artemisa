@@ -86,6 +86,24 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   return data as T;
 }
 
+/** Append the defined filter values as a query string. */
+function withQuery(url: string, filter?: Record<string, string | undefined>): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(filter ?? {})) {
+    if (value) params.set(key, value);
+  }
+  const qs = params.toString();
+  return qs ? `${url}?${qs}` : url;
+}
+
+/** Body shared by the evaluate/preview/generate endpoints. */
+function creatorBody(
+  answers: CreatorAnswers,
+  versions: { workflowVersion: string; catalogVersion: string },
+): EvaluateRequest & PreviewRequest {
+  return { answers, workflowVersion: versions.workflowVersion, catalogVersion: versions.catalogVersion };
+}
+
 // ─── Creator API ──────────────────────────────────────────────────────────────
 
 export const creator = {
@@ -95,21 +113,11 @@ export const creator = {
 
   getTutorial: () => request<Tutorial>(`${CREATOR_BASE}/tutorial`),
 
-  getSkills: (filter?: { focus?: string; q?: string }) => {
-    const params = new URLSearchParams();
-    if (filter?.focus) params.set('focus', filter.focus);
-    if (filter?.q) params.set('q', filter.q);
-    const qs = params.toString();
-    return request<SkillsCatalogResponse>(`${CREATOR_BASE}/skills${qs ? `?${qs}` : ''}`);
-  },
+  getSkills: (filter?: { focus?: string; q?: string }) =>
+    request<SkillsCatalogResponse>(withQuery(`${CREATOR_BASE}/skills`, filter)),
 
-  getMcps: (filter?: { category?: string; q?: string }) => {
-    const params = new URLSearchParams();
-    if (filter?.category) params.set('category', filter.category);
-    if (filter?.q) params.set('q', filter.q);
-    const qs = params.toString();
-    return request<McpCatalogResponse>(`${CREATOR_BASE}/mcps${qs ? `?${qs}` : ''}`);
-  },
+  getMcps: (filter?: { category?: string; q?: string }) =>
+    request<McpCatalogResponse>(withQuery(`${CREATOR_BASE}/mcps`, filter)),
 
   evaluate: (() => {
     // #409: the Creator re-evaluates the decision tree on every step and on
@@ -134,11 +142,7 @@ export const creator = {
       if (running) return running;
       const p = request<DecisionEvaluation>(`${CREATOR_BASE}/evaluate`, {
         method: 'POST',
-        body: JSON.stringify({
-          answers,
-          workflowVersion: versions.workflowVersion,
-          catalogVersion: versions.catalogVersion,
-        } satisfies EvaluateRequest),
+        body: JSON.stringify(creatorBody(answers, versions)),
       })
         .catch((err: unknown) => {
           // A failed evaluation must not be memoized: retrying the same answers
@@ -162,20 +166,12 @@ export const creator = {
   preview: (answers: CreatorAnswers, versions: { workflowVersion: string; catalogVersion: string }) =>
     request<GeneratedAgentBundle>(`${CREATOR_BASE}/preview`, {
       method: 'POST',
-      body: JSON.stringify({
-        answers,
-        workflowVersion: versions.workflowVersion,
-        catalogVersion: versions.catalogVersion,
-      } satisfies PreviewRequest),
+      body: JSON.stringify(creatorBody(answers, versions)),
     }),
 
   generate: (answers: CreatorAnswers, versions: { workflowVersion: string; catalogVersion: string }) =>
     request<GeneratedAgentBundle>(`${CREATOR_BASE}/generate`, {
       method: 'POST',
-      body: JSON.stringify({
-        answers,
-        workflowVersion: versions.workflowVersion,
-        catalogVersion: versions.catalogVersion,
-      } satisfies PreviewRequest),
+      body: JSON.stringify(creatorBody(answers, versions)),
     }),
 };

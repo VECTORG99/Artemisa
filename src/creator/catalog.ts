@@ -1,4 +1,5 @@
 import { CatalogCategory, CatalogItem } from './domain.js';
+import { filterByText, indexById } from './catalogQuery.js';
 import { skillsCatalog } from './skillsCatalog.js';
 import { mcpCatalog } from './mcpCatalog.js';
 
@@ -562,8 +563,8 @@ const catalogItems: CatalogItem[] = [
   })),
 ];
 
-const itemIndex = new Map(catalogItems.map((item) => [item.id, item]));
-const categoryIndex = new Map(catalogCategories.map((category) => [category.id, category]));
+const itemIndex = indexById(catalogItems);
+const categoryIndex = indexById(catalogCategories);
 
 // #407: pre-computed, frozen response for the no-filter hot path.
 const fullCatalogResponse = Object.freeze({
@@ -609,10 +610,7 @@ export function getCreatorCatalog(filters?: { category?: string; environment?: s
     );
   }
   if (filters?.q) {
-    const query = filters.q.toLowerCase().trim();
-    items = items.filter((item) =>
-      [item.id, item.label, item.description, ...item.tags].some((value) => value.toLowerCase().includes(query)),
-    );
+    items = filterByText(items, filters.q.trim(), (item) => [item.id, item.label, item.description, ...item.tags]);
   }
   return {
     version: CATALOG_VERSION,
