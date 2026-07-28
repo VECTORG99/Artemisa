@@ -93,8 +93,17 @@ describe('docs/deployment.md documents the production check', () => {
   });
 
   it('documents the content spot-check with a cache buster', () => {
-    assert.match(docs, /value-prop-card/);
     assert.match(docs, /cachebust=\$RANDOM/);
+    // Issue #738: the example must grep a string that is in the server-rendered
+    // HTML. Client-component test ids never are, so citing one made the runbook
+    // report a healthy deployment as stale.
+    assert.match(docs, /grep -o 'blur\(9px\)' \| wc -l/);
+    assert.match(docs, /client components/i);
+    assert.doesNotMatch(docs, /grep -c 'value-prop-card'/);
+  });
+
+  it('points at the marker check as the authoritative one', () => {
+    assert.match(docs, /authoritative check/i);
   });
 
   it('documents how to force a rebuild and why NEXT_PUBLIC_* needs one', () => {
