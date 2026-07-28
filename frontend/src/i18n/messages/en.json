@@ -487,7 +487,8 @@
       "coderabbit": "CodeRabbit",
       "kilo-code": "Kilo Code",
       "kiro": "Kiro",
-      "portable": "Portable / AGENTS.md"
+      "portable": "Portable / AGENTS.md",
+      "shared": "Bundle shared files"
     }
   },
   "docs": {
