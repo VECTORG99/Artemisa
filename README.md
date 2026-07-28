@@ -30,6 +30,8 @@ El Creator **no usa un LLM** para decidir la arquitectura, **no ejecuta comandos
 
 ![Flujo del Creator — de problema a bundle de configuración reproducible](docs/images/creator-flow.svg)
 
+![Captura de pantalla del Creator](docs/images/screenshot-creator.png)
+
 ## Cómo funciona
 
 ### Backend
