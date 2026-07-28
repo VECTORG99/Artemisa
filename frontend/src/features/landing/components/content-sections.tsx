@@ -89,9 +89,8 @@ interface ValuePropMeta {
 const VALUE_PROPS: ValuePropMeta[] = [{ icon: LuGitBranch }, { icon: LuScale }, { icon: LuLayers }];
 
 /**
- * Liquid glass for the value cards: deeper blur and a slightly stronger tint
- * than the shared `glassStyle`, plus an inset top highlight so the card edge
- * catches light instead of dissolving into the starfield.
+ * Liquid glass for the value cards: reuses the shared `glassStyle` so the
+ * cards stay visually coherent with the nav, footer and tech-stack panel.
  *
  * Single layer by design: in Chromium an element with `backdrop-filter`
  * becomes a backdrop root, so a glass card nested inside another glass
@@ -105,11 +104,6 @@ const VALUE_PROPS: ValuePropMeta[] = [{ icon: LuGitBranch }, { icon: LuScale }, 
 export const valueGlassStyle: CSSProperties = {
   ...glassStyle,
   position: 'relative',
-  WebkitBackdropFilter: 'blur(24px) saturate(150%)',
-  backdropFilter: 'blur(24px) saturate(150%)',
-  background: 'rgba(255,255,255,0.06)',
-  border: '1px solid rgba(255,255,255,0.14)',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
 };
 
 /**
