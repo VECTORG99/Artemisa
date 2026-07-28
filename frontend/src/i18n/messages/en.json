@@ -195,7 +195,7 @@
       "noActiveQuestions": "This section does not apply with the current answers.",
       "generateButton": "Review and generate",
       "treeComplete": "Tree complete — review will open.",
-      "missingRequired": "{count} required answer(s) missing.",
+      "missingRequired": "Required answers still missing: {count}.",
       "requiredCounter": "{answered} of {required} required",
       "orphanSection": {
         "label": "Other",

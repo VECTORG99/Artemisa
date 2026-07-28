@@ -235,7 +235,7 @@ test('advanced mode blocks generation until every required answer exists', async
 
   const generate = page.getByRole('button', { name: /Revisar y generar/ });
   await expect(generate).toBeDisabled();
-  await expect(page.getByText(/Faltan \d+ respuesta\(s\) obligatoria\(s\)/)).toBeVisible();
+  await expect(page.getByText(/Respuestas obligatorias pendientes: \d+/)).toBeVisible();
 
   // The sections nav must expose which section is still incomplete and
   // navigate to its questions (the dashboard groups blockers by section
