@@ -218,20 +218,22 @@ Los esquemas de los artefactos JSON viven en `src/kiro/schemas/*.json` y se vali
 
 ## Referencia de Variables de Entorno
 
-| Variable               | Default                                       | Descripcion                                          |
-| ---------------------- | --------------------------------------------- | ---------------------------------------------------- |
-| `PORT`                 | `3001`                                        | Puerto del servidor HTTP                             |
-| `HOST`                 | `0.0.0.0`                                     | Interfaz de red                                      |
-| `REQUEST_TIMEOUT_MS`   | `120000`                                      | Timeout por petición HTTP                            |
-| `LOG_LEVEL`            | `info`                                        | Verbosidad de pino                                   |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:3000,http://localhost:5173` | Orígenes permitidos                                  |
-| `AUTH_REQUIRED`        | `true`                                        | Exige API key en rutas protegidas (`false` en local) |
-| `ARTEMISA_API_KEYS`    | —                                             | Lista de API keys separadas por coma                 |
-| `BYPASS_SECRET`        | —                                             | Override de emergencia; se redacta en logs           |
-| `METRICS_SECRET`       | —                                             | Protege `/api/metrics` (obligatorio en producción)   |
-| `RATE_LIMIT_GLOBAL`    | `100`                                         | Requests por minuto por IP                           |
-| `RATE_LIMIT_CREATOR`   | `120`                                         | Requests por minuto para `/api/v1/creator`           |
-| `RATE_LIMIT_AGENT`     | `30`                                          | Requests por minuto para el protocolo de agentes     |
+| Variable               | Default                                       | Descripcion                                                   |
+| ---------------------- | --------------------------------------------- | ------------------------------------------------------------- |
+| `PORT`                 | `3001`                                        | Puerto del servidor HTTP                                      |
+| `HOST`                 | `0.0.0.0`                                     | Interfaz de red                                               |
+| `REQUEST_TIMEOUT_MS`   | `120000`                                      | Timeout por petición HTTP                                     |
+| `LOG_LEVEL`            | `info`                                        | Verbosidad de pino                                            |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:3000,http://localhost:5173` | Orígenes permitidos                                           |
+| `AUTH_REQUIRED`        | `true`                                        | Exige API key en rutas protegidas (`false` en local)          |
+| `ARTEMISA_API_KEYS`    | —                                             | Lista de API keys separadas por coma                          |
+| `BYPASS_SECRET`        | —                                             | Override de emergencia; se redacta en logs                    |
+| `METRICS_SECRET`       | —                                             | Protege `/api/metrics` (obligatorio en producción)            |
+| `RATE_LIMIT_GLOBAL`    | `100`                                         | Requests por minuto por IP                                    |
+| `RATE_LIMIT_CREATOR`   | `120`                                         | Requests por minuto para `/api/v1/creator`                    |
+| `RATE_LIMIT_AGENT`     | `30`                                          | Requests por minuto para el protocolo de agentes              |
+| `PUBLIC_BASE_URL`      | —                                             | Origen público anunciado a los agentes (`/agent`, `/startup`) |
+| `TRUST_PROXY`          | —                                             | Saltos de proxy de confianza; `1` detrás de un proxy inverso  |
 
 ---
 

@@ -64,6 +64,17 @@ All environment variables are defined in `.env.example`. Variables are grouped b
 | ---------------------- | -------- | --------------------------------------------- | ------------------------------- |
 | `CORS_ALLOWED_ORIGINS` | No       | `http://localhost:3000,http://localhost:5173` | Comma-separated allowed origins |
 
+A blocked origin gets `403 API_CORS_FORBIDDEN`.
+
+### Public origin and proxies
+
+| Variable          | Required                 | Default | Description                                                                                          |
+| ----------------- | ------------------------ | ------- | ---------------------------------------------------------------------------------------------------- |
+| `PUBLIC_BASE_URL` | **Yes** (public deploys) | —       | Origin advertised to agents in `/api/v1/creator/agent` and `/startup`; falls back to request headers |
+| `TRUST_PROXY`     | No                       | —       | Trusted proxy hop count for Express (`1` behind a single proxy) so rate limits key on the client IP  |
+
+Without `PUBLIC_BASE_URL` the advertised origin comes from `Host`/`X-Forwarded-Host`/`Origin`, which the caller controls, so a forged header can point agents at another server. Only enable `TRUST_PROXY` when a proxy really terminates the connection; otherwise clients can spoof `X-Forwarded-For`.
+
 ### Metrics
 
 | Variable         | Required       | Default | Description                                         |
@@ -140,7 +151,7 @@ The `.do/app.yaml` at the project root deploys the **backend only** as a Docker 
 
 1. Connect your GitHub repo (`VECTORG99/Artemisa`) to DigitalOcean App Platform.
 2. App Platform auto-detects `.do/app.yaml` and configures the service.
-3. Set `ARTEMISA_API_KEYS`, `BYPASS_SECRET` and `METRICS_SECRET` manually in the DigitalOcean dashboard (App → Settings → Environment Variables).
+3. `PUBLIC_BASE_URL` (bound to `${APP_URL}`) and `TRUST_PROXY=1` are already in `.do/app.yaml`. Set `ARTEMISA_API_KEYS`, `BYPASS_SECRET` and `METRICS_SECRET` manually in the DigitalOcean dashboard (App → Settings → Environment Variables).
 4. Copy the `ARTEMISA_API_KEYS` value to your frontend hosting (Netlify) as `NEXT_PUBLIC_API_KEY`. The frontend uses this key when calling protected Creator routes (`/evaluate`, `/preview`, `/generate`).
 5. In your frontend hosting, set `NEXT_PUBLIC_API_URL` to the deployed DigitalOcean service URL (e.g. `https://artemisa-backend-xxxxx.ondigitalocean.app`).
 6. Deploy. Subsequent pushes to `master` trigger automatic deploys.

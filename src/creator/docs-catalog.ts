@@ -69,7 +69,12 @@ export function listDocumentationFiles(repoRoot: string = process.cwd()): DocEnt
 
     const files = fs
       .readdirSync(dir)
-      .filter((file) => file.endsWith('.md') && !file.startsWith('template') && !file.endsWith('.en.md'));
+      .filter((file) => file.endsWith('.md') && !file.startsWith('template') && !file.endsWith('.en.md'))
+      // The repo root also holds files that are not project documentation, and
+      // `GET /docs/content` serves whatever this catalog lists, so the root
+      // scope is limited to the curated entries below (`docs/` is documentation
+      // by definition and stays dynamic).
+      .filter((file) => root !== '' || Object.hasOwn(KNOWN_DOCS, file));
 
     for (const file of files) {
       const fullPath = root ? `${root}/${file}` : file;

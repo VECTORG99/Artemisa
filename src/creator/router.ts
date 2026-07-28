@@ -107,6 +107,26 @@ function isLocalHost(host: string): boolean {
   return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname === '0.0.0.0';
 }
 
+const HOST_PATTERN = /^[a-zA-Z0-9.\-_[\]]+(?::\d{1,5})?$/;
+
+/** First entry of a possibly comma-separated header value, or '' when malformed. */
+function firstHost(value: string | undefined): string {
+  const host = (value ?? '').split(',')[0]?.trim() ?? '';
+  return HOST_PATTERN.test(host) ? host : '';
+}
+
+/** Origin header reduced to `scheme://host[:port]`, or '' when not a usable http(s) origin. */
+function safeOrigin(value: string | undefined): string {
+  if (!value) return '';
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return '';
+    return url.origin;
+  } catch {
+    return '';
+  }
+}
+
 /**
  * Base URL advertised to agents in `/agent` and `/startup`.
  *
@@ -115,19 +135,29 @@ function isLocalHost(host: string): boolean {
  * answer 301 to `https://` — an insecure first hop and a redirect for every
  * step (issue #719). `X-Forwarded-Proto` wins whenever the proxy sends it, and
  * any non-local host defaults to `https`; only local hosts keep `req.protocol`.
+ *
+ * The host is otherwise taken from request headers, which the client controls:
+ * a forged `X-Forwarded-Host`/`Host`/`Origin` makes the onboarding document
+ * point agents at an attacker's server. Set `PUBLIC_BASE_URL` in any
+ * deployment reachable from the internet so the advertised origin is fixed
+ * server-side; header values are only used as a local-development fallback and
+ * must look like a hostname.
  */
 export function deriveBaseUrl(req: express.Request): string {
-  const forwardedHost = req.get('X-Forwarded-Host');
+  const configured = (process.env.PUBLIC_BASE_URL || '').trim();
+  if (configured) return `${configured.replace(/\/+$/, '')}/api/v1/creator`;
+
+  const forwardedHost = firstHost(req.get('X-Forwarded-Host'));
   if (!forwardedHost) {
-    const origin = req.get('Origin');
+    const origin = safeOrigin(req.get('Origin'));
     if (origin) return `${origin}/api/v1/creator`;
   }
-  const host = forwardedHost || req.get('host') || 'localhost';
+  const host = forwardedHost || firstHost(req.get('host')) || 'localhost';
   // The header can carry a proxy chain ("https, http"); the client-facing
   // protocol is the first entry.
   const forwardedProto = (req.get('X-Forwarded-Proto') || '').split(',')[0]?.trim().toLowerCase();
-  const proto = forwardedProto || (isLocalHost(host) ? req.protocol : 'https');
-  return `${proto}://${host}/api/v1/creator`;
+  const proto = forwardedProto === 'http' || forwardedProto === 'https' ? forwardedProto : undefined;
+  return `${proto ?? (isLocalHost(host) ? req.protocol : 'https')}://${host}/api/v1/creator`;
 }
 
 creatorPublicRouter.use(versionHeaders);
@@ -259,7 +289,9 @@ creatorPublicRouter.get('/docs', (_req, res) => {
 
 /**
  * GET /api/v1/creator/docs/content — Serve a single documentation file as
- * plain markdown. The path must be a relative .md file inside the repo root.
+ * plain markdown. Only the paths advertised by `GET /docs` are served: the
+ * endpoint is public, so serving any `.md` below the working directory would
+ * expose unrelated markdown shipped next to the deployment.
  * Supports offline/self-hosted deployments and avoids hardcoded GitHub URLs.
  */
 creatorPublicRouter.get('/docs/content', (req, res, next) => {
@@ -276,6 +308,15 @@ creatorPublicRouter.get('/docs/content', (req, res, next) => {
       new CreatorInputError('Ruta de documento no permitida.', [
         { path: 'path', message: 'Solo se permiten rutas relativas dentro del repositorio.' },
       ]),
+    );
+  }
+  if (!listDocumentationFiles().some((doc) => doc.path === docPath)) {
+    return next(
+      new CreatorInputError(
+        'Ruta de documento no permitida.',
+        [{ path: 'path', message: 'Solo se sirven los documentos listados en GET /api/v1/creator/docs.' }],
+        403,
+      ),
     );
   }
 

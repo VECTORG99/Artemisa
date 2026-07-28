@@ -38,6 +38,15 @@ function sha256(content: string): string {
   return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
 }
 
+/**
+ * Collapse a free-text answer to a single line. Values interpolated into a
+ * line-oriented format (a YAML comment, a front-matter scalar) would otherwise
+ * let an answer containing a newline inject arbitrary keys into the artifact.
+ */
+export function singleLine(value: string): string {
+  return value.replace(/[\u0000-\u001f\u007f]+/g, ' ').trim();
+}
+
 export function slugify(value: string): string {
   const slug = value
     .normalize('NFKD')
@@ -139,7 +148,7 @@ function buildBlueprint(answers: CreatorAnswers, evaluation: ReturnType<typeof e
     throw new CreatorInputError('El árbol de decisiones está incompleto.', issues, 422);
   }
 
-  const name = stringAnswer(answers, 'agent_name').trim();
+  const name = singleLine(stringAnswer(answers, 'agent_name'));
   const target = stringAnswer(answers, 'environment') as AgentBlueprint['environments']['target'];
   const technologies = listAnswer(answers, 'technologies');
   const targets = listAnswer(answers, 'agent_targets');
