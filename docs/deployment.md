@@ -206,7 +206,20 @@ npx netlify-cli deploy --build --prod --dir frontend/.next
 
 ### Preview providers
 
-A Vercel project was still connected to the repository while production lives on Netlify. Its build rate limit reported `Deployment rate limited — retry in 24 hours` as a failed **deployment check** on PRs (for example #705), which is noise unrelated to the code. If Vercel previews are not used, disconnect the Git integration in the Vercel project (Project → Settings → Git → Disconnect) so it stops posting checks; otherwise treat its deployment check as non-blocking. Only checks produced by `.github/workflows/*` gate merges.
+A Vercel project was still connected to the repository while production lives on Netlify. Its build rate limit reported `Deployment rate limited — retry in 24 hours` as a failed **deployment check** on PRs (for example #705), which is noise unrelated to the code.
+
+Vercel's Git deployments are therefore disabled from the repository itself:
+
+```json
+// vercel.json (and frontend/vercel.json)
+{
+  "git": { "deploymentEnabled": false }
+}
+```
+
+`git.deploymentEnabled: false` turns off automatic deployments for every branch, so no Vercel check is posted on pull requests. The file is duplicated because Vercel reads `vercel.json` from the project's **Root Directory**, which may be the repo root or `frontend/` depending on how the project was created; keeping both covers either setting. Existing deployments are untouched and re-enabling is a one-line change.
+
+To remove the integration entirely instead, disconnect it in the Vercel project (Project → Settings → Git → Disconnect). Only checks produced by `.github/workflows/*` gate merges.
 
 ---
 

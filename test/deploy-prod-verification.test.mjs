@@ -105,6 +105,18 @@ describe('docs/deployment.md documents the production check', () => {
   it('documents the Vercel preview provider decision', () => {
     assert.match(docs, /Vercel/);
     assert.match(docs, /rate limit/i);
-    assert.match(docs, /Disconnect/);
+    assert.match(docs, /deploymentEnabled/);
   });
+});
+
+describe('Vercel git deployments are disabled from the repo (issue #710)', () => {
+  // Vercel reads vercel.json from the project's Root Directory, which may be
+  // the repo root or frontend/; both files keep the check off either way.
+  for (const file of ['vercel.json', 'frontend/vercel.json']) {
+    it(`${file} disables automatic git deployments`, () => {
+      const config = JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8'));
+      assert.equal(config.git.deploymentEnabled, false);
+      assert.equal(config.$schema, 'https://openapi.vercel.sh/vercel.json');
+    });
+  }
 });
