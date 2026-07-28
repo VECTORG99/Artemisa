@@ -21,7 +21,7 @@ Recommended layout behavior:
 - `src/server.ts` / app bootstrap: wiring only. No business rules hidden in startup.
 - `src/routes` or route modules: HTTP parsing, validation, status codes, response shape.
 - Creator/service modules: deterministic business behavior; no Express request/response objects.
-- `src/creator/*`: deterministic catalog, decision tree and generation logic; valid modules are `catalog.ts`, `decisionTree.ts`, `generator.ts`, `agentProtocol.ts`, `mcpCatalog.ts`, `skillsCatalog.ts`, `modelsCatalog.ts`, and `docs-catalog.ts`; no Express objects, no I/O.
+- `src/creator/*`: deterministic catalog, decision tree and generation logic; valid modules are `catalog.ts`, `catalogQuery.ts`, `decisionTree.ts`, `generator.ts`, `agentProtocol.ts`, `mcpCatalog.ts`, `skillsCatalog.ts`, `modelsCatalog.ts`, and `docs-catalog.ts`; no Express objects, no I/O.
 - `src/kiro/schemas/*.json`: schemas for generated artifacts. Keep them valid and update tests when required.
 - `test/*.test.mjs`: node:test unit and contract checks. Keep fixtures inline unless reused.
 - `docs/*.md`: machine-readable operational documentation. Use concrete paths, rules, and update triggers.

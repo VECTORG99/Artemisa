@@ -8,6 +8,8 @@
  * servers, not the full directory. Update by re-curating from the source.
  */
 
+import { createCatalogQuery } from './catalogQuery.js';
+
 export interface McpCatalogItem {
   id: string;
   name: string;
@@ -872,40 +874,21 @@ export const mcpCatalog: McpCatalogItem[] = [
   },
 ];
 
-const mcpIndex = new Map(mcpCatalog.map((item) => [item.id, item]));
-
-// #407: pre-computed, frozen response for the no-filter hot path.
-const fullMcpResponse = Object.freeze({
+const mcpQuery = createCatalogQuery({
   version: MCP_CATALOG_VERSION,
   items: mcpCatalog,
+  facets: { category: (item) => item.category },
+  searchFields: (item) => [item.name, item.description, ...item.tags],
 });
 
 /** Look up a single MCP server by its catalog id. */
 export function getMcpById(id: string): McpCatalogItem | undefined {
-  return mcpIndex.get(id);
+  return mcpQuery.getById(id);
 }
 
 export function getMcpCatalog(filter?: { category?: string; q?: string }): {
   version: string;
   items: McpCatalogItem[];
 } {
-  // #407: the no-filter response is immutable per deploy; return a frozen
-  // pre-computed instance instead of scanning on every request.
-  if (!filter?.category && !filter?.q) {
-    return fullMcpResponse;
-  }
-  let items = mcpCatalog;
-  if (filter?.category) {
-    items = items.filter((item) => item.category === filter.category);
-  }
-  if (filter?.q) {
-    const q = filter.q.toLowerCase();
-    items = items.filter(
-      (item) =>
-        item.name.toLowerCase().includes(q) ||
-        item.description.toLowerCase().includes(q) ||
-        item.tags.some((tag) => tag.toLowerCase().includes(q)),
-    );
-  }
-  return { version: MCP_CATALOG_VERSION, items };
+  return mcpQuery.query(filter);
 }

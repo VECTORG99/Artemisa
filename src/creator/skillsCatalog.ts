@@ -11,6 +11,8 @@
  * full catalog. Update by re-curating from the source repo's CATALOG.md.
  */
 
+import { createCatalogQuery } from './catalogQuery.js';
+
 export interface SkillCatalogItem {
   id: string;
   name: string;
@@ -576,40 +578,21 @@ export const skillsCatalog: SkillCatalogItem[] = [
   },
 ];
 
-const skillIndex = new Map(skillsCatalog.map((item) => [item.id, item]));
-
-// #407: pre-computed, frozen response for the no-filter hot path.
-const fullSkillsResponse = Object.freeze({
+const skillsQuery = createCatalogQuery({
   version: SKILLS_CATALOG_VERSION,
   items: skillsCatalog,
+  facets: { focus: (item) => item.focus },
+  searchFields: (item) => [item.name, item.description, ...item.tags],
 });
 
 /** Look up a single skill by its catalog id. */
 export function getSkillById(id: string): SkillCatalogItem | undefined {
-  return skillIndex.get(id);
+  return skillsQuery.getById(id);
 }
 
 export function getSkillsCatalog(filter?: { focus?: string; q?: string }): {
   version: string;
   items: SkillCatalogItem[];
 } {
-  // #407: the no-filter response is immutable per deploy; return a frozen
-  // pre-computed instance instead of scanning on every request.
-  if (!filter?.focus && !filter?.q) {
-    return fullSkillsResponse;
-  }
-  let items = skillsCatalog;
-  if (filter?.focus) {
-    items = items.filter((item) => item.focus === filter.focus);
-  }
-  if (filter?.q) {
-    const q = filter.q.toLowerCase();
-    items = items.filter(
-      (item) =>
-        item.name.toLowerCase().includes(q) ||
-        item.description.toLowerCase().includes(q) ||
-        item.tags.some((tag) => tag.toLowerCase().includes(q)),
-    );
-  }
-  return { version: SKILLS_CATALOG_VERSION, items };
+  return skillsQuery.query(filter);
 }

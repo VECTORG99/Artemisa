@@ -29,6 +29,7 @@ Updated: 2026-07-26
   - `features/creator/lib/session.ts` — `sessionStorage` draft, namespaced by workflow version.
   - `features/creator/lib/answer-labels.ts` — id -> human label formatting shared by review and presets.
   - `features/creator/components/option-picker.tsx` — the single option grid (search, chips, `maxSelections`, `custom:<slug>`) used by both the guided flow and the advanced dashboard.
+  - `features/creator/components/catalog-browser.tsx` — the generic searchable/facetable catalog grid; `skills-browser.tsx` and `mcp-browser.tsx` are thin wrappers that supply the endpoint, facet and labels.
 - `frontend/src/lib/api.ts` only talks to `/api/v1/creator/*`; the ephemeral "probar temporalmente" registration was removed with `/api/agents`.
 
 ## Known Limitations
