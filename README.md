@@ -38,11 +38,11 @@ Artemisa genera artefactos nativos para **[Kiro](https://aws.amazon.com/kiro/)**
 | `.kiro/hooks/<agente>-quality.json` | Quality gates automáticos previos a finalizar tareas  |
 | `.kiro/skills/<agente>/SKILL.md`    | Procedimientos reutilizables específicos del agente   |
 
-Cuando seleccionás **Kiro** como target en el árbol de decisiones, el bundle incluye estos archivos dentro de `.kiro/`. Los esquemas que validan estos artefactos están en `src/kiro/schemas/*.json` y se verifican en cada release.
+Cuando seleccionás **Kiro** como target en el árbol de decisiones, el bundle incluye estos archivos dentro de `.kiro/`. Los esquemas de las configuraciones relacionadas (steering, MCPs, RAG y política de seguridad) están en `src/kiro/schemas/*.json` y se validan en CI (`test/kiro-schema.test.mjs`).
 
 ### Landing page
 
-![Landing page de Artemisa — hero con simulación espacial, navegación flotante y CTA al Creator](/docs/images/screenshot-creator.png)
+![Landing page de Artemisa — hero con simulación espacial, navegación flotante y CTA al Creator](docs/images/screenshot-landing.png)
 
 ### Flujo del Creator
 

@@ -8,8 +8,54 @@ on:
 permissions:
   contents: write
 
+# A release mutates master (CHANGELOG + package.json + tag). Two runs in
+# parallel compute the same bumped version, both see the tag as missing and one
+# loses the push, so releases are serialized.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.next.outputs.tag }}
+      version: ${{ steps.next.outputs.version }}
+      skip: ${{ steps.next.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up git-cliff
+        uses: kenji-miyake/setup-git-cliff@v1
+
+      - name: Resolve next version
+        id: next
+        run: |
+          RAW_VERSION=$(git-cliff --config .github/cliff.toml --bumped-version)
+          # git-cliff may return with or without 'v' prefix — normalize
+          CLEAN_VERSION="${RAW_VERSION#v}"
+          if [ -z "$CLEAN_VERSION" ]; then
+            echo "::error::git-cliff returned no version"
+            exit 1
+          fi
+          TAG="v$CLEAN_VERSION"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$CLEAN_VERSION" >> "$GITHUB_OUTPUT"
+          # The release commit pushed to master triggers this workflow again.
+          # On that run the bumped version resolves to the tag just created, so
+          # an existing tag means there is nothing left to release.
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "Tag $TAG already exists — nothing to release"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
   release:
+    needs: check
+    if: needs.check.outputs.skip == 'false'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,34 +70,13 @@ jobs:
       - name: Set up git-cliff
         uses: kenji-miyake/setup-git-cliff@v1
 
-      - name: Check if tag already exists
-        id: check_tag
-        run: |
-          git fetch --tags --force
-          RAW_VERSION=$(git-cliff --config .github/cliff.toml --bumped-version)
-          CLEAN_VERSION="${RAW_VERSION#v}"
-          TAG="v$CLEAN_VERSION"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "version=$CLEAN_VERSION" >> "$GITHUB_OUTPUT"
-          if git tag -l | grep -q "^$TAG$"; then
-            echo "Tag $TAG already exists — skipping release (circular trigger)"
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Exit if tag exists
-        if: steps.check_tag.outputs.skip == 'true'
-        run: exit 0
-
       - run: npm ci
       - run: npm run build
 
-      - name: Get next version
-        id: version
-        run: |
-          echo "tag=${{ steps.check_tag.outputs.tag }}" >> "$GITHUB_OUTPUT"
-          echo "version=${{ steps.check_tag.outputs.version }}" >> "$GITHUB_OUTPUT"
+      # The release commit carries [skip ci], so CI never runs on the commit
+      # that lands on master. Tests run here instead of going out unverified.
+      - run: cp .env.example .env
+      - run: npm run test:all
 
       - name: Generate CHANGELOG.md
         run: git-cliff --config .github/cliff.toml -o docs/CHANGELOG.md
@@ -60,7 +85,7 @@ jobs:
         run: |
           node -e "
           const pkg = JSON.parse(require('fs').readFileSync('./package.json', 'utf-8'));
-          pkg.version = '${{ steps.version.outputs.version }}';
+          pkg.version = '${{ needs.check.outputs.version }}';
           require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
 
@@ -69,14 +94,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/CHANGELOG.md package.json
-          git diff --cached --quiet || git commit -m "chore(release): v${{ steps.version.outputs.version }} [skip ci]"
-          git tag ${{ steps.version.outputs.tag }}
-          git push origin HEAD --tags
+          git diff --cached --quiet || git commit -m "chore(release): v${{ needs.check.outputs.version }} [skip ci]"
+          # Annotated so --follow-tags picks it up (it ignores lightweight tags).
+          git tag -a ${{ needs.check.outputs.tag }} -m "${{ needs.check.outputs.tag }}"
+          # --follow-tags pushes only the tag on the commit being pushed, and
+          # the explicit refspec avoids relying on the checkout's HEAD state.
+          git push origin HEAD:master --follow-tags
 
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create ${{ steps.version.outputs.tag }} \
-            --title "v${{ steps.version.outputs.version }}" \
+          gh release create ${{ needs.check.outputs.tag }} \
+            --title "v${{ needs.check.outputs.version }}" \
             --notes "$(git-cliff --config .github/cliff.toml --latest --strip header)"
