@@ -76,6 +76,39 @@ describe('Playwright config supports the CI job', () => {
   it('keeps forbidOnly in CI so a stray test.only cannot narrow the run', () => {
     assert.match(PW_CONFIG, /forbidOnly: !!process\.env\.CI/);
   });
+
+  it('raises the expect and test timeouts in CI (issue #725)', () => {
+    // The Creator fetches the catalog and the workflow before rendering, so the
+    // 5 s default raced the initial load on the runner.
+    assert.match(PW_CONFIG, /expect: \{ timeout: process\.env\.CI \? 15_000 : 5_000 \}/);
+    assert.match(PW_CONFIG, /timeout: process\.env\.CI \? 60_000 : 30_000/);
+  });
+});
+
+describe('e2e specs wait for the Creator initial load (issue #725)', () => {
+  const dir = path.join(ROOT, 'frontend/e2e');
+
+  it('exposes a shared waitForCreatorReady helper', () => {
+    const helper = fs.readFileSync(path.join(dir, 'helpers.ts'), 'utf8');
+    assert.match(helper, /export async function waitForCreatorReady/);
+    assert.match(helper, /timeout: 30_000/);
+  });
+
+  it('no spec asserts the mode-select heading with the default timeout', () => {
+    for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.spec.ts'))) {
+      const source = fs.readFileSync(path.join(dir, file), 'utf8');
+      const lines = source.split('\n');
+      for (const [index, line] of lines.entries()) {
+        if (!line.includes('quieres configurar tu agente')) continue;
+        const context = lines.slice(index, index + 3).join(' ');
+        assert.match(
+          context,
+          /timeout|waitForCreatorReady/,
+          `${file}:${index + 1} must use waitForCreatorReady or an explicit timeout`,
+        );
+      }
+    }
+  });
 });
 
 describe('frontend e2e specs', () => {

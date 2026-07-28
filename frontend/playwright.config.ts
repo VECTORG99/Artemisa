@@ -9,6 +9,12 @@ export default defineConfig({
   // In CI the GitHub reporter annotates the run and the HTML report is kept as
   // an artifact for failures (issue #712).
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'html',
+  // The Creator mounts in a loading state and fetches the catalog (~106 KB)
+  // plus the workflow before rendering, which can exceed Playwright's 5 s
+  // default on a shared runner (issue #725). Waiting longer only costs time
+  // when something is actually broken.
+  expect: { timeout: process.env.CI ? 15_000 : 5_000 },
+  timeout: process.env.CI ? 60_000 : 30_000,
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
