@@ -16,7 +16,7 @@ export const glassStyle: React.CSSProperties = {
   boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
 };
 
-export type LandingModalId = 'compatibilidad' | 'legal';
+export type LandingModalId = 'legal';
 
 interface LandingModalContextValue {
   openModal: LandingModalId | null;

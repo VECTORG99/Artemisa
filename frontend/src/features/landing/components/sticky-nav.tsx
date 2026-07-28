@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LuRocket, LuFlaskConical, LuPuzzle, LuBookOpen, LuScale, LuGithub, LuUsers } from 'react-icons/lu';
+import { LuRocket, LuFlaskConical, LuBookOpen, LuScale, LuGithub, LuUsers } from 'react-icons/lu';
 import type { IconType } from 'react-icons';
 import { glassStyle, useLandingModal, type LandingModalId } from './landing-modal';
 import { useTranslations } from '@/i18n';
@@ -54,15 +54,6 @@ export function StickyHeader() {
           <LuFlaskConical className="h-3.5 w-3.5" aria-hidden="true" />
           {t.nav.technology}
         </a>
-        <button
-          type="button"
-          aria-label={`${t.nav.compatibility}`}
-          onClick={() => open('compatibilidad')}
-          className="hidden items-center gap-1.5 transition-colors hover:text-white sm:inline-flex"
-        >
-          <LuPuzzle className="h-3.5 w-3.5" aria-hidden="true" />
-          {t.nav.compatibility}
-        </button>
       </nav>
     </header>
   );

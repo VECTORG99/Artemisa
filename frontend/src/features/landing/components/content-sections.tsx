@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { IconType } from 'react-icons';
+import type { CSSProperties } from 'react';
 import {
   SiDocker,
   SiEslint,
@@ -82,26 +83,28 @@ export function HeroSection() {
 // full-viewport scroll-snap section per item.
 
 interface ValuePropMeta {
-  hue: number;
   icon: IconType;
 }
 
-const VALUE_PROPS: ValuePropMeta[] = [
-  { hue: 205, icon: LuGitBranch },
-  { hue: 280, icon: LuScale },
-  { hue: 160, icon: LuLayers },
-];
+const VALUE_PROPS: ValuePropMeta[] = [{ icon: LuGitBranch }, { icon: LuScale }, { icon: LuLayers }];
 
-function ValueIconBox({ icon: Icon, hue }: { icon: IconType; hue: number }) {
+const valueGlassStyle: CSSProperties = {
+  ...glassStyle,
+  position: 'relative',
+  WebkitBackdropFilter: 'blur(24px) saturate(140%)',
+  backdropFilter: 'blur(24px) saturate(140%)',
+  background: 'rgba(255,255,255,0.06)',
+  border: '1px solid rgba(255,255,255,0.12)',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
+};
+
+function ValueIconBox({ icon: Icon }: { icon: IconType }) {
   return (
     <div
-      className="mx-auto flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl"
-      style={{
-        background: `hsla(${hue}, 70%, 45%, 0.12)`,
-        border: `1px solid hsla(${hue}, 70%, 60%, 0.35)`,
-      }}
+      className="mx-auto flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl text-white"
+      style={valueGlassStyle}
     >
-      <Icon className="h-8 w-8" style={{ color: `hsla(${hue}, 80%, 70%, 1)` }} aria-hidden="true" />
+      <Icon className="h-8 w-8" aria-hidden="true" />
     </div>
   );
 }
@@ -112,25 +115,26 @@ function ValuePropsSection() {
   return (
     <section className="flex min-h-screen sm:h-screen snap-start snap-always items-center justify-center px-6">
       <h2 className="sr-only">{t.valuePropsTitle}</h2>
-      <div ref={ref} className="section-content relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
-        {VALUE_PROPS.map((prop, index) => {
-          const copy = t.valueProps[index];
-          if (!copy) return null;
-          return (
-            <div
-              key={copy.title}
-              className={glassCard(
-                'group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1',
-              )}
-            >
-              <ValueIconBox icon={prop.icon} hue={prop.hue} />
-              <h3 className="relative mt-4 text-lg font-bold" style={{ color: `hsla(${prop.hue}, 60%, 78%, 1)` }}>
-                {copy.title}
-              </h3>
-              <p className="relative mt-2 text-sm leading-relaxed text-white/90">{copy.description}</p>
-            </div>
-          );
-        })}
+      <div ref={ref} className="section-content relative z-10 w-full max-w-5xl">
+        <div className="rounded-3xl p-8 sm:p-10" style={valueGlassStyle}>
+          <div className="grid w-full gap-6 sm:grid-cols-3">
+            {VALUE_PROPS.map((prop, index) => {
+              const copy = t.valueProps[index];
+              if (!copy) return null;
+              return (
+                <div
+                  key={copy.title}
+                  className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
+                  style={valueGlassStyle}
+                >
+                  <ValueIconBox icon={prop.icon} />
+                  <h3 className="relative mt-4 text-lg font-bold text-white">{copy.title}</h3>
+                  <p className="relative mt-2 text-sm leading-relaxed text-white/90">{copy.description}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -339,36 +343,11 @@ function LegalModalContent() {
   );
 }
 
-function CompatibilityModalContent() {
-  const t = useTranslations('landing');
-  return (
-    <>
-      <span className="text-xs font-semibold uppercase tracking-wider text-white/80">{t.compatibility.eyebrow}</span>
-      <h2 className="mt-2 text-3xl font-bold text-white">{t.compatibility.title}</h2>
-      <p className="mt-2 max-w-xl text-sm text-white/80">{t.compatibility.subtitle}</p>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        {t.compatibility.stats.map((stat) => (
-          <div key={stat.label} className={glassCard('rounded-xl p-5 text-center')}>
-            <p className="text-3xl font-bold text-white">{stat.value}</p>
-            <p className="mt-1 text-sm text-white/80">{stat.label}</p>
-          </div>
-        ))}
-      </div>
-      <p className="mt-8 text-center text-xs font-medium uppercase tracking-wider text-white/70">
-        {t.compatibility.trust}
-      </p>
-    </>
-  );
-}
-
 function LandingModals() {
   const { openModal, close } = useLandingModal();
   const t = useTranslations('landing');
   return (
     <>
-      <Modal open={openModal === 'compatibilidad'} onClose={close} title={t.compatibility.title}>
-        <CompatibilityModalContent />
-      </Modal>
       <Modal open={openModal === 'legal'} onClose={close} title={t.legal.title}>
         <LegalModalContent />
       </Modal>
