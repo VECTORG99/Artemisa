@@ -4,9 +4,19 @@ All notable changes to this project are documented here.
 
 ### Bug Fixes
 
+- Skip real del Release (job-level) + correcciones del README _(ci)_
+
+## [v1.5.8] - 2026-07-28
+
+### Bug Fixes
+
 - Prevent circular trigger in Release workflow _(ci)_
 
 - Prevent circular trigger in Release workflow _(ci)_
+
+### Chores
+
+- V1.5.8 [skip ci] _(release)_
 
 ### Documentation
 
