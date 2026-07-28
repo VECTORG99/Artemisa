@@ -77,74 +77,6 @@ export function HeroSection() {
   );
 }
 
-// ─── Shared RGB palette ─────────────────────────────────────────────────────
-// One solid colour from this project palette is assigned to each component in
-// order, instead of using multi-colour gradients per element.
-
-const RGB_PALETTE = [
-  'rgb(255, 80, 80)',
-  'rgb(255, 220, 80)',
-  'rgb(120, 255, 100)',
-  'rgb(80, 220, 255)',
-  'rgb(120, 100, 255)',
-  'rgb(255, 100, 220)',
-];
-
-function withAlpha(rgb: string, alpha: number) {
-  return rgb.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`);
-}
-
-// ─── Compatibility highlights ───────────────────────────────────────────────
-// Hard data from the compatibility catalog surfaced directly on the landing
-// page, right below the hero and above the value propositions. Uses the
-// standard liquid-glass system with one palette colour per stat card.
-
-function CompatibilityStatsSection() {
-  const t = useTranslations('landing');
-  const ref = useSectionFadeIn<HTMLDivElement>();
-
-  const stats = t.compatibility.stats;
-
-  return (
-    <section className="flex min-h-screen sm:h-screen snap-start snap-always items-center justify-center px-6">
-      <div
-        ref={ref}
-        className={glassPanel(
-          'section-content relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl p-8 text-center sm:p-12',
-        )}
-      >
-        <span className="text-xs font-semibold uppercase tracking-wider text-white/80">{t.compatibility.eyebrow}</span>
-        <h2 className="mt-2 text-3xl font-bold text-white sm:text-4xl">{t.compatibility.title}</h2>
-        <p className="mx-auto mt-2 max-w-2xl text-sm text-white/80 sm:text-base">{t.compatibility.subtitle}</p>
-
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-          {stats.map((stat, index) => {
-            const color = RGB_PALETTE[index % RGB_PALETTE.length];
-            return (
-              <div
-                key={stat.label}
-                className={glassCard(
-                  'group relative overflow-hidden rounded-2xl p-4 text-center transition-all duration-300 hover:-translate-y-1 sm:p-5',
-                )}
-                style={{
-                  borderColor: withAlpha(color, 0.25),
-                  boxShadow: `0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 ${withAlpha(color, 0.15)}`,
-                }}
-              >
-                <div className="absolute inset-x-0 top-0 h-0.5" style={{ background: color }} />
-                <p className="text-3xl font-bold sm:text-4xl" style={{ color }}>
-                  {stat.value}
-                </p>
-                <p className="mt-1 text-xs text-white/80 sm:text-sm">{stat.label}</p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // ─── Value propositions ─────────────────────────────────────────────────────
 // Three, not four — consolidated onto a single screen instead of one
 // full-viewport scroll-snap section per item.
@@ -349,7 +281,6 @@ function FinalCtaSection() {
 export function ContentSections() {
   return (
     <>
-      <CompatibilityStatsSection />
       <ValuePropsSection />
       <TechStackSection />
       <FinalCtaSection />
