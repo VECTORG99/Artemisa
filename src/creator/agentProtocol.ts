@@ -174,14 +174,15 @@ export function processAgentAnswer(body: unknown): AgentAnswerResponse {
       issues: evaluation.issues,
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Error procesando respuestas.';
-    const issues = error instanceof CreatorInputError ? error.issues : [{ path: 'answers', message }];
+    // Only invalid input becomes an issues response; anything else is a bug and
+    // must reach the error handler so it is logged and answered with a 500.
+    if (!(error instanceof CreatorInputError)) throw error;
     return {
       progress: { answered: 0, total: 0, percent: 0, complete: false },
       next_question: undefined,
       recommendations_so_far: [],
-      warnings: [message],
-      issues,
+      warnings: [error.message],
+      issues: error.issues,
     };
   }
 }
