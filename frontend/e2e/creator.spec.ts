@@ -68,7 +68,7 @@ async function completeFlow(page: Page, maxSteps: number) {
     )
       return;
     await answerCurrentQuestion(page);
-    const advance = page.getByRole('button', { name: /Continuar|Guardar y volver/ });
+    const advance = page.getByRole('button', { name: /Continuar|Guardar/ });
     await expect(advance).toBeEnabled();
     await advance.click();
     await page.waitForTimeout(250);
@@ -93,9 +93,9 @@ test('auto-corto reaches review and generates a bundle', async ({ page }) => {
   await expect(page.getByText('¿Cómo se llamará el agente?')).toBeVisible();
   await expect(page.locator('body')).not.toContainText('agent_name');
 
-  await page.getByRole('button', { name: /^Generar agente$/ }).click();
+  await page.getByRole('button', { name: /^Generar configuración$/ }).click();
   await expect(page.getByRole('heading', { name: /.+/, level: 2 }).first()).toBeVisible();
-  await expect(page.getByText(/artefactos listos para revisar/)).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText(/artefactos listos/)).toBeVisible({ timeout: 15000 });
 
   // The application guide and the manifest hashes must both be reachable.
   await page.getByRole('button', { name: /Cómo aplicarlo/ }).click();
@@ -164,8 +164,8 @@ test('auto-largo walks the whole tree and generates a bundle', async ({ page }) 
   }
 
   await expect(page.getByRole('heading', { name: /Confirma antes de generar/ })).toBeVisible({ timeout: 15000 });
-  await page.getByRole('button', { name: /^Generar agente$/ }).click();
-  await expect(page.getByText(/artefactos listos para revisar/)).toBeVisible({ timeout: 20000 });
+  await page.getByRole('button', { name: /^Generar configuración$/ }).click();
+  await expect(page.getByText(/artefactos listos/)).toBeVisible({ timeout: 20000 });
 });
 
 test('the back button actually returns to the previous question', async ({ page }) => {
@@ -206,7 +206,7 @@ test('presets validate against the backend and open review', async ({ page }) =>
     .first()
     .click();
   await expect(page.getByRole('heading', { name: /Confirma antes de generar/ })).toBeVisible({ timeout: 15000 });
-  await expect(page.getByRole('button', { name: /^Generar agente$/ })).toBeEnabled();
+  await expect(page.getByRole('button', { name: /^Generar configuración$/ })).toBeEnabled();
 });
 
 test('review lets a single answer be edited and returns to review', async ({ page }) => {
@@ -221,7 +221,7 @@ test('review lets a single answer be edited and returns to review', async ({ pag
   await expect(page.getByRole('heading', { name: /¿Cómo se llamará el agente\?/ })).toBeVisible();
 
   await page.locator('input[type="text"]').first().fill('editado-por-e2e');
-  await page.getByRole('button', { name: /Guardar y volver/ }).click();
+  await page.getByRole('button', { name: /^Guardar$/ }).click();
 
   await expect(page.getByRole('heading', { name: /Confirma antes de generar/ })).toBeVisible({ timeout: 15000 });
   await expect(page.getByText('editado-por-e2e')).toBeVisible();
@@ -232,12 +232,14 @@ test('advanced mode blocks generation until every required answer exists', async
 
   const generate = page.getByRole('button', { name: /Revisar y generar/ });
   await expect(generate).toBeDisabled();
-  await expect(page.getByText(/Faltan \d+ respuestas obligatorias/)).toBeVisible();
+  await expect(page.getByText(/Faltan \d+ respuesta\(s\) obligatoria\(s\)/)).toBeVisible();
 
-  // The rail must name what is blocking, and clicking it must navigate there.
-  const blocking = page.getByRole('button', { name: /¿Cómo se llamará el agente\?/ }).first();
-  await expect(blocking).toBeVisible();
-  await blocking.click();
+  // The sections nav must expose which section is still incomplete and
+  // navigate to its questions (the dashboard groups blockers by section
+  // instead of listing every pending question).
+  const sections = page.getByRole('navigation', { name: /secciones|sections/i });
+  await expect(sections).toBeVisible();
+  await sections.getByRole('button', { name: /Identidad/ }).click();
   await expect(page.locator('#advanced-question-agent_name')).toBeVisible();
 
   // Global search spans sections.

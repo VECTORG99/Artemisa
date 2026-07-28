@@ -27,6 +27,59 @@ jobs:
           path: coverage/
         if: always()
 
+  e2e:
+    # Playwright lives in ci-extended (not ci.yml) so it does not add browser
+    # download + Next build to every PR (issue #712). It is the only coverage
+    # that exercises the Creator flow against a live backend.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: cp .env.example .env
+      - name: Install Playwright chromium
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Build frontend
+        # NEXT_PUBLIC_* is inlined at build time, so the API URL has to point at
+        # the local backend here, not at run time.
+        run: npm --prefix frontend run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+      - name: Start backend
+        run: |
+          AUTH_REQUIRED=false PORT=3001 npm run start > /tmp/backend.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3001/api/health > /dev/null 2>&1; then
+              echo "Backend healthy after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Backend failed to start within 30s"
+          cat /tmp/backend.log
+          exit 1
+      - name: Run Playwright e2e
+        # playwright.config.ts starts `next start` on :3000 when CI is set.
+        run: npm --prefix frontend run test:e2e
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          retention-days: 7
+      - name: Backend log
+        if: failure()
+        run: cat /tmp/backend.log || true
+
   docker-build:
     runs-on: ubuntu-latest
     continue-on-error: true
