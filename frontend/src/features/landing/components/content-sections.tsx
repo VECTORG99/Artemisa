@@ -154,21 +154,46 @@ interface ValuePropMeta {
 
 const VALUE_PROPS: ValuePropMeta[] = [{ icon: LuGitBranch }, { icon: LuScale }, { icon: LuLayers }];
 
-const valueGlassStyle: CSSProperties = {
+/**
+ * Liquid glass for the value cards: deeper blur and a slightly stronger tint
+ * than the shared `glassStyle`, plus an inset top highlight so the card edge
+ * catches light instead of dissolving into the starfield.
+ *
+ * Single layer by design: in Chromium an element with `backdrop-filter`
+ * becomes a backdrop root, so a glass card nested inside another glass
+ * surface only samples that surface (empty) and renders with no blur at all.
+ * The cards therefore sit directly on the section grid, never inside an
+ * outer glass panel.
+ *
+ * Exported for tests: jsdom drops `backdrop-filter` from inline styles, so
+ * the blur can only be asserted on this object.
+ */
+export const valueGlassStyle: CSSProperties = {
   ...glassStyle,
   position: 'relative',
-  WebkitBackdropFilter: 'blur(24px) saturate(140%)',
-  backdropFilter: 'blur(24px) saturate(140%)',
+  WebkitBackdropFilter: 'blur(24px) saturate(150%)',
+  backdropFilter: 'blur(24px) saturate(150%)',
   background: 'rgba(255,255,255,0.06)',
-  border: '1px solid rgba(255,255,255,0.12)',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
+  border: '1px solid rgba(255,255,255,0.14)',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
+};
+
+/**
+ * Tint only — no `backdrop-filter`. The icon box lives inside a glass card,
+ * where an extra blur layer would be inert (see `valueGlassStyle`), so the
+ * depth comes from the tint and the inset highlight instead.
+ */
+const valueIconStyle: CSSProperties = {
+  background: 'rgba(255,255,255,0.08)',
+  border: '1px solid rgba(255,255,255,0.16)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
 };
 
 function ValueIconBox({ icon: Icon }: { icon: IconType }) {
   return (
     <div
       className="mx-auto flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl text-white"
-      style={valueGlassStyle}
+      style={valueIconStyle}
     >
       <Icon className="h-8 w-8" aria-hidden="true" />
     </div>
@@ -181,26 +206,28 @@ function ValuePropsSection() {
   return (
     <section className="flex min-h-screen sm:h-screen snap-start snap-always items-center justify-center px-6">
       <h2 className="sr-only">{t.valuePropsTitle}</h2>
-      <div ref={ref} className="section-content relative z-10 w-full max-w-5xl">
-        <div className="rounded-3xl p-8 sm:p-10" style={valueGlassStyle}>
-          <div className="grid w-full gap-6 sm:grid-cols-3">
-            {VALUE_PROPS.map((prop, index) => {
-              const copy = t.valueProps[index];
-              if (!copy) return null;
-              return (
-                <div
-                  key={copy.title}
-                  className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
-                  style={valueGlassStyle}
-                >
-                  <ValueIconBox icon={prop.icon} />
-                  <h3 className="relative mt-4 text-lg font-bold text-white">{copy.title}</h3>
-                  <p className="relative mt-2 text-sm leading-relaxed text-white/90">{copy.description}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      <div ref={ref} className="section-content relative z-10 grid w-full max-w-5xl gap-6 sm:grid-cols-3">
+        {VALUE_PROPS.map((prop, index) => {
+          const copy = t.valueProps[index];
+          if (!copy) return null;
+          return (
+            <div
+              key={copy.title}
+              data-testid="value-prop-card"
+              className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
+              style={valueGlassStyle}
+            >
+              {/* Specular sheen — the highlight that sells the liquid glass. */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.10] via-transparent to-transparent"
+              />
+              <ValueIconBox icon={prop.icon} />
+              <h3 className="relative mt-4 text-lg font-bold text-white">{copy.title}</h3>
+              <p className="relative mt-2 text-sm leading-relaxed text-white/90">{copy.description}</p>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
