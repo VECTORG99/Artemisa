@@ -89,7 +89,10 @@ const VALUE_PROPS: ValuePropMeta[] = [{ icon: LuGitBranch }, { icon: LuScale }, 
 
 function ValueIconBox({ icon: Icon }: { icon: IconType }) {
   return (
-    <div className={glassCard('mx-auto flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl text-white')}>
+    <div
+      className="mx-auto flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl text-white"
+      style={glassStyle}
+    >
       <Icon className="h-8 w-8" aria-hidden="true" />
     </div>
   );
@@ -102,7 +105,7 @@ function ValuePropsSection() {
     <section className="flex min-h-screen sm:h-screen snap-start snap-always items-center justify-center px-6">
       <h2 className="sr-only">{t.valuePropsTitle}</h2>
       <div ref={ref} className="section-content relative z-10 w-full max-w-5xl">
-        <div className={glassPanel('rounded-3xl p-8 sm:p-10')}>
+        <div className="rounded-3xl p-8 sm:p-10" style={glassStyle}>
           <div className="grid w-full gap-6 sm:grid-cols-3">
             {VALUE_PROPS.map((prop, index) => {
               const copy = t.valueProps[index];
@@ -110,9 +113,8 @@ function ValuePropsSection() {
               return (
                 <div
                   key={copy.title}
-                  className={glassCard(
-                    'group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1',
-                  )}
+                  className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
+                  style={glassStyle}
                 >
                   <ValueIconBox icon={prop.icon} />
                   <h3 className="relative mt-4 text-lg font-bold text-white">{copy.title}</h3>
