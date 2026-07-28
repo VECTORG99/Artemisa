@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { IconType } from 'react-icons';
+import type { CSSProperties } from 'react';
 import {
   SiDocker,
   SiEslint,
@@ -87,11 +88,21 @@ interface ValuePropMeta {
 
 const VALUE_PROPS: ValuePropMeta[] = [{ icon: LuGitBranch }, { icon: LuScale }, { icon: LuLayers }];
 
+const valueGlassStyle: CSSProperties = {
+  ...glassStyle,
+  position: 'relative',
+  WebkitBackdropFilter: 'blur(24px) saturate(140%)',
+  backdropFilter: 'blur(24px) saturate(140%)',
+  background: 'rgba(255,255,255,0.06)',
+  border: '1px solid rgba(255,255,255,0.12)',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
+};
+
 function ValueIconBox({ icon: Icon }: { icon: IconType }) {
   return (
     <div
       className="mx-auto flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl text-white"
-      style={glassStyle}
+      style={valueGlassStyle}
     >
       <Icon className="h-8 w-8" aria-hidden="true" />
     </div>
@@ -105,7 +116,7 @@ function ValuePropsSection() {
     <section className="flex min-h-screen sm:h-screen snap-start snap-always items-center justify-center px-6">
       <h2 className="sr-only">{t.valuePropsTitle}</h2>
       <div ref={ref} className="section-content relative z-10 w-full max-w-5xl">
-        <div className="rounded-3xl p-8 sm:p-10" style={glassStyle}>
+        <div className="rounded-3xl p-8 sm:p-10" style={valueGlassStyle}>
           <div className="grid w-full gap-6 sm:grid-cols-3">
             {VALUE_PROPS.map((prop, index) => {
               const copy = t.valueProps[index];
@@ -114,7 +125,7 @@ function ValuePropsSection() {
                 <div
                   key={copy.title}
                   className="group relative overflow-hidden rounded-3xl p-7 text-center transition-transform duration-300 hover:-translate-y-1"
-                  style={glassStyle}
+                  style={valueGlassStyle}
                 >
                   <ValueIconBox icon={prop.icon} />
                   <h3 className="relative mt-4 text-lg font-bold text-white">{copy.title}</h3>
