@@ -1,0 +1,21 @@
+Artemisa
+Copyright (c) 2026 Artemisa and its contributors
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+The full, unmodified text of the license lives in `LICENSE`. That file
+must stay byte-identical to the canonical MPL-2.0 text so GitHub's
+license detector (Licensee) keeps reporting `MPL-2.0`; any project
+notice belongs in this file instead.
+
+Authors and contributors
+------------------------
+
+The list of authors and contributors is the project's Git history:
+
+    git shortlog -sne
+
+Third-party dependencies keep their own licenses; see each package in
+`node_modules` or the lockfiles for details.
