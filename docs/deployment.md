@@ -211,13 +211,13 @@ A Vercel project was still connected to the repository while production lives on
 Vercel's Git deployments are therefore disabled from the repository itself:
 
 ```json
-// vercel.json (and frontend/vercel.json)
+// vercel.json (also frontend/vercel.json and agent-creator/vercel.json)
 {
   "git": { "deploymentEnabled": false }
 }
 ```
 
-`git.deploymentEnabled: false` turns off automatic deployments for every branch, so no Vercel check is posted on pull requests. The file is duplicated because Vercel reads `vercel.json` from the project's **Root Directory**, which may be the repo root or `frontend/` depending on how the project was created; keeping both covers either setting. Existing deployments are untouched and re-enabling is a one-line change.
+`git.deploymentEnabled: false` turns off automatic deployments for every branch, so no Vercel check is posted on pull requests. The flag lives in all three `vercel.json` of the repo (root, `frontend/` and `agent-creator/`) because Vercel reads it from the project's **Root Directory**, which may be any of them depending on how the project was created. Existing deployments are untouched and re-enabling is a one-line change.
 
 To remove the integration entirely instead, disconnect it in the Vercel project (Project → Settings → Git → Disconnect). Only checks produced by `.github/workflows/*` gate merges.
 
