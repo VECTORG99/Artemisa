@@ -4,6 +4,26 @@ All notable changes to this project are documented here.
 
 ### Bug Fixes
 
+- Replace OG image with SPR branding _(meta)_
+
+- Address 9 high-severity npm audit vulnerabilities (postcss, sharp, glob)
+
+- Traduce el árbol de decisiones al inglés en la UI (#740) _(creator)_
+
+- La documentación en inglés muestra el índice completo (#736) _(docs)_
+
+### Documentation
+
+- Corrige el spot-check de contenido del runbook (#739) _(deploy)_
+
+### Other
+
+- Development → master (sprint 2) _(other)_
+
+## [v1.5.2] - 2026-07-28
+
+### Bug Fixes
+
 - Separa los artefactos comunes del grupo Portátil _(creator)_
 
 - Separa los artefactos comunes del grupo Portátil _(creator)_
@@ -27,6 +47,8 @@ All notable changes to this project are documented here.
 - Ejecuta los tests de Vitest y el typecheck del frontend en CI
 
 ### Chores
+
+- V1.5.2 _(release)_
 
 - Formatea el repo y hace bloqueante el Format check _(ci)_
 
