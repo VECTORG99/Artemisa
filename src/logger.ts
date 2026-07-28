@@ -5,6 +5,34 @@ const production = process.env.NODE_ENV === 'production';
 
 export const logger = pino({
   level: process.env.LOG_LEVEL || 'info',
+  // Credentials must never reach the log stream, even when a whole request,
+  // header bag or config object is logged by accident.
+  redact: {
+    paths: [
+      'req.headers.authorization',
+      'req.headers["x-api-key"]',
+      'req.headers["x-metrics-token"]',
+      'headers.authorization',
+      'headers["x-api-key"]',
+      'headers["x-metrics-token"]',
+      'authorization',
+      'apiKey',
+      'api_key',
+      'token',
+      'secret',
+      'password',
+      'ARTEMISA_API_KEYS',
+      'BYPASS_SECRET',
+      'METRICS_SECRET',
+      '*.authorization',
+      '*.apiKey',
+      '*.api_key',
+      '*.token',
+      '*.secret',
+      '*.password',
+    ],
+    censor: '[REDACTED]',
+  },
   transport: production
     ? undefined
     : {

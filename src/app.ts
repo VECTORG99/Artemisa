@@ -16,9 +16,19 @@ import { createHealthRouter } from './routes/health.js';
 import { createMetricsState, metricsMiddleware, metricsRouter } from './routes/metrics.js';
 import { openApiRouter } from './routes/openapi.js';
 import { createDebugState, debugMiddleware, debugRouter } from './routes/debug.js';
+import { ApiError, ErrorCodes } from './errors.js';
 import { logger } from './logger.js';
 
 export const app = express();
+
+// Rate limiting keys on req.ip, which is the proxy address unless Express is
+// told how many proxy hops to trust — one client would otherwise consume the
+// global limit for every user behind the same proxy. Off by default: enabling
+// it without a proxy in front lets clients spoof X-Forwarded-For.
+const trustProxy = (process.env.TRUST_PROXY || '').trim();
+if (trustProxy && trustProxy !== 'false') {
+  app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy === 'true' ? true : trustProxy);
+}
 const metricsState = createMetricsState();
 const debugState = createDebugState();
 
@@ -57,14 +67,14 @@ app.use(
       // Block 'null' origin explicitly (file://, sandboxed iframes)
       if (origin === 'null') {
         logger.warn({ origin }, '[CORS] Blocked null origin request');
-        callback(new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'null origin not allowed', 403));
+        callback(new ApiError(ErrorCodes.API_CORS_FORBIDDEN, 'Origin not allowed by CORS', 403));
         return;
       }
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         logger.warn({ origin }, '[CORS] Blocked request from origin');
-        callback(new ApiError(ErrorCodes.API_VALIDATION_ERROR, `Origin ${origin} not allowed by CORS`, 403));
+        callback(new ApiError(ErrorCodes.API_CORS_FORBIDDEN, 'Origin not allowed by CORS', 403));
       }
     },
     credentials: true,

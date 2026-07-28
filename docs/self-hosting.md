@@ -37,6 +37,11 @@ METRICS_SECRET=yet-another-long-random-string
 # CORS — list your frontend origins
 CORS_ALLOWED_ORIGINS=https://your-domain.com
 
+# Public origin advertised to AI agents (do not let request headers decide it)
+PUBLIC_BASE_URL=https://api.your-domain.com
+# Trusted proxy hops, so rate limiting sees the real client IP
+TRUST_PROXY=1
+
 # Optional
 PORT=3001
 HOST=127.0.0.1    # bind to localhost; reverse proxy handles public traffic
@@ -208,6 +213,8 @@ RestartSec=10
 - [ ] `BYPASS_SECRET` set (emergency override, auto-redacted from logs)
 - [ ] `METRICS_SECRET` set (protects `/api/metrics`)
 - [ ] `CORS_ALLOWED_ORIGINS` lists only your frontend origins
+- [ ] `PUBLIC_BASE_URL` set to your public API origin (agent onboarding URLs)
+- [ ] `TRUST_PROXY=1` when behind a reverse proxy (per-client rate limiting)
 - [ ] TLS terminated at the reverse proxy
 - [ ] Backend binds to `127.0.0.1` (not `0.0.0.0`) when behind a proxy
 - [ ] `LOG_LEVEL=info` or higher in production (not `debug`)
