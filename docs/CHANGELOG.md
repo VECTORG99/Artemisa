@@ -4,9 +4,19 @@ All notable changes to this project are documented here.
 
 ### Bug Fixes
 
+- Make husky CI-safe for Netlify/DO builds
+
+## [v1.4.0] - 2026-07-27
+
+### Bug Fixes
+
 - Reubicar botón de idioma a la derecha en modo creación _(creator)_
 
 - Reubicar botón de idioma a la derecha en modo creación (#689). _(creator)_
+
+### Chores
+
+- V1.4.0 _(release)_
 
 ### Documentation
 
