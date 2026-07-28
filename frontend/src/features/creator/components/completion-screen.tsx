@@ -28,7 +28,7 @@ interface CompletionScreenProps {
 }
 
 type Tab = 'apply' | 'files' | 'platforms' | 'manifest';
-type PlatformKey = 'cursor' | 'devin-desktop' | 'coderabbit' | 'kilo-code' | 'kiro' | 'portable';
+type PlatformKey = 'cursor' | 'devin-desktop' | 'coderabbit' | 'kilo-code' | 'kiro' | 'portable' | 'shared';
 
 const KIND_ICONS: Record<ArtifactKind, React.ComponentType<{ className?: string }>> = {
   configuration: LuServerCog,
@@ -42,16 +42,42 @@ const KIND_ICONS: Record<ArtifactKind, React.ComponentType<{ className?: string 
   'kilocode-rules': LuFileCode2,
 };
 
-function getArtifactPlatform(path: string): PlatformKey {
+/**
+ * Artefacts that every bundle carries regardless of the selected targets:
+ * the canonical blueprint, the manifest, the docs and the shared integration
+ * files. They are not configuration for any platform, so grouping them under
+ * `portable` told the user to apply them as portable-target files (#732).
+ */
+function isSharedArtifact(path: string): boolean {
+  if (path.startsWith('docs/') || path.startsWith('artemisa/')) return true;
+  return path === 'blueprint.json' || path === 'manifest.json' || path === 'PROMPT.md' || path === 'mcp.json';
+}
+
+/**
+ * Maps an artifact path to the platform that consumes it. Exported for tests:
+ * the grouping is derived from the generator's real paths, so it must be
+ * checked against them rather than against a hand-written list.
+ */
+export function getArtifactPlatform(path: string): PlatformKey {
   if (path === '.cursorrules' || path.startsWith('.cursor/')) return 'cursor';
   if (path === '.windsurfrules' || path.startsWith('.windsurf/')) return 'devin-desktop';
   if (path === '.coderabbit.yaml') return 'coderabbit';
   if (path === '.kilocodemodes' || path.startsWith('.kilocode/')) return 'kilo-code';
   if (path.startsWith('.kiro/')) return 'kiro';
+  if (isSharedArtifact(path)) return 'shared';
+  // AGENTS.md and skills/** are what the portable target actually applies.
   return 'portable';
 }
 
-const PLATFORM_ORDER: PlatformKey[] = ['cursor', 'devin-desktop', 'coderabbit', 'kilo-code', 'kiro', 'portable'];
+const PLATFORM_ORDER: PlatformKey[] = [
+  'cursor',
+  'devin-desktop',
+  'coderabbit',
+  'kilo-code',
+  'kiro',
+  'portable',
+  'shared',
+];
 
 function downloadArtifact(artifact: GeneratedArtifact) {
   downloadFile(artifact.path.replace(/\//g, '__'), artifact.content, artifact.mediaType);
