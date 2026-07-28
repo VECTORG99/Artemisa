@@ -4,6 +4,12 @@ All notable changes to this project are documented here.
 
 ### Bug Fixes
 
+- Force remount DynamicQuestion on question change _(creator)_
+
+## [v1.5.3] - 2026-07-28
+
+### Bug Fixes
+
 - Replace OG image with SPR branding _(meta)_
 
 - Address 9 high-severity npm audit vulnerabilities (postcss, sharp, glob)
@@ -11,6 +17,10 @@ All notable changes to this project are documented here.
 - Traduce el árbol de decisiones al inglés en la UI (#740) _(creator)_
 
 - La documentación en inglés muestra el índice completo (#736) _(docs)_
+
+### Chores
+
+- V1.5.3 _(release)_
 
 ### Documentation
 
