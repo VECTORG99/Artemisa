@@ -14,7 +14,7 @@ const requiredHeadings = [
 ];
 
 test('ADR markdown files contain required headings', async () => {
-  const files = (await readdir(adrDir)).filter(file => file.endsWith('.md'));
+  const files = (await readdir(adrDir)).filter((file) => file.endsWith('.md'));
   assert.ok(files.length >= 3, 'template plus at least 2 ADRs expected');
 
   for (const file of files) {

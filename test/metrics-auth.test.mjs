@@ -38,11 +38,18 @@ describe('Metrics Endpoint Auth (issue #76)', () => {
   });
 
   it('sanitized output does not expose full path details', () => {
-    const metrics = { totalRequests: 100, requestsByPath: { '/api/v1/creator/evaluate': 50, '/api/health': 30, '/api/v1/creator/catalog': 20 }, errorsByPath: { '/api/v1/creator/evaluate': 5 } };
+    const metrics = {
+      totalRequests: 100,
+      requestsByPath: { '/api/v1/creator/evaluate': 50, '/api/health': 30, '/api/v1/creator/catalog': 20 },
+      errorsByPath: { '/api/v1/creator/evaluate': 5 },
+    };
     const safeMetrics = {
       totalRequests: metrics.totalRequests,
       totalErrors: Object.values(metrics.errorsByPath).reduce((a, b) => a + b, 0),
-      topPaths: Object.entries(metrics.requestsByPath).sort(([,a], [,b]) => b - a).slice(0, 10).map(([path, count]) => ({ path, count })),
+      topPaths: Object.entries(metrics.requestsByPath)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 10)
+        .map(([path, count]) => ({ path, count })),
     };
     assert.equal(safeMetrics.totalErrors, 5);
     assert.equal(safeMetrics.topPaths[0].path, '/api/v1/creator/evaluate');

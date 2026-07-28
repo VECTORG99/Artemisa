@@ -33,12 +33,15 @@ describe('E2E: Full Agent Creation — TypeScript Security Reviewer (Development
     answers.purpose = 'security';
     evaluation = evaluateDecisionTree(answers);
     assert.equal(evaluation.nextQuestion.id, 'objective');
-    console.log(`    ✓ Progress: ${evaluation.progress.percent}% (${evaluation.progress.answered}/${evaluation.progress.total})`);
+    console.log(
+      `    ✓ Progress: ${evaluation.progress.percent}% (${evaluation.progress.answered}/${evaluation.progress.total})`,
+    );
   });
 
   it('Step 4: Complete identity section → moves to project', () => {
     answers.objective = 'Detectar vulnerabilidades en código TypeScript antes de merge, priorizando OWASP Top 10.';
-    answers.success_criteria = 'Cada PR recibe un reporte con hallazgos clasificados por severidad y evidencia reproducible.';
+    answers.success_criteria =
+      'Cada PR recibe un reporte con hallazgos clasificados por severidad y evidencia reproducible.';
     evaluation = evaluateDecisionTree(answers);
     assert.equal(evaluation.nextQuestion.id, 'project_stage');
     assert.equal(evaluation.nextQuestion.section, 'Proyecto');
@@ -136,7 +139,8 @@ describe('E2E: Full Agent Creation — TypeScript Security Reviewer (Development
       `.kiro/hooks/${slug}-quality.json`,
       `.kiro/skills/${slug}/SKILL.md`,
       `skills/${slug}/SKILL.md`,
-    ]) assert.ok(paths.includes(expected), `missing ${expected}`);
+    ])
+      assert.ok(paths.includes(expected), `missing ${expected}`);
 
     console.log('    ✓ All expected artifact paths present');
   });
@@ -207,7 +211,14 @@ describe('E2E: Full Agent Creation — TypeScript Security Reviewer (Development
     const manifest = JSON.parse(bundle.artifacts.find((a) => a.path === 'manifest.json').content);
     assert.deepEqual(manifest.targets.sort(), bundle.blueprint.agent.targets.sort());
     const kinds = new Set(manifest.files.map((f) => f.kind));
-    for (const kind of ['cursor-rules', 'devin-rules', 'coderabbit-config', 'kilocode-rules', 'agents-md', 'configuration']) {
+    for (const kind of [
+      'cursor-rules',
+      'devin-rules',
+      'coderabbit-config',
+      'kilocode-rules',
+      'agents-md',
+      'configuration',
+    ]) {
       assert.ok(kinds.has(kind), `manifest should include kind ${kind}`);
     }
     console.log('    ✓ Manifest lists all targets and artifact kinds');

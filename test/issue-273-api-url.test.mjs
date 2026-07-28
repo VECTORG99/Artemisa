@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 describe('Issue #273: Frontend API URL safe default', () => {
-
   it('defaults to localhost:3001, not a production URL', () => {
     const api = fs.readFileSync('frontend/src/lib/api.ts', 'utf8');
     assert.match(api, /NEXT_PUBLIC_API_URL.*\|\|.*['"]http:\/\/localhost:3001['"]/);

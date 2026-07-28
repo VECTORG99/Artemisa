@@ -12,12 +12,17 @@ async function assertJson(method, path, body, expectedStatus, expectedKey) {
   const res = await fetch(`${BASE}${path}`, opts);
   const data = await res.json();
   // Support both legacy { error } and RFC 7807 { title, issues } formats
-  const keyPresent = data[expectedKey] !== undefined
-    || (expectedKey === 'error' && (data.title !== undefined || data.issues !== undefined));
+  const keyPresent =
+    data[expectedKey] !== undefined ||
+    (expectedKey === 'error' && (data.title !== undefined || data.issues !== undefined));
   const ok = res.status === expectedStatus && keyPresent;
   const label = `${method} ${path} -> ${res.status} ${ok ? 'PASS' : 'FAIL'}`;
   console.log(label);
-  if (ok) passed++; else { failed++; console.log('  expected:', expectedStatus, 'got:', res.status, JSON.stringify(data).slice(0, 200)); }
+  if (ok) passed++;
+  else {
+    failed++;
+    console.log('  expected:', expectedStatus, 'got:', res.status, JSON.stringify(data).slice(0, 200));
+  }
   if (!ok) throw new Error(`Test failed: ${method} ${path}`);
   return data;
 }
@@ -33,8 +38,8 @@ const proc = spawn('npx', ['tsx', 'src/server.ts'], {
   },
   stdio: ['ignore', 'pipe', 'pipe'],
 });
-proc.stdout.on('data', d => process.stdout.write(`[server] ${d}`));
-proc.stderr.on('data', d => process.stderr.write(`[server:err] ${d}`));
+proc.stdout.on('data', (d) => process.stdout.write(`[server] ${d}`));
+proc.stderr.on('data', (d) => process.stderr.write(`[server:err] ${d}`));
 
 for (let i = 0; i < 30; i++) {
   try {
@@ -57,15 +62,26 @@ try {
   if (partial.nextQuestion?.id !== 'agent_name') throw new Error('Creator did not start with agent_name');
   await assertJson('POST', '/api/v1/creator/preview', { answers: { agent_name: 'Incomplete' } }, 422, 'error');
   await assertJson('POST', '/api/v1/creator/evaluate', { answers: {}, workflowVersion: '0.0.0' }, 409, 'error');
-  const preview = await assertJson('POST', '/api/v1/creator/preview', { answers: developmentAnswers, workflowVersion: '1.0.0', catalogVersion: '1.0.0' }, 200, 'artifacts');
-  if (!preview.artifacts.some(file => file.path === 'docs/WHY.md')) throw new Error('Preview missing WHY documentation');
+  const preview = await assertJson(
+    'POST',
+    '/api/v1/creator/preview',
+    { answers: developmentAnswers, workflowVersion: '1.0.0', catalogVersion: '1.0.0' },
+    200,
+    'artifacts',
+  );
+  if (!preview.artifacts.some((file) => file.path === 'docs/WHY.md'))
+    throw new Error('Preview missing WHY documentation');
 
   // The runtime was removed (#584): its routes must no longer exist.
   for (const removed of ['/api/agent/execute', '/api/history', '/api/roles', '/api/rag/sources']) {
     const removedRes = await fetch(`${BASE}${removed}`, { method: 'GET' });
     const removedOk = removedRes.status === 404;
     console.log(`GET ${removed} -> ${removedRes.status} ${removedOk ? 'PASS' : 'FAIL'}`);
-    if (removedOk) passed++; else { failed++; throw new Error(`${removed} should be 404`); }
+    if (removedOk) passed++;
+    else {
+      failed++;
+      throw new Error(`${removed} should be 404`);
+    }
   }
 
   // --- Agent Protocol endpoints ---
@@ -109,7 +125,11 @@ try {
     startupRes.headers.get('Content-Type')?.includes('text/markdown') &&
     startupText.includes('Paso 1');
   console.log(`GET /api/v1/creator/startup -> ${startupRes.status} ${startupOk ? 'PASS' : 'FAIL'}`);
-  if (startupOk) passed++; else { failed++; throw new Error('Startup markdown invalid'); }
+  if (startupOk) passed++;
+  else {
+    failed++;
+    throw new Error('Startup markdown invalid');
+  }
 
   const startupJsonRes = await fetch(`${BASE}/api/v1/creator/startup`, {
     headers: { Accept: 'application/json' },
@@ -119,7 +139,11 @@ try {
   console.log(
     `GET /api/v1/creator/startup (Accept: application/json) -> ${startupJsonRes.status} ${startupJsonOk ? 'PASS' : 'FAIL'}`,
   );
-  if (startupJsonOk) passed++; else { failed++; throw new Error('Startup JSON invalid'); }
+  if (startupJsonOk) passed++;
+  else {
+    failed++;
+    throw new Error('Startup JSON invalid');
+  }
 
   // End-to-end agent flow: start -> incremental answers -> generate
   let answers = {};
@@ -143,9 +167,14 @@ try {
     body: JSON.stringify({ answers }),
   });
   const genData = await genRes.json();
-  const fullFlowOk = flowComplete && genRes.status === 200 && genData.artifacts.length > 0 && genData.application_instructions;
+  const fullFlowOk =
+    flowComplete && genRes.status === 200 && genData.artifacts.length > 0 && genData.application_instructions;
   console.log(`Agent full flow -> ${fullFlowOk ? 'PASS' : 'FAIL'}`);
-  if (fullFlowOk) passed++; else { failed++; throw new Error('Full agent flow failed'); }
+  if (fullFlowOk) passed++;
+  else {
+    failed++;
+    throw new Error('Full agent flow failed');
+  }
 
   console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);
 } catch (e) {
