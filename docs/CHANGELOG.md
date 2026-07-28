@@ -4,6 +4,22 @@ All notable changes to this project are documented here.
 
 ### Documentation
 
+- Note Kiro used as agentic IDE for development _(readme)_
+
+- Note Kiro used as agentic IDE for dev _(readme)_
+
+- Add Kiro integration section _(readme)_
+
+- Add Kiro integration section _(readme)_
+
+## [v1.5.6] - 2026-07-28
+
+### Chores
+
+- V1.5.6 _(release)_
+
+### Documentation
+
 - Add 'Flujo del Creator' heading above flow diagram _(readme)_
 
 - Add 'Flujo del Creator' heading above flow diagram _(readme)_
