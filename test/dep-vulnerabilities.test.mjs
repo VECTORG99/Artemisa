@@ -28,7 +28,15 @@ describe('Dependency vulnerability fixes (issue #240)', () => {
 
   it('runtime dependencies are gone with the runtime (#584)', () => {
     const rootPkg = JSON.parse(fs.readFileSync(path.resolve('package.json'), 'utf8'));
-    const removed = ['@modelcontextprotocol/sdk', 'ai', '@ai-sdk/openai', '@ai-sdk/anthropic', 'openai', '@anthropic-ai/sdk', 'better-sqlite3'];
+    const removed = [
+      '@modelcontextprotocol/sdk',
+      'ai',
+      '@ai-sdk/openai',
+      '@ai-sdk/anthropic',
+      'openai',
+      '@anthropic-ai/sdk',
+      'better-sqlite3',
+    ];
     for (const dep of removed) {
       assert.equal(rootPkg.dependencies[dep], undefined, `${dep} should not be a backend dependency`);
       assert.equal(rootPkg.devDependencies[dep], undefined, `${dep} should not be a backend devDependency`);

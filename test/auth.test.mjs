@@ -8,8 +8,14 @@ function mockRes() {
   return {
     statusCode: 200,
     body: undefined,
-    status(code) { this.statusCode = code; return this; },
-    json(body) { this.body = body; return this; },
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(body) {
+      this.body = body;
+      return this;
+    },
   };
 }
 
@@ -20,7 +26,9 @@ describe('requireAuth', () => {
     const mod = await import(`../src/middleware/auth.js?case=${Date.now()}`);
     const res = mockRes();
     let nextCalled = false;
-    mod.requireAuth({ headers: {} }, res, () => { nextCalled = true; });
+    mod.requireAuth({ headers: {} }, res, () => {
+      nextCalled = true;
+    });
     assert.strictEqual(nextCalled, false);
     assert.strictEqual(res.statusCode, 500);
     assert.strictEqual(res.body.code, 'AUTH_MISCONFIGURED');
@@ -34,7 +42,7 @@ describe('requireAuth', () => {
     const app = express().use(express.json()).use('/api/v1/creator', requireAuth, creatorProtectedRouter);
     const server = http.createServer(app);
     try {
-      await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+      await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
       const { port } = server.address();
       const res = await fetch(`http://127.0.0.1:${port}/api/v1/creator/generate`, {
         method: 'POST',
@@ -43,7 +51,7 @@ describe('requireAuth', () => {
       });
       assert.strictEqual(res.status, 401);
     } finally {
-      await new Promise(resolve => server.close(resolve));
+      await new Promise((resolve) => server.close(resolve));
       delete process.env.AUTH_REQUIRED;
       delete process.env.ARTEMISA_API_KEYS;
     }

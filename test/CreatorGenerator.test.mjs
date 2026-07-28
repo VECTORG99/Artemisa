@@ -43,7 +43,8 @@ describe('Creator generator', () => {
       `.kiro/hooks/${slug}-quality.json`,
       `.kiro/skills/${slug}/SKILL.md`,
       `skills/${slug}/SKILL.md`,
-    ]) assert.ok(paths.includes(expected), `missing ${expected}`);
+    ])
+      assert.ok(paths.includes(expected), `missing ${expected}`);
     assert.equal(bundle.blueprint.prReview.enabled, true);
     assert.equal(bundle.manifest.artifactCount, bundle.artifacts.length);
     assert.equal(bundle.manifest.files.length, bundle.artifacts.length - 1);
@@ -72,10 +73,16 @@ describe('Creator generator', () => {
   });
 
   it('quotes YAML frontmatter descriptions containing colons', () => {
-    const bundle = generateAgentBundle({ ...developmentAnswers, objective: 'Revisar cambios: explicar riesgos y correcciones.' });
+    const bundle = generateAgentBundle({
+      ...developmentAnswers,
+      objective: 'Revisar cambios: explicar riesgos y correcciones.',
+    });
     const skill = bundle.artifacts.find((file) => file.path === `skills/${slug}/SKILL.md`);
     const description = skill.content.split('\n').find((line) => line.startsWith('description: '));
-    assert.equal(JSON.parse(description.slice('description: '.length)), 'Revisar cambios: explicar riesgos y correcciones.');
+    assert.equal(
+      JSON.parse(description.slice('description: '.length)),
+      'Revisar cambios: explicar riesgos y correcciones.',
+    );
   });
 
   it('rejects an incomplete decision tree with 422 semantics', () => {
@@ -165,7 +172,10 @@ describe('stableValue', () => {
   });
 
   it('maps arrays preserving order and sorting inner objects', () => {
-    const input = [{ b: 1, a: 2 }, { d: 3, c: 4 }];
+    const input = [
+      { b: 1, a: 2 },
+      { d: 3, c: 4 },
+    ];
     const result = stableValue(input);
     assert.deepEqual(Object.keys(result[0]), ['a', 'b']);
     assert.deepEqual(Object.keys(result[1]), ['c', 'd']);

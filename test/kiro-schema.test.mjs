@@ -27,8 +27,10 @@ function validate(schema, value, at = '$') {
   const actual = typeOf(value);
 
   if (schema.type && actual !== schema.type) return [`${at} expected ${schema.type}, got ${actual}`];
-  if (schema.minimum !== undefined && typeof value === 'number' && value < schema.minimum) errors.push(`${at} below minimum`);
-  if (schema.maximum !== undefined && typeof value === 'number' && value > schema.maximum) errors.push(`${at} above maximum`);
+  if (schema.minimum !== undefined && typeof value === 'number' && value < schema.minimum)
+    errors.push(`${at} below minimum`);
+  if (schema.maximum !== undefined && typeof value === 'number' && value > schema.maximum)
+    errors.push(`${at} above maximum`);
   if (schema.type !== 'object' && schema.type !== 'array') return errors;
 
   if (schema.type === 'array') {
@@ -41,7 +43,9 @@ function validate(schema, value, at = '$') {
   }
 
   for (const [key, child] of Object.entries(value)) {
-    const childSchema = schema.properties?.[key] ?? (schema.additionalProperties && schema.additionalProperties !== true ? schema.additionalProperties : null);
+    const childSchema =
+      schema.properties?.[key] ??
+      (schema.additionalProperties && schema.additionalProperties !== true ? schema.additionalProperties : null);
     if (!childSchema) {
       if (schema.additionalProperties === false) errors.push(`${at}.${key} is not allowed`);
       continue;

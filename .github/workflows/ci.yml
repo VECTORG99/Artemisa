@@ -18,9 +18,10 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Type check
         run: npx tsc --noEmit
+      # Blocking since #729: with continue-on-error the repo drifted to 29
+      # unformatted files and every PR touching them carried format noise.
       - name: Format check
         run: npx prettier --check .
-        continue-on-error: true
 
   test:
     runs-on: ubuntu-latest

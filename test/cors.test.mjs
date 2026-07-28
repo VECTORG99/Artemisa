@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 describe('CORS Configuration (issue #37)', () => {
   it('CORS_ALLOWED_ORIGINS env var is parsed correctly', () => {
     const raw = 'http://localhost:3000,http://localhost:5173, https://app.example.com';
-    const origins = raw.split(',').map(o => o.trim());
+    const origins = raw.split(',').map((o) => o.trim());
     assert.deepEqual(origins, ['http://localhost:3000', 'http://localhost:5173', 'https://app.example.com']);
   });
 

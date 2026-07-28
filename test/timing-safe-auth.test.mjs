@@ -16,7 +16,11 @@ function isValidToken(provided, apiKeys) {
 }
 
 describe('Timing-safe auth token validation (issue #265)', () => {
-  const keys = ['short-key', 'a-longer-api-key-32-chars-abcdef', 'another-key-64-characters-long-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'];
+  const keys = [
+    'short-key',
+    'a-longer-api-key-32-chars-abcdef',
+    'another-key-64-characters-long-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+  ];
 
   it('validates correct key (short)', () => {
     assert.equal(isValidToken('short-key', keys), true);
