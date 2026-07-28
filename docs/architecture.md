@@ -73,6 +73,7 @@ Configuración del servidor únicamente: `port`, `host`, `requestTimeoutMs`. El 
 | ------------------ | ---------------------------------------------------------------------------------- |
 | `domain.ts`        | Contratos de catálogo, preguntas, evaluación, blueprint, artefactos y errores.     |
 | `catalog.ts`       | Taxonomía y catálogo tecnológico versionado, búsqueda y validación de categorías.  |
+| `catalogQuery.ts`  | Índice por id, respuesta congelada sin filtros y búsqueda compartida de catálogos. |
 | `decisionTree.ts`  | Condiciones, preguntas visibles, progreso, validación y recomendaciones.           |
 | `generator.ts`     | Blueprint, documentación, adaptadores Artemisa/Kiro/portable y manifest.           |
 | `skillsCatalog.ts` | Catálogo de skills que alimenta la categoría `skill`.                              |

@@ -63,6 +63,18 @@ function assertVersions(body: CreatorRequestBody): void {
   }
 }
 
+/** Bounded string query param; undefined when absent or repeated. */
+function queryParam(req: express.Request, key: string, maxLength: number): string | undefined {
+  const value = req.query[key];
+  return typeof value === 'string' ? value.slice(0, maxLength) : undefined;
+}
+
+/** Send a static catalog payload, short-circuiting to 304 when the client's ETag still matches. */
+function sendCatalog(req: express.Request, res: express.Response, payload: unknown): void {
+  if (sendWithEtag(req, res, payload)) return;
+  res.json(payload);
+}
+
 function versionHeaders(_req: express.Request, res: express.Response, next: express.NextFunction) {
   res.set('X-Creator-Workflow-Version', WORKFLOW_VERSION);
   res.set('X-Creator-Catalog-Version', CATALOG_VERSION);
@@ -135,48 +147,43 @@ creatorProtectedRouter.use(versionHeaders);
 creatorPublicRouter.use('/agent', agentLimiter);
 
 creatorPublicRouter.get('/catalog', (req, res) => {
-  const category = typeof req.query.category === 'string' ? req.query.category : undefined;
-  const environment = typeof req.query.environment === 'string' ? req.query.environment : undefined;
-  const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
-  const payload = getCreatorCatalog({ category, environment, q });
-  if (sendWithEtag(req, res, payload)) return;
-  res.json(payload);
+  sendCatalog(
+    req,
+    res,
+    getCreatorCatalog({
+      category: queryParam(req, 'category', 50),
+      environment: queryParam(req, 'environment', 50),
+      q: queryParam(req, 'q', 100),
+    }),
+  );
 });
 
 creatorPublicRouter.get('/workflow', (req, res) => {
-  const payload = getWorkflowDefinition();
-  if (sendWithEtag(req, res, payload)) return;
-  res.json(payload);
+  sendCatalog(req, res, getWorkflowDefinition());
 });
 
 creatorPublicRouter.get('/tutorial', (req, res) => {
-  if (sendWithEtag(req, res, creatorTutorial)) return;
-  res.json(creatorTutorial);
+  sendCatalog(req, res, creatorTutorial);
 });
 
 creatorPublicRouter.get('/skills', (req, res) => {
-  const focus = typeof req.query.focus === 'string' ? req.query.focus.slice(0, 50) : undefined;
-  const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
-  const payload = getSkillsCatalog({ focus, q });
-  if (sendWithEtag(req, res, payload)) return;
-  res.json(payload);
+  sendCatalog(req, res, getSkillsCatalog({ focus: queryParam(req, 'focus', 50), q: queryParam(req, 'q', 100) }));
 });
 
 creatorPublicRouter.get('/mcps', (req, res) => {
-  const category = typeof req.query.category === 'string' ? req.query.category.slice(0, 50) : undefined;
-  const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
-  const payload = getMcpCatalog({ category, q });
-  if (sendWithEtag(req, res, payload)) return;
-  res.json(payload);
+  sendCatalog(req, res, getMcpCatalog({ category: queryParam(req, 'category', 50), q: queryParam(req, 'q', 100) }));
 });
 
 creatorPublicRouter.get('/models', (req, res) => {
-  const provider = typeof req.query.provider === 'string' ? req.query.provider.slice(0, 50) : undefined;
-  const tier = typeof req.query.tier === 'string' ? req.query.tier.slice(0, 20) : undefined;
-  const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : undefined;
-  const payload = getModelsCatalog({ provider, tier, q });
-  if (sendWithEtag(req, res, payload)) return;
-  res.json(payload);
+  sendCatalog(
+    req,
+    res,
+    getModelsCatalog({
+      provider: queryParam(req, 'provider', 50),
+      tier: queryParam(req, 'tier', 20),
+      q: queryParam(req, 'q', 100),
+    }),
+  );
 });
 
 creatorProtectedRouter.post('/evaluate', (req, res, next) => {

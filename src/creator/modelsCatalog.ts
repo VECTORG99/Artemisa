@@ -8,6 +8,8 @@
  * Context windows and max output reflect documented specs as of July 2025.
  */
 
+import { createCatalogQuery } from './catalogQuery.js';
+
 export interface ModelCatalogItem {
   id: string;
   name: string;
@@ -675,39 +677,20 @@ export const modelsCatalog: ModelCatalogItem[] = [
 
 // ─── Lookup and filter ──────────────────────────────────────────────────
 
-const modelIndex = new Map(modelsCatalog.map((item) => [item.id, item]));
-
-const fullModelsResponse = Object.freeze({
+const modelsQuery = createCatalogQuery({
   version: MODELS_CATALOG_VERSION,
   items: modelsCatalog,
+  facets: { provider: (item) => item.provider, tier: (item) => item.tier },
+  searchFields: (item) => [item.name, item.description, ...item.tags],
 });
 
 export function getModelById(id: string): ModelCatalogItem | undefined {
-  return modelIndex.get(id);
+  return modelsQuery.getById(id);
 }
 
 export function getModelsCatalog(filter?: { provider?: string; tier?: string; q?: string }): {
   version: string;
   items: ModelCatalogItem[];
 } {
-  if (!filter?.provider && !filter?.tier && !filter?.q) {
-    return fullModelsResponse;
-  }
-  let items = modelsCatalog;
-  if (filter?.provider) {
-    items = items.filter((item) => item.provider === filter.provider);
-  }
-  if (filter?.tier) {
-    items = items.filter((item) => item.tier === filter.tier);
-  }
-  if (filter?.q) {
-    const q = filter.q.toLowerCase();
-    items = items.filter(
-      (item) =>
-        item.name.toLowerCase().includes(q) ||
-        item.description.toLowerCase().includes(q) ||
-        item.tags.some((tag) => tag.includes(q)),
-    );
-  }
-  return { version: MODELS_CATALOG_VERSION, items };
+  return modelsQuery.query(filter);
 }
