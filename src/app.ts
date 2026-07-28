@@ -5,6 +5,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
 import { config } from './config.js';
+import { ApiError, ErrorCodes } from './errors.js';
 import { creatorProtectedRouter, creatorPublicRouter } from './creator/router.js';
 import { requireAuth } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -56,14 +57,14 @@ app.use(
       // Block 'null' origin explicitly (file://, sandboxed iframes)
       if (origin === 'null') {
         logger.warn({ origin }, '[CORS] Blocked null origin request');
-        callback(new Error('null origin not allowed'));
+        callback(new ApiError(ErrorCodes.API_VALIDATION_ERROR, 'null origin not allowed', 403));
         return;
       }
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         logger.warn({ origin }, '[CORS] Blocked request from origin');
-        callback(new Error(`Origin ${origin} not allowed by CORS`));
+        callback(new ApiError(ErrorCodes.API_VALIDATION_ERROR, `Origin ${origin} not allowed by CORS`, 403));
       }
     },
     credentials: true,
@@ -106,8 +107,12 @@ const creatorLimiter = rateLimit({
 app.use(globalLimiter);
 
 // Global request timeout — applies to ALL routes including creator public
-app.use((_req, res, next) => {
+app.use((req, res, next) => {
   const timer = setTimeout(() => {
+    logger.error(
+      { method: req.method, path: req.path, timeoutMs: config.server.requestTimeoutMs, headersSent: res.headersSent },
+      'request timed out',
+    );
     if (!res.headersSent) res.status(503).json({ error: 'Request timeout' });
   }, config.server.requestTimeoutMs);
   const done = () => clearTimeout(timer);
