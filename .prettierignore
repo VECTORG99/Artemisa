@@ -1,4 +1,6 @@
 .github/cliff.toml
+LICENSE
+NOTICE
 node_modules
 dist
 .next
