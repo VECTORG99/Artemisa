@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented here.
 
+### Bug Fixes
+
+- Prevent circular trigger in Release workflow _(ci)_
+
+- Prevent circular trigger in Release workflow _(ci)_
+
+### Documentation
+
+- Update to latest screenshot _(readme)_
+
+## [v1.5.7] - 2026-07-28
+
+### Chores
+
+- V1.5.7 _(release)_
+
 ### Documentation
 
 - Note Kiro used as agentic IDE for development _(readme)_
