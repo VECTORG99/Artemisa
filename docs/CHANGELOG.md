@@ -4,6 +4,12 @@ All notable changes to this project are documented here.
 
 ### Bug Fixes
 
+- Value prop cards usan el glass transparente compartido _(landing)_
+
+## [v1.5.0] - 2026-07-28
+
+### Bug Fixes
+
 - Restore liquid glass blur on value prop cards _(landing)_
 
 - Alinear formatos de CodeRabbit, Kilo Code y Windsurf con docs oficiales _(generator)_
@@ -27,6 +33,10 @@ All notable changes to this project are documented here.
 - Eliminar sección de compatibilidad del landing principal _(landing)_
 
 - Ajustar glass estándar en value props y eliminar trust line _(landing)_
+
+### Chores
+
+- V1.5.0 _(release)_
 
 ### Features
 
