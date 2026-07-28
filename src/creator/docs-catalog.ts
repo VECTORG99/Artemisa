@@ -67,7 +67,9 @@ export function listDocumentationFiles(repoRoot: string = process.cwd()): DocEnt
     const dir = root ? path.resolve(repoRoot, root) : repoRoot;
     if (!fs.existsSync(dir)) continue;
 
-    const files = fs.readdirSync(dir).filter((file) => file.endsWith('.md') && !file.startsWith('template'));
+    const files = fs
+      .readdirSync(dir)
+      .filter((file) => file.endsWith('.md') && !file.startsWith('template') && !file.endsWith('.en.md'));
 
     for (const file of files) {
       const fullPath = root ? `${root}/${file}` : file;
