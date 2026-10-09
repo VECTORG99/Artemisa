@@ -1,0 +1,70 @@
+# ai-sdlc — GitHub Actions caller workflow for Artemisa
+# Consumes the reusable os-santiago/ai-sdlc runtime.
+#
+# Flow:
+#   1. Issue labeled `ready-to-implement` → intake (DoR validation)
+#   2. Intake passes → implement (sc-agent-cli headless → branch + PR)
+#   3. PR opened/synchronized → AI review + bounded fix convergence
+#   4. Checks green + review clean → automerge (squash)
+#   5. Merged → verify (typecheck + tests on master)
+name: ai-sdlc
+
+on:
+  issues:
+    types: [labeled]
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  intake:
+    if: github.event.label.name == 'ready-to-implement'
+    uses: os-santiago/ai-sdlc/.github/workflows/ai-sdlc-intake.yml@main
+    with:
+      repo: ${{ github.repository }}
+      issue_number: ${{ github.event.issue.number }}
+    secrets: inherit
+
+  implement:
+    needs: intake
+    if: needs.intake.outputs.dispatch == 'true'
+    uses: os-santiago/ai-sdlc/.github/workflows/ai-sdlc-implement.yml@main
+    with:
+      repo: ${{ github.repository }}
+      issue_number: ${{ github.event.issue.number }}
+      base: development
+    secrets: inherit
+
+  review:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    uses: os-santiago/ai-sdlc/.github/workflows/ai-sdlc-review.yml@main
+    with:
+      repo: ${{ github.repository }}
+      pr_number: ${{ github.event.pull_request.number }}
+      base: development
+    secrets: inherit
+
+  automerge:
+    needs: review
+    if: needs.review.result == 'success'
+    uses: os-santiago/ai-sdlc/.github/workflows/ai-sdlc-automerge.yml@main
+    with:
+      repo: ${{ github.repository }}
+      pr_number: ${{ github.event.pull_request.number }}
+      base: master
+    secrets: inherit
+
+  verify:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    uses: os-santiago/ai-sdlc/.github/workflows/ai-sdlc-verify.yml@main
+    with:
+      repo: ${{ github.repository }}
+      base: master
+      setup_commands: "npm ci --ignore-scripts"
+    secrets: inherit

@@ -1,0 +1,71 @@
+# .ai-sdlc.yaml — Artemisa (VECTORG99/Artemisa)
+# AI-SDLC pipeline contract for the agent configuration generator platform.
+spec: "1.0.0"
+
+repo:
+  archetype: app
+  primary_language: typescript
+  deploys_to: vercel
+
+autonomy:
+  level: suggest
+  merge_requires_checks: true
+  freeze_env: AI_SDLC_FREEZE
+
+triggers:
+  issue_label: ready-to-implement
+  skip_labels:
+    - epic
+    - wontfix
+    - invalid
+    - duplicate
+    - question
+    - dependencies
+    - needs-human
+  authorized_labelers:
+    - VECTORG99
+
+verify:
+  commands:
+    - npx tsc --noEmit
+    - npm run test:unit
+  required_checks:
+    - lint
+    - test
+  timeout_seconds: 300
+
+review:
+  mode: ai
+  ai_reviewer:
+    model: nvidia/nemotron-3-super-120b-a12b
+    inline_comments: true
+    incremental: true
+  max_fix_iterations: 3
+  wait_max_minutes: 15
+  external_reviewer: ""
+  risk_labels:
+    - pr:risk-low
+    - pr:risk-medium
+    - pr:risk-high
+    - pr:risk-critical
+    - pr:risk-accepted
+  critical_requires_acceptance: true
+
+merge:
+  method: squash
+  delete_branch: true
+  max_repairs: 3
+  pending_max_minutes: 60
+  grace_minutes: 10
+  skip_labels:
+    - needs-human
+    - do-not-merge
+    - wip
+
+labels:
+  queued: ai-sdlc:queued
+  in-progress: ai-sdlc:in-progress
+  pr-opened: ai-sdlc:pr-opened
+  failed: ai-sdlc:failed
+  not-ready: ai-sdlc:not-ready
+  no-changes: ai-sdlc:no-changes
