@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-- The backend currently deploys to DigitalOcean App Platform via `.do/app.yaml` (`instance_count: 1`, `basic-xxs`). The frontend is a separate deploy on Netlify. Hosting was never recorded as an explicit decision, so the deploy path is documented per-provider rather than chosen.
+- Before this decision the backend ran on DigitalOcean App Platform via `.do/app.yaml` (`instance_count: 1`, `basic-xxs`) and the frontend on Netlify. Hosting had never been recorded as an explicit decision, so the deploy path was documented per-provider rather than chosen. The DigitalOcean account and its credentials have since been cancelled, and `.do/app.yaml` was removed once Azure was serving.
 - Per ADR-0008 the backend only generates configuration files: no database, no filesystem writes, no network calls during generation, no persistent disk. Every request is a pure function of its body. Cost is therefore dominated by CPU-seconds awake, not by state, storage or egress.
 - `docker/Dockerfile.backend` already exists as a multi-stage build running as a non-root user with a `HEALTHCHECK`, and `src/routes/health.ts` already exposes `/api/health`, `/health/live` and `/health/ready`.
 - `server.ts` already drains in-flight requests on `SIGTERM`/`SIGINT`, which is what a managed container platform sends when it recycles or scales a replica.
@@ -25,7 +25,7 @@ Accepted
 - The container app pulls the image with the **ACR admin credential**, delivered as a `@secure()` Bicep parameter. The workflow reads it at deploy time with `az acr credential show` and hands it to the template inside a 600-mode file, so it never lands in GitHub, never lands in a process list and needs no rotation by anyone. A managed identity was the first choice and is not available here — see Alternatives Considered.
 - `.github/workflows/deploy-azure.yml` gates the deploy on `https://<fqdn>/api/health` returning 200 and reverts to the previous image when the gate fails. A broken release cannot stay live while reporting success.
 - `TRUST_PROXY=1` and `PUBLIC_BASE_URL` are declared in the Bicep rather than left to defaults, because both are prerequisites for correct behavior behind a TLS-terminating proxy and both fail silently when absent.
-- The frontend authenticates with the same `ARTEMISA_API_KEYS` value it already uses against DigitalOcean, delivered as Netlify's `NEXT_PUBLIC_API_KEY`.
+- The frontend authenticates with the same `ARTEMISA_API_KEYS` value it previously used against DigitalOcean, delivered as Netlify's `NEXT_PUBLIC_API_KEY`.
 
 ## Alternatives Considered
 
@@ -47,7 +47,7 @@ Accepted
 - `NEXT_PUBLIC_API_URL` is baked at build time, so repointing the frontend requires a Netlify rebuild, not just a variable change.
 - Without `TRUST_PROXY=1` every request appears to originate from Container Apps' proxy, the per-IP rate limiter treats all users as one source, and real users are blocked after `RATE_LIMIT_GLOBAL` requests per minute. This is the most likely self-inflicted outage in this design and is why the value is pinned in the Bicep.
 - Express environments cannot use a managed identity for registry auth, so the ACR admin credential is the only pull path on this plan. If the project ever moves to a workload-profiles environment (which would require accepting the ~USD 73/month management fee, or finding a cheaper way to get a non-express environment), switching to `registries[].identity` is a small, well-scoped change that deletes the credential path entirely.
-- `.do/app.yaml` and its DigitalOcean deploy path remain in the repository during the transition and can be removed once the Azure path is confirmed in production.
+- `.do/app.yaml` and the DigitalOcean deploy path have been **removed**. There is no second backend anymore, so a saturation event or a region outage is a plain outage with nothing to fail over to.
 
 ## Revisit Conditions
 
@@ -55,4 +55,4 @@ Accepted
 - Backend traffic sustains more than ~10 concurrent requests, or a full Auto-largo Creator run needs more than `RATE_LIMIT_CREATOR` headroom; raise `maxReplicas` or move to a workload profile.
 - A database, durable state or server-side accounts are introduced, which breaks the stateless premise this pricing rests on (see ADR-0008).
 - Availability requirements exceed 99.95%, which implies a second region behind a global traffic manager.
-- DigitalOcean is decommissioned and `.do/app.yaml` plus its section in `docs/deployment.md` and the DigitalOcean describe block in `test/deploy-security.test.mjs` are removed.
+- ~~DigitalOcean is decommissioned and `.do/app.yaml` plus its section in `docs/deployment.md` and the DigitalOcean describe block in `test/deploy-security.test.mjs` are removed.~~ **Done.** The account was cancelled, and the config, its documentation section and its test block are gone.

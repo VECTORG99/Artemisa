@@ -109,7 +109,7 @@ Defaults per environment:
 
 - **Docker Compose**: `http://backend:3001` (set in `docker/docker-compose.yml` build args)
 - **Local dev**: `http://localhost:3001`
-- **DigitalOcean / production**: your backend deployment URL
+- **Production**: your backend deployment URL
 
 > `NEXT_PUBLIC_API_URL` is consumed at **build time** by Next.js and baked into the JS bundle. Changing it requires a rebuild.
 
@@ -143,24 +143,7 @@ docker build -f docker/Dockerfile.frontend \
 
 ---
 
-## 6. DigitalOcean App Platform
-
-The `.do/app.yaml` at the project root deploys the **backend only** as a Docker web service on DigitalOcean App Platform.
-
-### Steps
-
-1. Connect your GitHub repo (`VECTORG99/Artemisa`) to DigitalOcean App Platform.
-2. App Platform auto-detects `.do/app.yaml` and configures the service.
-3. `PUBLIC_BASE_URL` (bound to `${APP_URL}`) and `TRUST_PROXY=1` are already in `.do/app.yaml`. Set `ARTEMISA_API_KEYS`, `BYPASS_SECRET` and `METRICS_SECRET` manually in the DigitalOcean dashboard (App → Settings → Environment Variables).
-4. Copy the `ARTEMISA_API_KEYS` value to your frontend hosting (Netlify) as `NEXT_PUBLIC_API_KEY`. The frontend uses this key when calling protected Creator routes (`/evaluate`, `/preview`, `/generate`).
-5. In your frontend hosting, set `NEXT_PUBLIC_API_URL` to the deployed DigitalOcean service URL (e.g. `https://artemisa-backend-xxxxx.ondigitalocean.app`).
-6. Deploy. Subsequent pushes to `master` trigger automatic deploys.
-
-> No persistent disk is required: the Creator is stateless and writes nothing to the filesystem. No `OPENAI_API_KEY` or other LLM credentials are needed.
-
----
-
-## 7. Azure Container Apps (backend only, ~USD 10/month)
+## 6. Azure Container Apps (backend only, ~USD 10/month)
 
 `infra/main.bicep` deploys **only the backend** to Azure Container Apps on the
 Consumption plan. The frontend stays on Netlify. Full walkthrough, including
@@ -209,13 +192,13 @@ minute.
 To point the Netlify frontend at it, set `NEXT_PUBLIC_API_URL` to the Container
 App URL and trigger a **rebuild** — `NEXT_PUBLIC_*` values are baked into the
 bundle at build time. The same value goes to `ARTEMISA_API_KEYS` in Netlify as
-`NEXT_PUBLIC_API_KEY` when auth is enabled, exactly as for DigitalOcean above.
+`NEXT_PUBLIC_API_KEY` when auth is enabled.
 
 `agent-creator/` is not deployed; the active Creator is `frontend/agents/new`.
 
 ---
 
-## 8. Frontend Deploy (Netlify) — Verifying Production Matches `master`
+## 7. Frontend Deploy (Netlify) — Verifying Production Matches `master`
 
 The production landing lives on Netlify (`https://artemisa-ai.netlify.app`). Netlify is configured from its dashboard (there is no `netlify.toml`), so a stale or unconnected branch is invisible from the repo. Issue #710 was exactly that: `v1.5.0` was released and production kept serving a pre-#705 bundle.
 
@@ -299,7 +282,7 @@ To remove the integration entirely instead, disconnect it in the Vercel project 
 
 ---
 
-## 9. Local Development
+## 8. Local Development
 
 ```bash
 # Install all dependencies (root + frontend via workspaces)
@@ -317,11 +300,11 @@ cd frontend && npm run dev  # Frontend (Next.js, port 3000)
 
 ---
 
-## 10. Production Considerations
+## 9. Production Considerations
 
 ### Secrets Management
 
-- **`ARTEMISA_API_KEYS`**, **`BYPASS_SECRET`** and **`METRICS_SECRET`** should never be committed. Use `.env` (gitignored) for local dev, or DigitalOcean's secret env vars for production.
+- **`ARTEMISA_API_KEYS`**, **`BYPASS_SECRET`** and **`METRICS_SECRET`** should never be committed. Use `.env` (gitignored) for local dev, or the Container App's own secret store in production — the Bicep takes them as `@secure` parameters, so they never enter the repository.
 - The backend redacts `BYPASS_SECRET` from logs automatically.
 
 ### Health Checks

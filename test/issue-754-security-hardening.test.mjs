@@ -111,12 +111,10 @@ describe('trust proxy configuration (issue #754)', () => {
     assert.match(source, /process\.env\.TRUST_PROXY/);
     assert.match(source, /app\.set\('trust proxy'/);
     assert.match(fs.readFileSync('.env.example', 'utf8'), /^TRUST_PROXY=$/m);
-    assert.match(fs.readFileSync('.do/app.yaml', 'utf8'), /key: TRUST_PROXY/);
-  });
-
-  it('PUBLIC_BASE_URL is bound in the DigitalOcean spec', () => {
-    const appYaml = fs.readFileSync('.do/app.yaml', 'utf8');
-    assert.match(appYaml, /key: PUBLIC_BASE_URL\n\s+value: \$\{APP_URL\}/);
+    // The deploy spec that used to assert this was .do/app.yaml. It is now
+    // infra/main.bicep, and the production value is asserted there in
+    // test/deploy-security.test.mjs, which checks it is set to 1 rather than
+    // merely present.
   });
 });
 

@@ -142,7 +142,7 @@ function safeOrigin(value: string | undefined): string {
 /**
  * Base URL advertised to agents in `/agent` and `/startup`.
  *
- * Behind a TLS-terminating proxy (DigitalOcean App Platform) `req.protocol` is
+ * Behind a TLS-terminating proxy (Azure Container Apps ingress, or any other) `req.protocol` is
  * `http`, so the onboarding prompt used to hand agents `http://` URLs that
  * answer 301 to `https://` — an insecure first hop and a redirect for every
  * step (issue #719). `X-Forwarded-Proto` wins whenever the proxy sends it, and
