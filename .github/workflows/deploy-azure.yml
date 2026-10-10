@@ -25,10 +25,18 @@ on:
       - 'package-lock.json'
       - 'tsconfig.json'
       - 'infra/**'
+      # A change to the deploy pipeline has to be deployable, otherwise a fix
+      # like the missing OIDC permission sits on master doing nothing until an
+      # unrelated backend change happens to land.
+      - '.github/workflows/deploy-azure.yml'
 
 permissions:
   contents: read
-  packages: write
+  # azure/login mints a federated token against Azure AD using GitHub's OIDC
+  # endpoint. Without this permission the request has no URL to hit and login
+  # fails before any Azure call is made. The old `packages` grant is gone: the
+  # image now goes to Azure Container Registry, which needs no GitHub scope.
+  id-token: write
 
 env:
   RG: ${{ vars.AZURE_RESOURCE_GROUP }}
@@ -70,6 +78,12 @@ jobs:
           echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
           echo "image=${ACR_LOGIN_SERVER}/${IMAGE_REPO}:${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
 
+      # cache-to: type=gha needs the buildx driver. Without this setup step
+      # build-push-action falls back to the default docker driver, which cannot
+      # export a cache and fails the build outright.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and push backend image
         uses: docker/build-push-action@v6
         with:
@@ -95,6 +109,15 @@ jobs:
           set -euo pipefail
           # Secrets go through a 600-mode file rather than CLI arguments so
           # they never land in a process list or a debug log.
+          # The express environment cannot use a managed identity for registry
+          # auth, so the ACR admin credential is the pull path. Read it here
+          # rather than storing it as a GitHub secret: it never leaves Azure
+          # and the workflow already holds Contributor on the resource group.
+          ACR_USER=$(az acr credential show --name "$ACR_NAME" \
+            --query username -o tsv)
+          ACR_PASS=$(az acr credential show --name "$ACR_NAME" \
+            --query passwords[0].value -o tsv)
+
           params=$(mktemp)
           chmod 600 "$params"
           trap 'rm -f "$params"' EXIT
@@ -110,7 +133,9 @@ jobs:
               "artemisaApiKeys":    { "value": "${{ secrets.ARTEMISA_API_KEYS }}" },
               "metricsSecret":      { "value": "${{ secrets.METRICS_SECRET }}" },
               "bypassSecret":       { "value": "${{ secrets.BYPASS_SECRET }}" },
-              "containerRegistryName": { "value": "${ACR_NAME}" }
+              "containerRegistryName": { "value": "${ACR_NAME}" },
+              "acrUsername":         { "value": "$ACR_USER" },
+              "acrPassword":         { "value": "$ACR_PASS" }
             }
           }
           JSON

@@ -173,8 +173,11 @@ Deploy runs from `.github/workflows/deploy-azure.yml`:
   the Bicep, then gates on `https://<fqdn>/api/health` returning 200.
 - A failing health gate reverts the container to the previous image, so a
   broken release cannot stay live and be reported as successful.
-- The image is pulled by a system-assigned managed identity with `AcrPull`, so
-  no registry credential is stored in GitHub or in the Container App.
+- The image is pulled with the ACR admin credential, which the workflow reads at
+  deploy time (`az acr credential show`) and passes to the Bicep as a `@secure`
+  parameter, so it never enters GitHub. A managed identity would be cleaner, but
+  the Consumption-only environment provisions an _express_ environment and
+  express environments reject `registries[].identity` — see ADR-0009.
 
 Measured against the Azure Retail Prices API, the running cost is about
 **USD 9.29/month**: ACR Basic is USD 0.1666/day (USD 5.00/month) plus

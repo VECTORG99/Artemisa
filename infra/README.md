@@ -5,21 +5,28 @@ backend de Express en Azure Container Apps, plan Consumption.
 
 ## Qué se despliega
 
-| Recurso                                   | Por qué                                                                                   |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `Microsoft.ContainerRegistry/registries`  | ACR **Basic** (USD 0.1666/día ≈ USD 5.00/mes). Credenciales de admin deshabilitadas       |
-| `Microsoft.App/managedEnvironments`       | Environment **Consumption-only**, sin Log Analytics adjunto                               |
-| `Microsoft.App/containerApps`             | `artemisa-backend`, 0.25 vCPU / 0.5 GiB, `minReplicas: 1`, identidad asignada del sistema |
-| `Microsoft.Authorization/roleAssignments` | `AcrPull` para que el Container App tome la imagen sin ningún secret                      |
+| Recurso                                  | Por qué                                                                                   |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `Microsoft.ContainerRegistry/registries` | ACR **Basic** (USD 0.1666/día ≈ USD 5.00/mes). Credenciales de admin deshabilitadas       |
+| `Microsoft.App/managedEnvironments`      | Environment **Consumption-only**, sin Log Analytics adjunto                               |
+| `Microsoft.App/containerApps`            | `artemisa-backend`, 0.25 vCPU / 0.5 GiB, `minReplicas: 1`, identidad asignada del sistema |
 
 Sin Key Vault (los secretos van en el secret store del Container App), sin App
 Insights, sin AKS.
 
-El Container App toma la imagen con una **identidad gestionada** (`identity:
-'system'` + rol `AcrPull`). No hay token de registry que crear, guardar ni
-rotar. Se eligió ACR (~USD 5/mes) en vez de `ghcr.io` (gratis) precisamente
-por eso: con ghcr.io haría falta un PAT que caduca, y un token vencido corta
-el escalamiento y los deploys sin avisar.
+El Container App toma la imagen con la **credencial de admin del ACR**, que el
+workflow lee en el momento del deploy con `az acr credential show` y entrega al
+template como parámetro `@secure`. No queda en GitHub, no queda en el historial
+de comandos, y nadie tiene que rotarla.
+
+Se eligió ACR (~USD 5/mes) en vez de `ghcr.io` (gratis) porque con ghcr.io
+haría falta un PAT que caduca, y un token vencido corta el escalamiento y los
+deploys sin avisar. La intención original era además eliminar la credencial con
+una identidad gestionada, pero **el environment Consumption-only provisions un
+environment express, y express rechaza `registries[].identity`** con
+`ExpressEnvironmentFeatureNotSupported` (verificado en el despliegue real, no
+por documentación). Un environment de workload profiles sí lo acepta pero cobra
+USD 0.10/h (~USD 73/mes). Queda documentado en ADR-0009.
 
 ## Costo esperado
 
@@ -139,8 +146,8 @@ gh secret set ARTEMISA_API_KEYS --body "$ARTEMISA_API_KEYS"
 gh secret set METRICS_SECRET --body "$(openssl rand -hex 16)"
 gh secret set BYPASS_SECRET  --body "$(openssl rand -hex 16)"
 
-# No hace falta ningún secret de registry: el Container App toma la imagen
-# con su identidad gestionada y el rol AcrPull que crea el propio Bicep.
+# No hace falta ningún secret de registry: el workflow lee la credencial de
+# admin del ACR en el momento del deploy y la pasa como parámetro @secure.
 ```
 
 ## Paso 4 — Variables (no secretas)
@@ -149,13 +156,20 @@ gh secret set BYPASS_SECRET  --body "$(openssl rand -hex 16)"
 gh variable set AZURE_RESOURCE_GROUP   --body "$RG"
 gh variable set AZURE_CONTAINER_REGISTRY --body "artemisarego"
 gh variable set IMAGE_REPOSITORY       --body "artemisa-backend"
-gh variable set PUBLIC_BASE_URL        --body "https://<lo-que-rellena-azure>"
+gh variable set PUBLIC_BASE_URL        --body "https://artemisa-backend.wittyisland-33ab23b5.brazilsouth.azurecontainerapps.io"
 gh variable set CORS_ALLOWED_ORIGINS   --body "https://artemisa-ai.netlify.app"
 ```
 
-`PUBLIC_BASE_URL` es la URL pública del propio backend. En el primer deploy no
-la conocés todavía: desplegá una vez con cualquier placeholder, tomá el FQDN
-del paso 5 y volvé a setear la variable con la URL real.
+`PUBLIC_BASE_URL` es la URL pública del propio backend. La de arriba es la que
+está desplegada hoy. Si recreateás el environment, el FQDN cambia: el campo
+`wittyisland-33ab23b5` se asigna al crearlo y no se puede elegir. En ese caso
+desplegá una vez con cualquier placeholder, tomá el FQDN del paso 5 y volvé a
+setear la variable.
+
+**Este valor no es cosmético.** Sin `PUBLIC_BASE_URL` el backend anuncia a los
+agentes el origen que le llegue en los headers, que controla el cliente; con él
+mal puesto, el protocolo de onboarding de `/api/v1/creator/agent` apunta a
+otro servidor.
 
 `CORS_ALLOWED_ORIGINS` debe coincidir **exactamente** con el origen de Netlify.
 Si no coincide, el frontend recibe `403 API_CORS_FORBIDDEN` en silencio.
@@ -258,9 +272,10 @@ az containerapp revision list -g "$RG" -n artemisa-backend -o table
 
 ### Credenciales del registry
 
-No hay ninguna que rotar. El Container App tiene una identidad asignada del
-sistema con el rol `AcrPull` sobre el ACR, y las credenciales de admin del
-registro están deshabilitadas, así que el rol es el único camino de pull.
+No hay ninguna que rotar. El workflow hace `az acr credential show` en el
+momento del deploy y la entrega al template como parámetro `@secure`, dentro de
+un archivo con permisos 600. Nunca toca GitHub ni queda en historial de
+comandos.
 
 Si volvés a `ghcr.io` para ahorrar los USD 5/mes, ese deja de ser cierto: vas
 a necesitar un PAT con `read:packages` como secret de GitHub, y un token
