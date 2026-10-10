@@ -34,9 +34,9 @@ describe('deriveBaseUrl (src/creator/router.ts)', () => {
   });
 
   it('defaults remote hosts to https even when req.protocol is http (#719)', () => {
-    const req = fakeRequest({ host: 'artemisa.ondigitalocean.app' });
+    const req = fakeRequest({ host: 'artemisa.example.com' });
 
-    assert.equal(deriveBaseUrl(req), 'https://artemisa.ondigitalocean.app/api/v1/creator');
+    assert.equal(deriveBaseUrl(req), 'https://artemisa.example.com/api/v1/creator');
   });
 
   it('honours X-Forwarded-Host and the first entry of an X-Forwarded-Proto chain', () => {

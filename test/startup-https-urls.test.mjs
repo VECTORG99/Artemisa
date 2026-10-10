@@ -4,7 +4,7 @@ import { describe, it } from 'node:test';
 import { deriveBaseUrl } from '../src/creator/router.js';
 import { getAgentProtocol, getStartupDocument } from '../src/creator/agentProtocol.js';
 
-// Issue #719: behind DigitalOcean's TLS-terminating proxy `req.protocol` is
+// Issue #719: behind a TLS-terminating proxy `req.protocol` is
 // `http`, so the onboarding prompt handed agents `http://` URLs that answer
 // 301 to `https://`: an insecure first hop, a redirect per step, and a mixed
 // content risk when the agent runs from a secure context.
@@ -22,15 +22,15 @@ function fakeRequest(headers = {}, protocol = 'http') {
 
 describe('deriveBaseUrl (issue #719)', () => {
   it('uses https for a proxied production host', () => {
-    const req = fakeRequest({ host: 'artemisa-gyof3.ondigitalocean.app', 'X-Forwarded-Proto': 'https' });
-    assert.equal(deriveBaseUrl(req), 'https://artemisa-gyof3.ondigitalocean.app/api/v1/creator');
+    const req = fakeRequest({ host: 'artemisa.example.com', 'X-Forwarded-Proto': 'https' });
+    assert.equal(deriveBaseUrl(req), 'https://artemisa.example.com/api/v1/creator');
   });
 
   it('defaults to https for a remote host even without X-Forwarded-Proto', () => {
-    // DigitalOcean does not always forward the protocol header; a public host
+    // Proxies do not always forward the protocol header; a public host
     // must never be advertised over plain http.
-    const req = fakeRequest({ host: 'artemisa-gyof3.ondigitalocean.app' });
-    assert.equal(deriveBaseUrl(req), 'https://artemisa-gyof3.ondigitalocean.app/api/v1/creator');
+    const req = fakeRequest({ host: 'artemisa.example.com' });
+    assert.equal(deriveBaseUrl(req), 'https://artemisa.example.com/api/v1/creator');
   });
 
   it('takes the client-facing protocol from a proxy chain', () => {
@@ -70,13 +70,13 @@ describe('deriveBaseUrl (issue #719)', () => {
 });
 
 describe('agent-facing documents never advertise http for a public host', () => {
-  const req = fakeRequest({ host: 'artemisa-gyof3.ondigitalocean.app' });
+  const req = fakeRequest({ host: 'artemisa.example.com' });
   const baseUrl = deriveBaseUrl(req);
 
   it('the startup markdown links every step over https', () => {
     const doc = getStartupDocument(baseUrl);
     for (const path of ['/agent/start', '/agent/answer', '/agent/generate', '/docs']) {
-      assert.ok(doc.includes(`https://artemisa-gyof3.ondigitalocean.app/api/v1/creator${path}`), `missing ${path}`);
+      assert.ok(doc.includes(`https://artemisa.example.com/api/v1/creator${path}`), `missing ${path}`);
     }
     assert.doesNotMatch(doc, /http:\/\/artemisa/);
   });
