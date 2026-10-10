@@ -109,7 +109,7 @@ npx tsc --noEmit
 
 ## Despliegue
 
-Ver [`docs/deployment.md`](docs/deployment.md) para desplegar el backend en DigitalOcean App Platform y el frontend en Vercel. No se requiere base de datos, disco persistente, `OPENAI_API_KEY` ni `ARTEMISA_DB_PATH`.
+Ver [`docs/deployment.md`](docs/deployment.md) para desplegar el backend en Azure Container Apps y el frontend en Netlify. No se requiere base de datos, disco persistente, `OPENAI_API_KEY` ni `ARTEMISA_DB_PATH`.
 
 ## Documentación
 
