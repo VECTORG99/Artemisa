@@ -10,6 +10,14 @@
 //      before a single container runs.
 //   2. appInsightsConfiguration / logAnalyticsConfiguration are OMITTED, so no
 //      Log Analytics workspace is attached. Attaching one bills per GB ingested.
+//
+// Registry auth: ACR admin credentials, NOT a managed identity. The
+// Consumption-only environment provisioned here is an "express" environment,
+// and express environments reject `registries[].identity` with
+// ExpressEnvironmentFeatureNotSupported. A workload-profiles environment would
+// accept it but bills a USD 0.10/h management fee (~USD 73/month). The
+// credential is fetched at deploy time by the workflow and passed as a secure
+// parameter, so it is never stored in GitHub.
 // ============================================================================
 
 targetScope = 'resourceGroup'
@@ -55,6 +63,13 @@ param metricsSecret string
 @description('Emergency auth override (BYPASS_SECRET). Redacted from logs automatically.')
 param bypassSecret string
 
+@description('ACR admin username. Fixed at "artemisa-admin" when the registry is created here.')
+param acrUsername string = 'artemisa-admin'
+
+@secure()
+@description('ACR admin password. Fetched at deploy time by `az acr credential show`; never stored in GitHub.')
+param acrPassword string
+
 @description('Globally unique Azure Container Registry login server, e.g. artemisarego.azurecr.io. ACR names are unique across all of Azure, so change this if creation fails with a name conflict.')
 param containerRegistryName string = 'artemisarego'
 
@@ -65,11 +80,6 @@ param containerRegistrySku string = 'Basic'
 var acrLoginServer = '${containerRegistryName}.azurecr.io'
 var appName = 'artemisa-backend'
 var envName = 'artemisa-env'
-// AcrPull lets the container app pull its own image without any stored secret.
-var acrPullRoleDefinitionId = subscriptionResourceId(
-  'Microsoft.Authorization/roleDefinitions',
-  '7f951dda-4ed3-4680-a7ca-43fe172d538d'
-)
 
 // --- Container Registry (source of the image; managed identity, no secrets) --
 // Replaces ghcr.io + a PAT. A token expires and silently stops scale-out and
@@ -81,9 +91,10 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-11-01-preview' = {
     name: containerRegistrySku
   }
   properties: {
-    // Admin credentials are disabled on purpose: they would be a second, more
-    // privileged pull path that bypasses the AcrPull role assignment.
-    adminUserEnabled: false
+    // Enabled because the express environment cannot use a managed identity
+    // for registry auth. The password is handed in at deploy time as a secure
+    // parameter and stored only in the Container App's own secret store.
+    adminUserEnabled: true
     publicNetworkAccess: 'Enabled'
   }
 }
@@ -103,11 +114,6 @@ resource env 'Microsoft.App/managedEnvironments@2024-03-01' = {
 resource backend 'Microsoft.App/containerApps@2024-03-01' = {
   name: appName
   location: location
-  // System-assigned identity is what pulls the image from ACR. Nothing to
-  // store, nothing to expire.
-  identity: {
-    type: 'SystemAssigned'
-  }
   properties: {
     managedEnvironmentId: env.id
     configuration: {
@@ -123,12 +129,14 @@ resource backend 'Microsoft.App/containerApps@2024-03-01' = {
       registries: [
         {
           server: acrLoginServer
-          // `identity` rather than username/passwordSecretRef: the platform
-          // exchanges the system-assigned identity for an AcrPull token.
-          identity: 'system'
+          // Express environments reject `identity` here, so the ACR admin
+          // credential is the only pull path available on this plan.
+          username: acrUsername
+          passwordSecretRef: 'acr-password'
         }
       ]
       secrets: [
+        { name: 'acr-password', value: acrPassword }
         { name: 'artemisa-api-keys', value: artemisaApiKeys }
         { name: 'metrics-secret', value: metricsSecret }
         { name: 'bypass-secret', value: bypassSecret }
@@ -216,21 +224,6 @@ resource backend 'Microsoft.App/containerApps@2024-03-01' = {
   }
 }
 
-// --- AcrPull: let the container app pull its own image ---------------------
-// Ordering note: the role assignment needs the identity, so it is created
-// AFTER the container app. On a brand new environment the first revision can
-// briefly fail to pull while the assignment propagates (typically under a
-// minute); Container Apps retries the pull and recovers on its own. The
-// health gate in the deploy workflow waits for that.
-resource acrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(acr.id, backend.id, 'AcrPull')
-  scope: acr
-  properties: {
-    roleDefinitionId: acrPullRoleDefinitionId
-    principalId: backend.identity.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
 
 output fqdn string = backend.properties.configuration.ingress.fqdn
 output baseUrl string = 'https://${backend.properties.configuration.ingress.fqdn}'

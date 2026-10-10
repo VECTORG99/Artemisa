@@ -3,13 +3,17 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VECTORG99/Artemisa/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/VECTORG99/Artemisa/ci.yml?branch=master&style=for-the-badge&label=CI&color=8b5cf6" alt="CI" /></a>
+  <a href="https://github.com/HackTheWorld-Team/Artemisa/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/HackTheWorld-Team/Artemisa/ci.yml?branch=master&style=for-the-badge&label=CI&color=8b5cf6" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MPL--2.0-8b5cf6?style=for-the-badge" alt="License: MPL-2.0" /></a>
   <a href="https://artemisa-ai.netlify.app"><img src="https://img.shields.io/badge/Homepage-artemisa--ai.netlify.app-8b5cf6?style=for-the-badge" alt="Homepage" /></a>
 </p>
 
+> [!WARNING]
+> **REPOSITORIO MIGRADO**: Este repositorio ha sido migrado a la organización **HackTheWorld-Team** y ya no recibirá actualizaciones.
+> Por favor, dirígete a: **[github.com/HackTheWorld-Team/Artemisa](https://github.com/HackTheWorld-Team/Artemisa)** para ver el código más reciente, abrir issues o enviar pull requests.
+
 > [!IMPORTANT]
-> Construido para el Hackathon Kiro x Código Facilito 2026.
+> Construido para el Hackathon Kiro x Código Facilito 2026. El proyecto se desarrolló íntegramente con **Kiro** como IDE agentic.
 > Documentación en español. Lectores LLM: leer `AGENTS.md` y `CONTEXT.md` para el contexto completo del proyecto.
 > El backend solo genera configuración: no hay ejecución, persistencia ni llamadas de red.
 
@@ -28,9 +32,25 @@ Artemisa es un generador **stateless y determinista** de bundles de configuraci�
 
 El Creator **no usa un LLM** para decidir la arquitectura, **no ejecuta comandos**, **no escribe archivos en el proyecto del usuario**, **no usa base de datos** y **no requiere claves de proveedores de LLM**.
 
-![Flujo del Creator — de problema a bundle de configuración reproducible](docs/images/creator-flow.svg)
+### Integración con Kiro
 
-![Captura de pantalla del Creator](docs/images/screenshot-creator.png)
+Artemisa genera artefactos nativos para **[Kiro](https://aws.amazon.com/kiro/)**, la IDE agentic de AWS:
+
+| Artefacto                           | Propósito                                             |
+| ----------------------------------- | ----------------------------------------------------- |
+| `.kiro/steering/<agente>.md`        | Identidad, rol y constraints operacionales del agente |
+| `.kiro/hooks/<agente>-quality.json` | Quality gates automáticos previos a finalizar tareas  |
+| `.kiro/skills/<agente>/SKILL.md`    | Procedimientos reutilizables específicos del agente   |
+
+Cuando seleccionás **Kiro** como target en el árbol de decisiones, el bundle incluye estos archivos dentro de `.kiro/`. Los esquemas de las configuraciones relacionadas (steering, MCPs, RAG y política de seguridad) están en `src/kiro/schemas/*.json` y se validan en CI (`test/kiro-schema.test.mjs`).
+
+### Landing page
+
+![Landing page de Artemisa — hero con simulación espacial, navegación flotante y CTA al Creator](docs/images/screenshot-landing.png)
+
+### Flujo del Creator
+
+![Flujo del Creator — de problema a bundle de configuración reproducible](docs/images/creator-flow.svg)
 
 ## Cómo funciona
 

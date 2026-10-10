@@ -99,19 +99,25 @@ describe('Azure Container Apps deployment security (ADR-0009)', () => {
     assert.match(bicep, /minReplicas:\s*minReplicas/);
   });
 
-  it('infra/main.bicep gives the container app a managed identity for ACR, not a stored secret', () => {
-    assert.match(bicep, /identity:\s*\{\s*type:\s*'SystemAssigned'/);
-    assert.match(bicep, /server:\s*acrLoginServer[\s\S]{0,120}identity:\s*'system'/);
-    // A registry credential would mean a token to store and rotate; an
-    // expired one silently blocks scale-out and new deploys.
-    assert.doesNotMatch(bicep, /passwordSecretRef/);
+  it('infra/main.bicep keeps the ACR credential out of GitHub as a secure parameter', () => {
+    // A managed identity would be cleaner, but express environments reject
+    // registries[].identity outright (ExpressEnvironmentFeatureNotSupported),
+    // and the only alternative that accepts it bills ~USD 73/month. So the
+    // admin credential is the pull path, and the invariant worth keeping is
+    // that it arrives as a @secure() parameter and lives only in the
+    // Container App's secret store.
+    assert.match(bicep, /passwordSecretRef:\s*'acr-password'/);
+    assert.match(bicep, /name:\s*'acr-password',\s*value:\s*acrPassword/);
+    assert.match(bicep, /@secure\(\)[\s\S]{0,200}param acrPassword/);
     assert.doesNotMatch(bicep, /ghcr/);
   });
 
-  it('infra/main.bicep grants AcrPull and disables ACR admin credentials', () => {
-    assert.match(bicep, /roleDefinitionId:\s*acrPullRoleDefinitionId/);
-    assert.match(bicep, /principalId:\s*backend\.identity\.principalId/);
-    assert.match(bicep, /adminUserEnabled:\s*false/);
+  it('workflow reads the ACR credential at deploy time instead of storing it as a secret', () => {
+    assert.match(workflow, /az acr credential show/);
+    // The value must reach the template through the private params file, not
+    // as a command-line argument where it would land in a process list.
+    assert.match(workflow, /"acrPassword":\s*\{ "value": "\$ACR_PASS" \}/);
+    assert.doesNotMatch(workflow, /ACR_PASS=\$\{\{ secrets/);
   });
 
   it('workflow gates the deploy on /api/health and rolls back when the gate fails', () => {
