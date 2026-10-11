@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 
 ### Chores
 
+- Badge de CI nativo de GitHub y sin hero banner _(readme)_
+
+## [v1.5.24] - 2026-10-11
+
+### Chores
+
+- V1.5.24 [skip ci] _(release)_
+
 - Corregir el conteo de preguntas y borrar imagenes huerfanas _(docs)_
 
 ## [v1.5.23] - 2026-10-11
